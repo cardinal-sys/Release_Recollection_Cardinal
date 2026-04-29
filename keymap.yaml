@@ -192,7 +192,7 @@ layers:
   - '&msc MOVE_UP'
   - '&msc MOVE_LEFT'
   - '&arrows_alt 6'
-  - '&mkp MB3'
+  - '&mkp MB1'
   - '&safari_reload_once'
   - '&mkp MB3'
   - '&mkp MB2'
@@ -203,8 +203,8 @@ layers:
   - END
   - DOWN ARROW
   - UP ARROW
-  - '&mkp MB2'
-  - '&mkp MB1'
+  - LEFT ARROW
+  - RIGHT ARROW
   - Gui+C
   - Gui+V
   - UP ARROW
@@ -247,8 +247,8 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
+  - LEFT ARROW
+  - RIGHT ARROW
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - UP ARROW
