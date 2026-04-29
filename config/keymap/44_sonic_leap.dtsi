@@ -1,0 +1,34 @@
+/* ============================================================
+ * 44_sonic_leap.dtsi — SWORD SKILL : SONIC LEAP  [ KEY : T ]
+ *
+ * behaviors { } の内側でインクルードされる。
+ * タブ開閉・移動・ズーム系（T キー長押し）
+ * ============================================================ */
+
+gT_up: gT_up {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(T)>, <&kp LG(R)>;
+};
+
+gT_down: gT_down {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(W)>, <&kp LG(F)>;
+};
+
+gT_left: gT_left {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LC(LS(TAB))>, <&kp LG(MINUS)>;
+};
+
+gT_right: gT_right {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LC(TAB)>, <&kp LG(PLUS)>;
+};

@@ -1,0 +1,92 @@
+/* ===============================
+ * Recollection.keymap — include entry point
+ *
+ * 実装は config/keymap/ 以下に責務分割されています。
+ * このファイルはインクルードの入口として機能します。
+ *
+ *  レイヤー順（0起算）
+ *    0  default_layer
+ *    1  FUNCTION
+ *    2  ARROW_SIGN
+ *    3  NUM
+ *    4  MOUSE
+ *    5  SCROLL
+ *    6  Bluetooth
+ *    7  GESTURE_E
+ *    8  GESTURE_R
+ *    9  GESTURE_S
+ *   10  GESTURE_B
+ *   11  GESTURE_T
+ *   12  GESTURE_A
+ *   13  GESTURE_D
+ *   14  GESTURE_W
+ *   15  SNIPE（デフォルト複製。CPI はドライバが自動低減）
+ *   16  NUM_SMART（Smart Num: 数字キーで自動維持、それ以外で自動解除）
+ *
+ *  overlay 側で gesture を 7..14 に紐付け（gE/gR/gS/gB/gT/gA/gD/gW）
+ * =============================== */
+
+/* --- インクルード・#define・共通設定 --- */
+#include "keymap/00_prelude.dtsi"
+
+/* ⑦ zmk-helpers: ZMK_COMBO マクロは / { } の外に置く（マクロ自身が / { } を生成するため） */
+
+/ {
+    combos {
+        compatible = "zmk,combos";
+
+        #include "keymap/10_combos.dtsi"
+    };
+
+    macros {
+        #include "keymap/20_macros.dtsi"
+    };
+
+    behaviors {
+        /* --- 基礎 behavior --- */
+        #include "keymap/30_behaviors_base.dtsi"
+
+        /* --- レイヤー制御系 behavior --- */
+        #include "keymap/31_behaviors_layers.dtsi"
+
+        /* --- ジェスチャー behavior (剣技) --- */
+        #include "keymap/40_sharp_nail.dtsi"
+        #include "keymap/41_vorpal_strike.dtsi"
+        #include "keymap/42_the_eclipse.dtsi"
+        #include "keymap/43_howling_octave.dtsi"
+        #include "keymap/44_sonic_leap.dtsi"
+        #include "keymap/45_vertical_square.dtsi"
+        #include "keymap/46_starburst_stream.dtsi"
+        #include "keymap/47_horizontal.dtsi"
+    };
+
+    conditional_layers {
+        compatible = "zmk,conditional-layers";
+        snipe_layer {
+            if-layers = <2 3>;
+            then-layer = <15>;
+        };
+    };
+
+    keymap {
+        compatible = "zmk,keymap";
+
+        #include "keymap/layers/00_default.dtsi"
+        #include "keymap/layers/01_function.dtsi"
+        #include "keymap/layers/02_arrow_sign.dtsi"
+        #include "keymap/layers/03_num.dtsi"
+        #include "keymap/layers/04_mouse.dtsi"
+        #include "keymap/layers/05_scroll.dtsi"
+        #include "keymap/layers/06_bluetooth.dtsi"
+        #include "keymap/layers/07_gesture_e.dtsi"
+        #include "keymap/layers/08_gesture_r.dtsi"
+        #include "keymap/layers/09_gesture_s.dtsi"
+        #include "keymap/layers/10_gesture_b.dtsi"
+        #include "keymap/layers/11_gesture_t.dtsi"
+        #include "keymap/layers/12_gesture_a.dtsi"
+        #include "keymap/layers/13_gesture_d.dtsi"
+        #include "keymap/layers/14_gesture_w.dtsi"
+        #include "keymap/layers/15_snipe.dtsi"
+        #include "keymap/layers/16_num_smart.dtsi"
+    };
+};

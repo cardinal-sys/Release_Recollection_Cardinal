@@ -1,0 +1,34 @@
+/* ============================================================
+ * 47_horizontal.dtsi — SWORD SKILL : HORIZONTAL  [ KEY : W ]
+ *
+ * behaviors { } の内側でインクルードされる。
+ * ブラウザ履歴 / ウィンドウ操作系（W キー長押し）
+ * ============================================================ */
+
+gW_up: gW_up {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp F3>, <&kp F17>;
+};
+
+gW_down: gW_down {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(M)>, <&kp F11>;
+};
+
+gW_left: gW_left {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(LBKT)>, <&kp LG(Q)>;
+};
+
+gW_right: gW_right {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(RBKT)>, <&kp LG(W)>;
+};

@@ -1,0 +1,12 @@
+/* ============================================================
+ * layers/10_gesture_b.dtsi — [ Synthesis 10 ] GESTURE_B
+ * ============================================================ */
+
+GESTURE_B {
+    bindings = <
+&trans  &trans  &trans  &trans          &trans                                      &trans  &trans  &kp LEFT_SHIFT  &trans          &trans
+&trans  &trans  &trans  &trans          &trans          &trans              &trans  &trans  &trans  &kp LEFT_SHIFT  &kp LEFT_SHIFT  &trans
+&trans  &trans  &trans  &trans          &trans          &trans              &trans  &trans  &trans  &trans          &trans          &trans
+&trans  &trans  &trans  &kp LEFT_SHIFT  &kp LEFT_SHIFT  &kp LEFT_SHIFT      &trans  &trans                                          &trans
+    >;
+};

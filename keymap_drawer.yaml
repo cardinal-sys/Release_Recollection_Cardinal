@@ -1,0 +1,77 @@
+draw_config:
+  key_h: 60
+  key_w: 60
+  split_gap: 40
+  combo_w: 36
+  combo_h: 32
+  n_cols: 2
+  draw_key_sides: true
+  svg_extra_style: |
+    svg.keymap { background-color: #020712; fill: #e2f0ff; }
+    rect.key { fill: #070e20; stroke: #0e1e3c; }
+    rect.side { fill: #0b1830; filter: none; }
+    rect.held, rect.combo.held { fill: #030b24; stroke: #1d4ed8; stroke-width: 2; filter: drop-shadow(0 0 6px rgba(29,78,216,1.0)) drop-shadow(0 0 16px rgba(29,78,216,0.45)); }
+    rect.combo, rect.combo-separate { fill: #080e24; stroke: #6366f1; stroke-width: 2; filter: drop-shadow(0 0 6px rgba(99,102,241,1.0)) drop-shadow(0 0 16px rgba(99,102,241,0.45)); }
+    rect.ghost { stroke: #67e8f9; }
+    text.trans { fill: #090f1e; }
+    text.tap { filter: drop-shadow(0 0 4px rgba(226,240,255,0.55)); }
+    text.hold { fill: #38bdf8; font-size: 9px; filter: drop-shadow(0 0 5px rgba(56,189,248,0.75)) drop-shadow(0 0 10px rgba(56,189,248,0.3)); }
+    text.shifted { fill: #7dd3fc; }
+    text.label { fill: #67e8f9; stroke: #020712; stroke-width: 6; paint-order: stroke; filter: drop-shadow(0 0 8px rgba(103,232,249,0.9)); }
+    text.footer { stroke: #020712; }
+    text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(165,243,252,0.7)); }
+
+parse_config:
+  layer_name_map:
+    FUNCTION: "FN"
+    ARROW_SIGN: "ArSgn"
+    NUM: "NUM"
+    MOUSE: "MOUSE"
+    SCROLL: "SCROLL"
+    Bluetooth: "BT"
+    GESTURE_E: "G·E"
+    GESTURE_R: "G·R"
+    GESTURE_S: "G·S"
+    GESTURE_B: "G·B"
+    GESTURE_T: "G·T"
+    GESTURE_A: "G·A"
+    GESTURE_D: "G·D"
+    GESTURE_W: "G·W"
+    SNIPE: "SNIPE"
+    NUM_SMART: "N·Sm"
+  raw_binding_map:
+    gesture_mo_kp: "Mo/Kp"
+    mouse_gesture_kp: "Gest/Kp"
+    mouse_gesture_mkp: "Gest/Mkp"
+    lt_to_layer_0: "LT→0"
+    lt_mkp: "LT/Mkp"
+    mod_mkp: "Mod/Mkp"
+    dragkey: "Drag\nKey"
+    smart_num: "Sm\nNum"
+    arrows_alt: "Arrows"
+    g_shft: "GShft"
+    lm: "LM"
+    rotate: "Rotate"
+    swapper: "Swap→"
+    swapper_rev: "Swap←"
+    "mmv MOVE_LEFT": "MMV\n←"
+    "mmv MOVE_RIGHT": "MMV\n→"
+    "mmv MOVE_UP": "MMV\n↑"
+    "mmv MOVE_DOWN": "MMV\n↓"
+    "msc MOVE_LEFT": "Scrl\n←"
+    "msc MOVE_RIGHT": "Scrl\n→"
+    "msc MOVE_UP": "Scrl\n↑"
+    "msc MOVE_DOWN": "Scrl\n↓"
+    "mkp MB1": "MB1"
+    "mkp MB2": "MB2"
+    "mkp MB3": "MB3"
+    "smart_snipe 15": "Sm\nSnipe"
+    "smart_num 16": "Sm\nNum"
+    "bootloader": "BOOT"
+    "studio_unlock": "Studio"
+    "safari_reload_once": "Saf\nRld"
+    "drag_on": "Drag\nON"
+    "drag_off": "Drag\nOFF"
+    "arrows_alt 6": "Arws\n[6]"
+    "arrows_alt 2": "Arws\n[2]"
+    "arrows_alt 3": "Arws\n[3]"

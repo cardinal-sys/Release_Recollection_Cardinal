@@ -1,0 +1,14 @@
+/* ============================================================
+ * layers/08_gesture_r.dtsi — [ Synthesis 08 ] GESTURE_R
+ * ============================================================ */
+
+GESTURE_R {
+    bindings = <
+&trans  &trans  &trans  &trans          &trans                                      &trans  &trans  &kp LEFT_SHIFT  &trans          &trans
+&trans  &trans  &trans  &trans          &trans          &trans              &trans  &trans  &trans  &kp LEFT_SHIFT  &kp LEFT_SHIFT  &trans
+&trans  &trans  &trans  &trans          &trans          &trans              &trans  &trans  &trans  &trans          &trans          &trans
+&trans  &trans  &trans  &kp LEFT_SHIFT  &kp LEFT_SHIFT  &kp LEFT_SHIFT      &trans  &trans                                          &trans
+    >;
+
+    sensor-bindings = <&inc_dec_kp LG(MINUS) LG(PLUS)>;
+};

@@ -1,0 +1,56 @@
+/* ============================================================
+ * 31_behaviors_layers.dtsi — レイヤー制御系 behavior 定義
+ *
+ * behaviors { } の内側でインクルードされる。
+ * hold-tap でレイヤー0復帰するもの / auto-layer (smart_num)。
+ * ============================================================ */
+
+smart_snipe: smart_snipe {
+    compatible = "zmk,behavior-auto-layer";
+    #binding-cells = <1>;
+    continue-list = <LSHFT RSHFT LCTRL RCTRL LALT RALT LGUI RGUI I K>;
+    ignore-modifiers;
+};
+
+ht_snipe: ht_snipe {
+    compatible = "zmk,behavior-hold-tap";
+    #binding-cells = <2>;
+    flavor = "tap-preferred";
+    tapping-term-ms = <200>;
+    quick-tap-ms = <150>;
+    bindings = <&smart_snipe>, <&kp>;
+};
+
+lt_to_layer_0: lt_to_layer_0 {
+    compatible = "zmk,behavior-hold-tap";
+    label = "LAYER_TAP_TO_0";
+    bindings = <&mo>, <&to_layer_0>;
+
+    #binding-cells = <2>;
+    flavor = "tap-preferred";
+    tapping-term-ms = <210>;
+    quick-tap-ms = <150>;
+    require-prior-idle-ms = <350>;
+};
+
+ht_arrows_alt: ht_arrows_alt {
+    compatible = "zmk,behavior-hold-tap";
+    #binding-cells = <2>;
+    flavor = "tap-preferred";
+    tapping-term-ms = <200>;
+    quick-tap-ms = <150>;
+    bindings = <&arrows_alt>, <&kp>;
+};
+
+smart_num: smart_num {
+    compatible = "zmk,behavior-auto-layer";
+    #binding-cells = <1>;
+    ignore-modifiers;
+    continue-list = <
+        KP_NUMBER_0 KP_NUMBER_1 KP_NUMBER_2 KP_NUMBER_3 KP_NUMBER_4
+        KP_NUMBER_5 KP_NUMBER_6 KP_NUMBER_7 KP_NUMBER_8 KP_NUMBER_9
+        BACKSPACE DELETE DOT COMMA EQUAL
+        PLUS MINUS ASTERISK SLASH
+        SPACE ENTER
+    >;
+};

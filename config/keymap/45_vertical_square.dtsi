@@ -1,0 +1,34 @@
+/* ============================================================
+ * 45_vertical_square.dtsi — SWORD SKILL : VERTICAL SQUARE  [ KEY : A ]
+ *
+ * behaviors { } の内側でインクルードされる。
+ * アプリ切り替え・Spotlight・Cmd+Tab 系（A キー長押し）
+ * ============================================================ */
+
+gA_up: gA_up {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LC(B)>, <&kp LC(LA(LG(NUMBER_1)))>;
+};
+
+gA_down: gA_down {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(SPACE)>, <&kp LC(LA(LG(NUMBER_4)))>;
+};
+
+gA_left: gA_left {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&swapper_rev>, <&kp LC(LA(LG(NUMBER_3)))>;
+};
+
+gA_right: gA_right {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&swapper>, <&kp LC(LA(LG(NUMBER_2)))>;
+};

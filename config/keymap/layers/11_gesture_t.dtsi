@@ -1,0 +1,12 @@
+/* ============================================================
+ * layers/11_gesture_t.dtsi — [ Synthesis 11 ] GESTURE_T
+ * ============================================================ */
+
+GESTURE_T {
+    bindings = <
+&trans  &trans  &trans  &trans          &trans                                      &trans  &trans  &kp LEFT_SHIFT  &trans          &trans
+&trans  &trans  &trans  &trans          &trans          &trans              &trans  &trans  &trans  &kp LEFT_SHIFT  &kp LEFT_SHIFT  &trans
+&trans  &trans  &trans  &trans          &trans          &trans              &trans  &trans  &trans  &trans          &trans          &trans
+&trans  &trans  &trans  &kp LEFT_SHIFT  &kp LEFT_SHIFT  &kp LEFT_SHIFT      &trans  &trans                                          &trans
+    >;
+};

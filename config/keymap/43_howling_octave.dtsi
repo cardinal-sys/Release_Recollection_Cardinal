@@ -1,0 +1,34 @@
+/* ============================================================
+ * 43_howling_octave.dtsi — SWORD SKILL : HOWLING OCTAVE  [ KEY : B ]
+ *
+ * behaviors { } の内側でインクルードされる。
+ * 輝度 / 音量 / メディア操作系（B キー長押し）
+ * ============================================================ */
+
+gB_up: gB_up {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp C_BRI_UP>, <&kp F13>;
+};
+
+gB_down: gB_down {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp C_BRI_DN>, <&kp C_MUTE>;
+};
+
+gB_left: gB_left {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp C_VOL_DN>, <&kp F19>;
+};
+
+gB_right: gB_right {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp C_VOL_UP>, <&kp F18>;
+};

@@ -1,0 +1,5 @@
+config SHIELD_ELUCIDATOR
+    def_bool $(shields_list_contains,Elucidator)
+
+config SHIELD_DARK_REPULSER
+    def_bool $(shields_list_contains,Dark_Repulser)

@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(git push*main*)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "result=$(gh run list --repo eincode0/Release_Recollection --limit 3 --json status,conclusion,displayTitle,createdAt 2>/dev/null | jq -r '.[] | \"  \\(.conclusion // .status)\\t\\(.displayTitle)\"' 2>/dev/null); if [ -n \"$result\" ]; then echo \"{\\\"systemMessage\\\": \\\"🔨 最新ビルド:\\\\n$result\\\"}\"; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

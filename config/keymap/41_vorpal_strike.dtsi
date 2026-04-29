@@ -1,0 +1,34 @@
+/* ============================================================
+ * 41_vorpal_strike.dtsi — SWORD SKILL : VORPAL STRIKE  [ KEY : R ]
+ *
+ * behaviors { } の内側でインクルードされる。
+ * テキスト選択範囲操作系（R キー長押し）
+ * ============================================================ */
+
+gR_up: gR_up {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(A)>, <&kp LG(LS(UP_ARROW))>;
+};
+
+gR_down: gR_down {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(X)>, <&kp LG(LS(DOWN_ARROW))>;
+};
+
+gR_left: gR_left {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LA(LS(LEFT_ARROW))>, <&kp LG(LS(LEFT_ARROW))>;
+};
+
+gR_right: gR_right {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LA(LS(RIGHT_ARROW))>, <&kp LG(LS(RIGHT_ARROW))>;
+};

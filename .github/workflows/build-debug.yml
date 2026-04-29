@@ -1,0 +1,9 @@
+name: Build (Debug / USB Logging)
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
+    with:
+      build_matrix_path: build-debug.yaml

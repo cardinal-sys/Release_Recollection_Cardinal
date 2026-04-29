@@ -1,0 +1,22 @@
+if SHIELD_ELUCIDATOR
+
+config ZMK_KEYBOARD_NAME
+    default "Elucidator"
+
+config ZMK_SPLIT
+    default y
+
+config ZMK_SPLIT_ROLE_CENTRAL
+    default y
+
+endif
+
+if SHIELD_DARK_REPULSER
+
+config ZMK_KEYBOARD_NAME
+    default "Dark Repulser"
+
+config ZMK_SPLIT
+    default y
+
+endif

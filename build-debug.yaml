@@ -1,0 +1,11 @@
+---
+include:
+  - board: xiao_ble/nrf52840/zmk
+    shield: Elucidator rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_USB_LOGGING=y
+    artifact-name: Elucidator_USB_Logging
+  - board: xiao_ble/nrf52840/zmk
+    shield: Dark_Repulser rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_USB_LOGGING=y
+    artifact-name: Dark_Repulser_USB_Logging

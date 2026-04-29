@@ -1,0 +1,9 @@
+file_format: "1"
+id: Recollection
+name: Recollection
+type: shield
+url: https://github.com/eincode0/Release_Recollection.git
+requires: [xiao_ble/nrf52840/zmk]
+features:
+  - keys
+  - sensors

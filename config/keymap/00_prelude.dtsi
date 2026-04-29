@@ -1,0 +1,42 @@
+/* ============================================================
+ * 00_prelude.dtsi — インクルード群・#define・共通設定
+ *
+ * Recollection.keymap から最初にインクルードされる。
+ * include パス / ZMK_POINTING スクロール値 / 基礎 behavior 設定を担う。
+ * ============================================================ */
+
+#include "../dts/mouse-gesture.local.dtsi"
+#include <dt-bindings/zmk/mouse.h>
+#include <zmk-helpers/helper.h>              /* ⑦ zmk-helpers: ZMK_COMBO 等のマクロ */
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/pointing.h>
+
+/* ⑧ zmk-tri-state: behaviors/tri_state.dtsi は不要。behavior を keymap に直接定義する */
+/* pointing.h の定義（デフォルト10）を上書き */
+
+#undef ZMK_POINTING_DEFAULT_SCRL_VAL
+#define ZMK_POINTING_DEFAULT_SCRL_VAL 10
+
+&msc {
+    time-to-max-speed-ms = <0>;
+    acceleration-exponent = <0>;
+};
+
+&mt {
+    flavor = "balanced";
+    quick-tap-ms = <0>;
+};
+
+&mouse_gesture_kp {
+    tapping-term-ms = <200>;
+    quick-tap-ms = <0>;
+    flavor = "tap-preferred";
+};
+
+&mouse_gesture_mkp {
+    tapping-term-ms = <200>;
+    quick-tap-ms = <0>;
+    flavor = "tap-preferred";
+};

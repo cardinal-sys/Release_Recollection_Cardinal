@@ -1,0 +1,34 @@
+/* ============================================================
+ * 42_the_eclipse.dtsi — SWORD SKILL : THE ECLIPSE  [ KEY : S ]
+ *
+ * behaviors { } の内側でインクルードされる。
+ * スクリーンショット系（S キー長押し）
+ * ============================================================ */
+
+gS_up: gS_up {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(LS(NUMBER_3))>, <&kp LC(LG(LS(NUMBER_3)))>;
+};
+
+gS_down: gS_down {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp ESC>, <&kp ESC>;
+};
+
+gS_left: gS_left {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(LS(NUMBER_4))>, <&kp LC(LG(LS(NUMBER_4)))>;
+};
+
+gS_right: gS_right {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(LS(NUMBER_5))>, <&kp LG(LS(NUMBER_5))>;
+};

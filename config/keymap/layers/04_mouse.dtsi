@@ -1,0 +1,14 @@
+/* ============================================================
+ * layers/04_mouse.dtsi — [ Synthesis 04 ] MOUSE
+ * ============================================================ */
+
+MOUSE {
+    bindings = <
+&mmv MOVE_LEFT       &mmv MOVE_DOWN  &mmv MOVE_UP    &mmv MOVE_RIGHT  &kp LG(T)                                              &kp LG(Z)       &kp LG(RBKT)  &gesture_mo_kp 5 LG(LBKT)  &kp LG(A)  &kp LC(H)
+&msc MOVE_RIGHT      &msc MOVE_DOWN  &msc MOVE_UP    &msc MOVE_LEFT   &arrows_alt 6  &mkp MB3           &safari_reload_once  &mkp MB3        &mkp MB2      &mkp MB1                   &trans     &gesture_mo_kp 5 ENTER
+&mt LEFT_SHIFT HOME  &kp END         &kp DOWN_ARROW  &kp UP_ARROW     &mkp MB2       &mkp MB1           &kp LG(C)            &kp LG(V)       &kp UP_ARROW  &drag_off                  &kp LG(X)  &gesture_mo_kp 5 BACKSPACE
+&kp LG(P)            &kp LG(RBKT)    &kp LG(LBKT)    &arrows_alt 2    &arrows_alt 3  &kp TAB            &drag_on             &kp DOWN_ARROW                                                      &trans
+    >;
+
+    sensor-bindings = <&rotate>;
+};

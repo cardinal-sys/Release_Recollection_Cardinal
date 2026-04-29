@@ -1,0 +1,34 @@
+/* ============================================================
+ * 46_starburst_stream.dtsi — SWORD SKILL : STARBURST STREAM  [ KEY : D ]
+ *
+ * behaviors { } の内側でインクルードされる。
+ * Mission Control / 輝度調整 / スペース移動系（D キー長押し）
+ * ============================================================ */
+
+gD_up: gD_up {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LC(UP_ARROW)>, <&kp F12>;
+};
+
+gD_down: gD_down {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(H)>, <&kp LC(DOWN_ARROW)>;
+};
+
+gD_left: gD_left {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp F14>, <&kp F11>;
+};
+
+gD_right: gD_right {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp F15>, <&kp F20>;
+};

@@ -1,0 +1,17 @@
+/* ============================================================
+ * layers/17_snipe_scroll.dtsi — [ Synthesis 17 ] SNIPE_SCROLL
+ *
+ * SNIPE（L15）内の K ホールドで起動するスクロールレイヤー。
+ * キーはすべて &trans でデフォルトへ透過。
+ * トラックボール動作は driver の arrows-profiles 経由でスクロール
+ * ホイールイベント（コード 2000-2003）に変換される。
+ * ============================================================ */
+
+SNIPE_SCROLL {
+    bindings = <
+&trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans                          &trans
+    >;
+};

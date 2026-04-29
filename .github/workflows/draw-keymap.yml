@@ -1,0 +1,42 @@
+name: Draw keymap
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "config/Recollection.keymap"
+      - "keymap_drawer.yaml"
+  workflow_dispatch:
+
+jobs:
+  draw:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install keymap-drawer
+        run: pip install keymap-drawer
+
+      - name: Parse ZMK keymap
+        run: keymap -c keymap_drawer.yaml parse -z config/Recollection.keymap > keymap.yaml
+
+      - name: Draw keymap
+        run: keymap -c keymap_drawer.yaml draw keymap.yaml --qmk-info-json config/Recollection.json --layout-name default_layout > keymap.svg
+
+      - name: Commit generated files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase --autostash origin main
+          git add keymap.svg keymap.yaml
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update keymap drawing [skip ci]"
+          git push

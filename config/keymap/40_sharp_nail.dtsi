@@ -1,0 +1,34 @@
+/* ============================================================
+ * 40_sharp_nail.dtsi — SWORD SKILL : SHARP NAIL  [ KEY : E ]
+ *
+ * behaviors { } の内側でインクルードされる。
+ * コピー / ペースト / アンドゥ / リドゥ 系（E キー長押し）
+ * ============================================================ */
+
+gE_up: gE_up {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(C)>, <&kp LG(X)>;
+};
+
+gE_down: gE_down {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(V)>, <&kp LG(LS(V))>;
+};
+
+gE_left: gE_left {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(Z)>, <&kp LG(P)>;
+};
+
+gE_right: gE_right {
+    compatible = "zmk,behavior-mod-morph";
+    #binding-cells = <0>;
+    mods = <(MOD_LSFT|MOD_RSFT)>;
+    bindings = <&kp LG(LS(Z))>, <&kp LG(RET)>;
+};

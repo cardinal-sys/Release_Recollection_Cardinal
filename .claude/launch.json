@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "keymap-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["scripts/keymap_preview_server.py"],
+      "port": 3000
+    }
+  ]
+}
