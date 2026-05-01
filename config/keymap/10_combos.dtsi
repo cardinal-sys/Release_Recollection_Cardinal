@@ -29,13 +29,18 @@ key2 {
     key-positions = <29 30>;
 };
 
-scrl_up {
-    bindings = <&msc MOVE_UP>;
+app_quit {
+    bindings = <&kp LG(Q)>;
+    key-positions = <9 21>;
+};
+
+window_close {
+    bindings = <&kp LG(W)>;
     key-positions = <21 33>;
 };
 
-scrl_down {
-    bindings = <&msc MOVE_DOWN>;
+window_min {
+    bindings = <&kp LG(M)>;
     key-positions = <33 42>;
 };
 

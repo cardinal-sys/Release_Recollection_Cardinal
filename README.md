@@ -292,3 +292,13 @@
 
 > **[ CARDINAL ]** GitHub Actions により自動ビルド（`.github/workflows/build.yml`）。
 > Push を契機に自動実行される。Artifacts から `.uf2` ファイルをダウンロードし、デバイスへ書き込むことで起動が完了する。
+
+══════════════════════════════════════════════
+
+## ◆ SYSTEM LOG ── 更新履歴
+
+*カーディナルシステムの変更軌跡。刻まれた決定と解放された力の記録。*
+
+| DATE | ENTRY |
+|---|---|
+| 2026-05-01 | コンボ再構築：scrl_up/scrl_down → window_close/window_min、新規 app_quit（P+マイナス）追加 |
