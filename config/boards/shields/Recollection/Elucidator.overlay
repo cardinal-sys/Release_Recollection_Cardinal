@@ -53,7 +53,7 @@
             scroll-inertia-decay-fast   = <98>;
             scroll-inertia-slow-spd     = <1>;
             scroll-inertia-fast-spd     = <15>;
-            scroll-inertia-tick-ms      = <8>;
+            scroll-inertia-tick-ms      = <4>;
             scroll-flick-threshold      = <5>;
             scroll-flick-boost          = <12000>;
         };

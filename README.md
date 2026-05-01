@@ -319,6 +319,7 @@
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-01 | 〈Inertia Smooth〉— L5 SCROLL の慣性更新頻度を倍増。`scroll-inertia-tick-ms` を `<8>` → `<4>` に変更（125Hz → 250Hz）。慣性スクロール時のフレーム更新が滑らかになり、ゆっくり減衰する局面の段付き感が軽減される。CPU/BLE 負荷は約2倍に増えるが軽微。違和感が出れば `<6>` 〜 `<8>` に戻して再調整する想定。 |
 | 2026-05-01 | 〈Edit Conjure〉— [ Synthesis 03 ] NUM の左手を編集ショートカット用に再配置。⌘A/X/C/V（選択・カット・コピー・ペースト）、⌘Z/Y（Undo/Redo）、^⌥V、⌘↑3、⌘↑4（スクリーンショット）、END を配置。右手のテンキーは現状維持。 |
 | 2026-05-01 | 〈Sign Reforge〉— [ Synthesis 02 ] ARROW_SIGN を記号入力レイヤーへ再構築。矢印・選択系バインドを削除し、左手に `! # $ &` `" ' \` ?` `\|`、右手に `[ ] { } ~` `( ) - @ ;` `< > _ \\ :` を配置。左手 2 行目 1 列目に `&mt LSHIFT TAB`、3 行目 1 列目に `&kp LSHIFT` を配置。 |
 | 2026-05-01 | 〈Handling Stabilize〉— home-row mod（hm_l/hm_r）を削除。hold-tap behavior チューニング（lt_mkp/mod_mkp の balanced + require-prior-idle）は保持。BLE接続タイムアウト = 600ms。 |
