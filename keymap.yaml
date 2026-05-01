@@ -133,34 +133,34 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   NUM:
-  - KP 5
-  - KP 4
-  - KP 3
-  - KP 2
+  - {t: ▽, type: trans}
+  - Ctl+Alt+V
+  - Gui+Sft+3
+  - Gui+Sft+4
+  - {t: ▽, type: trans}
   - KP 1
-  - KP 1
   - KP 2
   - KP 3
   - KP 4
   - KP 5
-  - KP 0
-  - KP 9
-  - KP 8
-  - KP 7
-  - KP 6
-  - CAPS
+  - Gui+A
+  - Gui+X
+  - Gui+C
+  - Gui+V
+  - END
+  - {t: ▽, type: trans}
   - '='
   - KP 6
   - KP 7
   - KP 8
   - KP 9
   - KP 0
-  - {t: ',', h: LEFT SHIFT}
-  - .
-  - /
-  - '*'
-  - '-'
-  - +
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - Gui+Z
+  - Gui+Y
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   - +
   - '-'
   - '*'
@@ -172,7 +172,7 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {type: held}
-  - {t: default, h: toggle}
+  - {t: ▽, type: trans}
   - BACKSPACE
   - ENTER
   - Gui+Z
