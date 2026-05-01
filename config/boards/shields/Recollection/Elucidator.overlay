@@ -78,7 +78,7 @@
             layers = <5>;
             input-processors = <
                 &zip_xy_to_scroll_mapper
-                &zip_snipe_scroll_scaler 1 2
+                &zip_snipe_scroll_scaler 1 1
                 &zip_scroll_snap
             >;
         };
@@ -152,7 +152,7 @@
     sensitivity = <1000>;
     max-factor = <16000>;
     acceleration-exponent = <3>;
-    speed-threshold = <10>;
+    speed-threshold = <0>;
     speed-max = <1500>;
     min-factor = <1000>;
     sensor-dpi = <2200>;
