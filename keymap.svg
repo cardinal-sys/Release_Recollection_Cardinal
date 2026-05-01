@@ -425,44 +425,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -740,44 +740,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -1053,44 +1053,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -1381,44 +1381,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -1715,44 +1715,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -2035,44 +2035,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -2333,44 +2333,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -2630,44 +2630,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -2927,44 +2927,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -3224,44 +3224,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -3521,44 +3521,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -3818,44 +3818,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -4115,44 +4115,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -4412,44 +4412,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -4709,44 +4709,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -5037,44 +5037,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>
@@ -5366,44 +5366,44 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <text x="570" y="162" class="combo tap">?</text>
 </g>
 <g class="combo combopos-5">
-<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
-<text x="781" y="157" class="combo tap">
-<tspan x="781" dy="-0.6em">&amp;msc</tspan><tspan x="781" dy="1.2em">MOVE_UP</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="81" width="36" height="32" class="combo"/>
+<text x="781" y="97" class="combo tap">Gui+Q</text>
 </g>
 <g class="combo combopos-6">
-<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
-<text x="781" y="217" class="combo tap">
-<tspan x="781" dy="-0.6em" style="font-size: 78%">&amp;msc</tspan><tspan x="781" dy="1.2em" style="font-size: 78%">MOVE_DOWN</tspan>
-</text>
+<rect rx="6" ry="6" x="763" y="141" width="36" height="32" class="combo"/>
+<text x="781" y="157" class="combo tap">Gui+W</text>
 </g>
 <g class="combo combopos-7">
+<rect rx="6" ry="6" x="763" y="201" width="36" height="32" class="combo"/>
+<text x="781" y="217" class="combo tap">Gui+M</text>
+</g>
+<g class="combo combopos-8">
 <rect rx="6" ry="6" x="42" y="40" width="36" height="32" class="combo"/>
 <text x="60" y="56" class="combo tap">
 <tspan x="60" dy="-0.6em">LEFT</tspan><tspan x="60" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-8">
+<g class="combo combopos-9">
 <rect rx="6" ry="6" x="733" y="40" width="36" height="32" class="combo"/>
 <text x="751" y="56" class="combo tap">
 <tspan x="751" dy="-0.6em">RIGHT</tspan><tspan x="751" dy="1.2em">SHIFT</tspan>
 </text>
 </g>
-<g class="combo combopos-9">
+<g class="combo combopos-10">
 <rect rx="6" ry="6" x="102" y="82" width="36" height="32" class="combo"/>
 <text x="120" y="98" class="combo tap">TAB</text>
 </g>
-<g class="combo combopos-10">
+<g class="combo combopos-11">
 <rect rx="6" ry="6" x="102" y="21" width="36" height="32" class="combo"/>
 <text x="120" y="37" class="combo tap">Sft+TAB</text>
 </g>
-<g class="combo combopos-11">
+<g class="combo combopos-12">
 <rect rx="6" ry="6" x="673" y="82" width="36" height="32" class="combo"/>
 <text x="691" y="98" class="combo tap">
 <tspan x="691" dy="-0.6em">&amp;mkp</tspan><tspan x="691" dy="1.2em">MB1</tspan>
 </text>
 </g>
-<g class="combo combopos-12">
+<g class="combo combopos-13">
 <rect rx="6" ry="6" x="469" y="240" width="36" height="32" class="combo"/>
 <text x="487" y="256" class="combo tap">ESCAPE</text>
 </g>

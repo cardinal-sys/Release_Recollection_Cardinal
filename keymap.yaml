@@ -759,10 +759,12 @@ combos:
   k: '!'
 - p: [29, 30]
   k: '?'
+- p: [9, 21]
+  k: Gui+Q
 - p: [21, 33]
-  k: '&msc MOVE_UP'
+  k: Gui+W
 - p: [33, 42]
-  k: '&msc MOVE_DOWN'
+  k: Gui+M
 - p: [0, 1]
   k: LEFT SHIFT
 - p: [8, 9]
