@@ -47,6 +47,25 @@
 
 ══════════════════════════════════════════════
 
+## ◆ KEYSTROKE MECHANICS ── 操作感チューニング
+
+*フラクトライトの応答特性を制御する hold-tap behavior。誤入力を防ぎながら意図した長押しを正確に認識する。*
+
+### Hold-Tap Behavior Matrix
+
+*各 behavior の設定は、双剣運用時の誤入力抑制と素早い反応のバランスを取っている。*
+
+| Behavior | flavor | tapping-term-ms | quick-tap-ms | require-prior-idle-ms | hold-trigger-key-positions | 役割 |
+|---|---|---|---|---|---|---|
+| `gesture_mo_kp` | tap-preferred | 210 | 150 | 450 | — | ジェスチャーレイヤー（E,R,S,D,W等の長押し） |
+| `lt_mkp` | balanced | 200 | 150 | 150 | — | マウス層（hold）＋マウスボタン（tap） |
+| `mod_mkp` | balanced | 200 | 150 | 150 | — | Shift/Ctrl 用の modifier + mouse-button |
+| `hm_l` (Q) | balanced | 250 | 175 | 150 | [右手側] | Home-row mod（左側 LEFT_SHIFT） |
+| `hm_r` (P,MINUS,PLUS,DELETE) | balanced | 250 | 175 | 150 | [左手側] | Home-row mod（右側 RIGHT_SHIFT/GUI/CTRL/ALT） |
+| `dragkey` | tap-preferred | 200 | 100 | 150 | — | ドラッグ専用（マウス + キー同時入力） |
+
+──────────────────────────────────────────────
+
 ## ◆ SWORD SKILLS ── ジェスチャーマッピング表
 
 *剣技は身体の記憶に刻まれている。対応キーを**長押ししながらセンサーを動かした瞬間**、技が解放される。*
@@ -251,6 +270,7 @@
 | NFCT_PINS_AS_GPIOS | 有効 | R・L両側 | NFC無線とBLEの干渉防止（安定版2つともあり） |
 | BT_GAP_AUTO_UPDATE_CONN_PARAMS | 有効 | R・L両側 | 接続後に自動パラメータ再交渉（kabutokoma準拠） |
 | BT_CONN_PARAM_UPDATE_TIMEOUT | 1000ms | R・L両側 | 接続から1秒後にパラメータ更新要求 |
+| BT_PERIPHERAL_PREF_TIMEOUT | 1000 (10秒) | R・L両側 | ホスト向け接続タイムアウト（〈Handling Refine〉で延長。瞬断からの自動復帰安定化） |
 | TX Power | +8dBm | R・L両側 | 最大送信出力 |
 | Split BLE Latency | 0 | R側（Central） | デフォルト 30 から 0 へ変更（Left 側キー入力の遅延パケット許容をゼロに） |
 | Split BLE Timeout | 1000 | R・L両側 | スプリット接続タイムアウト（両側共通） |
@@ -301,4 +321,6 @@
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-01 | 〈Scroll Refine〉— トラックボール L5 SCROLL レイヤーのゆっくり回転反応改善。scroll-accel-threshold を <30> → <0> に変更し、速度による足切りを廃止。ゆっくりしたスクロール入力でも確実に反応するよう調整。 |
+| 2026-05-01 | 〈Handling Refine〉— hold-tap behavior チューニング：lt_mkp/mod_mkp に balanced + require-prior-idle を追加。home-row mod（hm_l/hm_r）実装、デフォルトレイヤーの &mt を置き換え。BLE接続タイムアウト延長（600 → 1000ms）。 |
 | 2026-05-01 | コンボ再構築：scrl_up/scrl_down → window_close/window_min、新規 app_quit（P+マイナス）追加 |
