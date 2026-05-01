@@ -4,10 +4,10 @@
 
 NUM {
     bindings = <
-&kp KP_NUMBER_5       &kp KP_NUMBER_4  &kp KP_NUMBER_3  &kp KP_NUMBER_2  &kp KP_NUMBER_1                               &kp KP_NUMBER_1  &kp KP_NUMBER_2  &kp KP_NUMBER_3  &kp KP_NUMBER_4  &kp KP_NUMBER_5
-&kp KP_NUMBER_0       &kp KP_NUMBER_9  &kp KP_NUMBER_8  &kp KP_NUMBER_7  &kp KP_NUMBER_6  &kp CAPS      &kp EQUAL      &kp KP_NUMBER_6  &kp KP_NUMBER_7  &kp KP_NUMBER_8  &kp KP_NUMBER_9  &kp KP_NUMBER_0
-&mt LEFT_SHIFT COMMA  &kp PERIOD       &kp SLASH        &kp ASTERISK     &kp MINUS        &kp PLUS      &kp PLUS       &kp MINUS        &kp ASTERISK     &kp SLASH        &kp PERIOD       &kp COMMA
-&trans                &trans           &trans           &trans           &trans           &to 0         &kp BACKSPACE  &kp ENTER                                                           &kp RG(Z)
+&trans         &kp LC(LA(V))  &kp LG(LS(N3))  &kp LG(LS(N4))  &trans                                          &kp KP_NUMBER_1  &kp KP_NUMBER_2  &kp KP_NUMBER_3  &kp KP_NUMBER_4  &kp KP_NUMBER_5
+&kp LG(A)      &kp LG(X)      &kp LG(C)       &kp LG(V)       &kp END     &trans       &kp EQUAL             &kp KP_NUMBER_6  &kp KP_NUMBER_7  &kp KP_NUMBER_8  &kp KP_NUMBER_9  &kp KP_NUMBER_0
+&trans         &trans         &kp LG(Z)       &kp LG(Y)       &trans      &trans       &kp PLUS              &kp MINUS        &kp ASTERISK     &kp SLASH        &kp PERIOD       &kp COMMA
+&trans         &trans         &trans          &trans          &trans      &trans       &kp BACKSPACE         &kp ENTER                                                           &kp RG(Z)
     >;
 
     sensor-bindings = <&inc_dec_kp C_BRI_DN C_BRI_UP>;

@@ -30,7 +30,7 @@
 | [ Synthesis 00 ] | default | 通常入力 |
 | [ Synthesis 01 ] | FUNCTION | ファンクションキー・カーソル |
 | [ Synthesis 02 ] | ARROW_SIGN | 記号入力（括弧・引用符・各種記号）|
-| [ Synthesis 03 ] | NUM | テンキー |
+| [ Synthesis 03 ] | NUM | 右手テンキー / 左手は編集ショートカット（⌘A/X/C/V/Z/Y, ^⌥V, ⌘↑3, ⌘↑4, END）|
 | [ Synthesis 04 ] | MOUSE | マウス操作 |
 | [ Synthesis 05 ] | SCROLL | スクロール |
 | [ Synthesis 06 ] | Bluetooth | BT接続切替・bootloader |
@@ -319,6 +319,7 @@
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-01 | 〈Edit Conjure〉— [ Synthesis 03 ] NUM の左手を編集ショートカット用に再配置。⌘A/X/C/V（選択・カット・コピー・ペースト）、⌘Z/Y（Undo/Redo）、^⌥V、⌘↑3、⌘↑4（スクリーンショット）、END を配置。右手のテンキーは現状維持。 |
 | 2026-05-01 | 〈Sign Reforge〉— [ Synthesis 02 ] ARROW_SIGN を記号入力レイヤーへ再構築。矢印・選択系バインドを削除し、左手に `! # $ &` `" ' \` ?` `\|`、右手に `[ ] { } ~` `( ) - @ ;` `< > _ \\ :` を配置。左手 2 行目 1 列目に `&mt LSHIFT TAB`、3 行目 1 列目に `&kp LSHIFT` を配置。 |
 | 2026-05-01 | 〈Handling Stabilize〉— home-row mod（hm_l/hm_r）を削除。hold-tap behavior チューニング（lt_mkp/mod_mkp の balanced + require-prior-idle）は保持。BLE接続タイムアウト = 600ms。 |
 | 2026-05-01 | 〈BLE Tuning Revert〉— ホスト向け接続タイムアウトを 1000ms → 600ms に復帰。〈Handling Refine〉での延長により無線接続が不安定になった問題に対応。 |
