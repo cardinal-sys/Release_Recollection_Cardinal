@@ -89,49 +89,49 @@ layers:
   - {type: held}
   - Sft+Gui+4
   ARROW_SIGN:
-  - LEFT ARROW
-  - LEFT ARROW
-  - UP ARROW
-  - RIGHT ARROW
-  - RIGHT ARROW
-  - ^
-  - '&'
-  - '~'
-  - (
-  - {t: ), h: LEFT SHIFT}
-  - LEFT ARROW
-  - LEFT ARROW
-  - DOWN ARROW
-  - RIGHT ARROW
-  - HOME
-  - MUTE
-  - _
+  - {t: ▽, type: trans}
   - '!'
-  - '@'
   - '#'
   - $
-  - '%'
-  - Sft+LEFT ARROW
-  - Sft+RIGHT ARROW
-  - Sft+Ctl+TAB
-  - Ctl+TAB
-  - END
-  - ESC
-  - '"'
+  - '&'
   - '['
   - ']'
   - '{'
   - '}'
-  - \
+  - '~'
+  - {t: TAB, h: LSHIFT}
+  - '"'
+  - ''''
+  - '`'
+  - '?'
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
+  - (
+  - )
+  - '-'
+  - '@'
+  - ;
+  - LSHIFT
   - {t: ▽, type: trans}
-  - {t: default, h: toggle, type: held}
-  - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
-  - BACKSPACE
-  - ENTER
   - '|'
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - <
+  - '>'
+  - _
+  - \
+  - ':'
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {type: held}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   NUM:
   - KP 5
   - KP 4
