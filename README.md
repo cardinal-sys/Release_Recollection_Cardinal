@@ -60,8 +60,6 @@
 | `gesture_mo_kp` | tap-preferred | 210 | 150 | 450 | — | ジェスチャーレイヤー（E,R,S,D,W等の長押し） |
 | `lt_mkp` | balanced | 200 | 150 | 150 | — | マウス層（hold）＋マウスボタン（tap） |
 | `mod_mkp` | balanced | 200 | 150 | 150 | — | Shift/Ctrl 用の modifier + mouse-button |
-| `hm_l` (Q) | balanced | 250 | 175 | 150 | [右手側] | Home-row mod（左側 LEFT_SHIFT） |
-| `hm_r` (P,MINUS,PLUS,DELETE) | balanced | 250 | 175 | 150 | [左手側] | Home-row mod（右側 RIGHT_SHIFT/GUI/CTRL/ALT） |
 | `dragkey` | tap-preferred | 200 | 100 | 150 | — | ドラッグ専用（マウス + キー同時入力） |
 
 ──────────────────────────────────────────────
@@ -321,6 +319,7 @@
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-01 | 〈Handling Stabilize〉— home-row mod（hm_l/hm_r）を削除。hold-tap behavior チューニング（lt_mkp/mod_mkp の balanced + require-prior-idle）は保持。BLE接続タイムアウト = 600ms。 |
 | 2026-05-01 | 〈BLE Tuning Revert〉— ホスト向け接続タイムアウトを 1000ms → 600ms に復帰。〈Handling Refine〉での延長により無線接続が不安定になった問題に対応。 |
 | 2026-05-01 | 〈Scroll Refine〉— トラックボール L5 SCROLL レイヤーのゆっくり回転反応改善。scroll-accel-threshold を <30> → <0> に変更し、速度による足切りを廃止。ゆっくりしたスクロール入力でも確実に反応するよう調整。 |
 | 2026-05-01 | 〈Handling Refine〉— hold-tap behavior チューニング：lt_mkp/mod_mkp に balanced + require-prior-idle を追加。home-row mod（hm_l/hm_r）実装、デフォルトレイヤーの &mt を置き換え。BLE接続タイムアウト延長（600 → 1000ms）。 |
