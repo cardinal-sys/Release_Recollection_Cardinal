@@ -1,6 +1,7 @@
 /* ============================================================
- * 30_behaviors_base.dtsi — 基礎 behavior 定義
+ * 30_enhance_armament_base.dtsi — 〈Enhance Armament〉基礎術式
  *
+ * 武装完全支配術 ─ 基礎behavior定義（神器の挙動を司る根源層）
  * behaviors { } の内側でインクルードされる。
  * hold-tap / sensor-rotate / sticky-key / tri-state 系。
  * ============================================================ */

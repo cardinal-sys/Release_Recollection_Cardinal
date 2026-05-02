@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Keymap preview server with auto-refresh.
 
-Watches config/Recollection.keymap and keymap_drawer.yaml for changes,
+Watches config/Release_Recollection.keymap and keymap_drawer.yaml for changes,
 regenerates keymap.svg via keymap-drawer, and serves an HTML preview
 page at http://localhost:3000.
 """
@@ -15,7 +15,7 @@ import time
 
 PORT = 3000
 WATCH_FILES = [
-    "config/Recollection.keymap",
+    "config/Release_Recollection.keymap",
     "keymap_drawer.yaml",
 ]
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +24,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Recollection Keymap Preview</title>
+  <title>Release Recollection Keymap Preview</title>
   <style>
     body {{ background: #1a1a2e; color: #eee; font-family: monospace;
            display: flex; flex-direction: column; align-items: center;
@@ -56,7 +56,7 @@ def regenerate():
     try:
         result = subprocess.run(
             ["keymap", "-c", "keymap_drawer.yaml", "parse",
-             "-z", "config/Recollection.keymap"],
+             "-z", "config/Release_Recollection.keymap"],
             capture_output=True, text=True, cwd=ROOT
         )
         if result.returncode != 0:
@@ -74,7 +74,7 @@ def regenerate():
 
         result2 = subprocess.run(
             ["keymap", "-c", "keymap_drawer.yaml", "draw", "keymap.yaml",
-             "--qmk-info-json", "config/Recollection.json",
+             "--qmk-info-json", "config/Release_Recollection.json",
              "--layout-name", "default_layout"],
             capture_output=True, text=True, cwd=ROOT
         )

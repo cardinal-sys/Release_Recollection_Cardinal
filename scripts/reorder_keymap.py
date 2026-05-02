@@ -4,7 +4,7 @@
 ZMK outputs keys interleaved row-by-row (row0L, row0R, row1L, row1R, ...),
 but keymap-drawer's --cols-thumbs-notation expects all-left then all-right.
 
-Recollection layout:
+Release Recollection layout:
   row0: 5L + 5R
   row1: 6L + 6R
   row2: 6L + 6R

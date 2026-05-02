@@ -1,6 +1,7 @@
 /* ===============================
- * Recollection.keymap — include entry point
+ * Release_Recollection.keymap — 〈Release Recollection〉記憶解放術 entry point
  *
+ * 神器の真名を解き放つ最上位術式。
  * 実装は config/keymap/ 以下に責務分割されています。
  * このファイルはインクルードの入口として機能します。
  *
@@ -43,11 +44,14 @@
     };
 
     behaviors {
-        /* --- 基礎 behavior --- */
-        #include "keymap/30_behaviors_base.dtsi"
+        /* --- 〈Enhance Armament〉武装完全支配術：基礎術式 --- */
+        #include "keymap/30_enhance_armament_base.dtsi"
 
-        /* --- レイヤー制御系 behavior --- */
-        #include "keymap/31_behaviors_layers.dtsi"
+        /* --- 〈Enhance Armament〉武装完全支配術：階層制御術式 --- */
+        #include "keymap/31_enhance_armament_layers.dtsi"
+
+        /* --- 〈Enhance Armament〉武装完全支配術：拡張術式（依代） --- */
+        #include "keymap/35_enhance_armament.dtsi"
 
         /* --- ジェスチャー behavior (剣技) --- */
         #include "keymap/40_sharp_nail.dtsi"

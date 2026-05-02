@@ -1,6 +1,7 @@
 /* ============================================================
- * 31_behaviors_layers.dtsi — レイヤー制御系 behavior 定義
+ * 31_enhance_armament_layers.dtsi — 〈Enhance Armament〉階層術式
  *
+ * 武装完全支配術 ─ レイヤー制御系behavior定義（神器の階層遷移を司る術式）
  * behaviors { } の内側でインクルードされる。
  * hold-tap でレイヤー0復帰するもの / auto-layer (smart_num)。
  * ============================================================ */
