@@ -7,7 +7,7 @@
  *  レイヤー順（0起算）
  *    0  default_layer
  *    1  FUNCTION
- *    2  ARROW_SIGN
+ *    2  SIGN
  *    3  NUM
  *    4  MOUSE
  *    5  SCROLL
@@ -73,7 +73,7 @@
 
         #include "keymap/layers/00_default.dtsi"
         #include "keymap/layers/01_function.dtsi"
-        #include "keymap/layers/02_arrow_sign.dtsi"
+        #include "keymap/layers/02_sign.dtsi"
         #include "keymap/layers/03_num.dtsi"
         #include "keymap/layers/04_mouse.dtsi"
         #include "keymap/layers/05_scroll.dtsi"

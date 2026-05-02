@@ -29,7 +29,7 @@
 |---|---|---|
 | [ Synthesis 00 ] | default | 通常入力 |
 | [ Synthesis 01 ] | FUNCTION | ファンクションキー・カーソル |
-| [ Synthesis 02 ] | ARROW_SIGN | 記号入力（括弧・引用符・各種記号）|
+| [ Synthesis 02 ] | SIGN | 記号入力（括弧・引用符・各種記号）|
 | [ Synthesis 03 ] | NUM | 右手テンキー / 左手は編集ショートカット（⌘A/X/C/V/Z/Y, ^⌥V, ⌘↑3, ⌘↑4, END）|
 | [ Synthesis 04 ] | MOUSE | マウス操作 |
 | [ Synthesis 05 ] | SCROLL | スクロール |
@@ -183,7 +183,7 @@
 
 | SYNTHESIS | 上 | 下 | 左 | 右 | one_shot | 備考 |
 |---|---|---|---|---|---|---|
-| 2 ARROW_SIGN | 選択↑ | 選択↓ | 選択← | 選択→ | なし | 自動リピートなし |
+| 2 SIGN | 選択↑ | 選択↓ | 選択← | 選択→ | なし | 自動リピートなし |
 | 3 NUM | `↑` | `↓` | `←` | `→` | なし | 加速あり |
 | 6 Bluetooth | `強制終了(Cmd+Opt+Esc)` | `画面ロック(Ctrl+Cmd+Q)` | `LANG2(英数)` | `LANG1(かな)` | あり | 斜め無効・余り有効 |
 
@@ -192,7 +192,7 @@
 | SYNTHESIS | 上 | 下 | 左 | 右 | one_shot |
 |---|---|---|---|---|---|
 | 15 SNIPE | `SCROLL_UP` | `SCROLL_DOWN` | `SCROLL_LEFT` | `SCROLL_RIGHT` | なし |
-| 2 ARROW_SIGN | `Cmd+A` | `Cmd+V` | `Cmd+X` | `Cmd+C` | あり |
+| 2 SIGN | `Cmd+A` | `Cmd+V` | `Cmd+X` | `Cmd+C` | あり |
 | 3 NUM | `Undo` | `Redo` | `BS` | `Del` | あり |
 | 6 Bluetooth | 再生/停止(`C_PP`) | 停止(`C_STOP`) | 前のトラック(`C_PREV`) | 次のトラック(`C_NEXT`) | なし |
 
@@ -216,7 +216,7 @@
 |---|---|
 | 0 default | 0 |
 | 1 FUNCTION | 1 |
-| 2 ARROW_SIGN | 2 |
+| 2 SIGN | 2 |
 | 3 NUM | 3 |
 | 4 MOUSE | 4 |
 | 5 SCROLL | 5 |
@@ -319,6 +319,7 @@
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-02 | 〈Sign Rename〉— [ Synthesis 02 ] のレイヤー名を `ARROW_SIGN` → `SIGN` へ改名。〈Sign Reforge〉で記号入力専用に再構築済みのため、旧名「ARROW」の名残を払拭しシンプルな名称へ統一。レイヤー番号・バインドは据え置き、定義ファイルも `02_arrow_sign.dtsi` → `02_sign.dtsi` に同時リネーム。 |
 | 2026-05-01 | 〈Timeout Re-extend〉— `CONFIG_BT_PERIPHERAL_PREF_TIMEOUT` を 600 → 1000 に再延長。〈BLE Tuning Revert〉で 600ms に戻していたが再度 1000ms へ。 |
 | 2026-05-01 | 〈Inertia Smooth〉— L5 SCROLL の慣性更新頻度を倍増。`scroll-inertia-tick-ms` を `<8>` → `<4>` に変更（125Hz → 250Hz）。慣性スクロール時のフレーム更新が滑らかになり、ゆっくり減衰する局面の段付き感が軽減される。CPU/BLE 負荷は約2倍に増えるが軽微。違和感が出れば `<6>` 〜 `<8>` に戻して再調整する想定。 |
 | 2026-05-01 | 〈Edit Conjure〉— [ Synthesis 03 ] NUM の左手を編集ショートカット用に再配置。⌘A/X/C/V（選択・カット・コピー・ペースト）、⌘Z/Y（Undo/Redo）、^⌥V、⌘↑3、⌘↑4（スクリーンショット）、END を配置。右手のテンキーは現状維持。 |

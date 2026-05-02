@@ -24,7 +24,7 @@ draw_config:
 parse_config:
   layer_name_map:
     FUNCTION: "FN"
-    ARROW_SIGN: "ArSgn"
+    SIGN: "Sign"
     NUM: "NUM"
     MOUSE: "MOUSE"
     SCROLL: "SCROLL"
