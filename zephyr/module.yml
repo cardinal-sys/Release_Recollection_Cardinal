@@ -1,4 +1,4 @@
-name: Recollection
+name: Release_Recollection
 build:
   settings:
     board_root: config
