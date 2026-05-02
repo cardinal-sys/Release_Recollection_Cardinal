@@ -38,7 +38,7 @@ layers:
   - LCTRL
   - LEFT GUI
   - LEFT ALT
-  - {t: ESC, h: ARROW_SIGN}
+  - {t: ESC, h: SIGN}
   - {t: SPACE, h: NUM}
   - '&mkp MB1'
   - BACKSPACE
@@ -88,7 +88,7 @@ layers:
   - BACKSPACE
   - {type: held}
   - Sft+Gui+4
-  ARROW_SIGN:
+  SIGN:
   - {t: ▽, type: trans}
   - '!'
   - '#'
@@ -698,7 +698,7 @@ layers:
   - LCTRL
   - LEFT GUI
   - LEFT ALT
-  - {t: ESC, h: ARROW_SIGN, type: held}
+  - {t: ESC, h: SIGN, type: held}
   - {t: SPACE, h: NUM, type: held}
   - '&mkp MB1'
   - BACKSPACE
