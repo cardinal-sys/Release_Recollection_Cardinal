@@ -203,6 +203,11 @@ const els = {
   editTarget:      $('edit-target'),
   keyOptionsTap:   $('key-options-tap'),
   keyOptionsHold:  $('key-options-hold'),
+  modSft:          $('mod-sft'),
+  modCtl:          $('mod-ctl'),
+  modAlt:          $('mod-alt'),
+  modGui:          $('mod-gui'),
+  modClearBtn:     $('mod-clear-btn'),
   commitMessage:   $('commit-message'),
   sealBtn:         $('seal-btn'),
   sealHint:        $('seal-hint'),
@@ -775,6 +780,11 @@ function renderEditForm() {
   els.editIndex.value = `${state.currentLayer}[${state.selectedIndex}]`;
   els.editTap.value = t;
   els.editHold.value = h;
+  // Auto-detect modifiers from the targeted field (tap by default)
+  const target = els.editTarget?.value || 'tap';
+  const sourceVal = target === 'tap' ? t : h;
+  const { mods } = splitModifiers(sourceVal);
+  setActiveModifiers(mods);
   refreshDatalists();
 }
 
@@ -820,14 +830,58 @@ function refreshKeylist() {
       .join('');
 }
 
+/* ◆ MODIFIER UTILITIES ──────────────────── */
+const MOD_PREFIXES = ['Sft', 'Ctl', 'Alt', 'Gui'];
+
+function getActiveModifiers() {
+  const mods = [];
+  if (els.modSft.checked) mods.push('Sft');
+  if (els.modCtl.checked) mods.push('Ctl');
+  if (els.modAlt.checked) mods.push('Alt');
+  if (els.modGui.checked) mods.push('Gui');
+  return mods;
+}
+
+function setActiveModifiers(mods) {
+  els.modSft.checked = mods.includes('Sft');
+  els.modCtl.checked = mods.includes('Ctl');
+  els.modAlt.checked = mods.includes('Alt');
+  els.modGui.checked = mods.includes('Gui');
+}
+
+function splitModifiers(value) {
+  // "Sft+Ctl+TAB" → { mods: ['Sft', 'Ctl'], base: 'TAB' }
+  if (!value) return { mods: [], base: '' };
+  const parts = value.split('+');
+  const mods = [];
+  let i = 0;
+  while (i < parts.length - 1 && MOD_PREFIXES.includes(parts[i])) {
+    mods.push(parts[i]);
+    i++;
+  }
+  return { mods, base: parts.slice(i).join('+') };
+}
+
+function joinModifiers(mods, base) {
+  if (!base) return mods.length ? mods.join('+') : '';
+  if (!mods.length) return base;
+  return [...mods, base].join('+');
+}
+
+function clearModifiers() {
+  setActiveModifiers([]);
+}
+
 function applyQuickPick() {
   const value = els.editKeylist.value;
   if (!value) return;
+  const mods = getActiveModifiers();
+  const finalValue = joinModifiers(mods, value);
   const target = els.editTarget.value;
   if (target === 'tap') {
-    els.editTap.value = value;
+    els.editTap.value = finalValue;
   } else {
-    els.editHold.value = value;
+    els.editHold.value = finalValue;
   }
 }
 
@@ -931,6 +985,24 @@ function init() {
   els.cancelEditBtn.addEventListener('click', cancelVisualEdit);
   els.editCategory.addEventListener('change', refreshKeylist);
   els.editKeylist.addEventListener('change', applyQuickPick);
+  els.modClearBtn.addEventListener('click', clearModifiers);
+  // Modifier toggle: rewrite the target field's prefix in real time
+  for (const cb of [els.modSft, els.modCtl, els.modAlt, els.modGui]) {
+    cb.addEventListener('change', () => {
+      const mods = getActiveModifiers();
+      const target = els.editTarget.value;
+      const input = target === 'tap' ? els.editTap : els.editHold;
+      const { base } = splitModifiers(input.value);
+      input.value = joinModifiers(mods, base);
+    });
+  }
+  els.editTarget.addEventListener('change', () => {
+    // ターゲット切替時は対象フィールドの修飾キー状態に同期
+    const target = els.editTarget.value;
+    const input = target === 'tap' ? els.editTap : els.editHold;
+    const { mods } = splitModifiers(input.value);
+    setActiveModifiers(mods);
+  });
   els.viewCode.addEventListener('click', () => {
     state.viewMode = 'code';
     if (state.activePath) {

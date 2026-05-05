@@ -109,12 +109,20 @@
             <input type="text" id="edit-hold" list="key-options-hold" placeholder="例: LEFT SHIFT, NUM, GESTURE_W" autocomplete="off">
             <datalist id="key-options-hold"></datalist>
           </div>
+          <div class="form-row mod-toggles">
+            <label>Modifiers</label>
+            <label class="mod-chip"><input type="checkbox" id="mod-sft"><span>Sft</span></label>
+            <label class="mod-chip"><input type="checkbox" id="mod-ctl"><span>Ctl</span></label>
+            <label class="mod-chip"><input type="checkbox" id="mod-alt"><span>Alt</span></label>
+            <label class="mod-chip"><input type="checkbox" id="mod-gui"><span>Gui</span></label>
+            <button id="mod-clear-btn" class="btn-tiny" title="修飾キーをすべて解除">Clear</button>
+          </div>
           <div class="form-row key-categories">
             <label>Quick Pick</label>
             <select id="edit-category" class="category-select">
               <option value="">— カテゴリ選択 —</option>
               <option value="layers">レイヤー</option>
-              <option value="modifiers">修飾キー</option>
+              <option value="modifiers">修飾キー (LEFT/RIGHT)</option>
               <option value="letters">文字 (A-Z)</option>
               <option value="digits">数字 (0-9)</option>
               <option value="functionKeys">F1-F24</option>

@@ -557,6 +557,50 @@ select:focus {
 .key-select      { flex: 2; min-width: 120px; }
 .target-select   { flex: 0.8; min-width: 80px; }
 
+/* ◆ MODIFIER TOGGLES ─────────────────── */
+.mod-toggles {
+  background: var(--bg-elevated);
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px dashed var(--border-soft);
+  gap: 6px;
+}
+
+.mod-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-accent);
+  border-radius: 2px;
+  padding: 4px 10px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  transition: all 0.1s ease;
+  letter-spacing: 0.1em;
+  gap: 6px;
+}
+
+.mod-chip:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.mod-chip input[type="checkbox"] {
+  margin: 0;
+  accent-color: var(--accent-violet);
+  cursor: pointer;
+}
+
+.mod-chip:has(input:checked) {
+  background: rgba(180, 140, 255, 0.18);
+  border-color: var(--accent-violet);
+  color: var(--accent-violet);
+  font-weight: bold;
+  box-shadow: 0 0 8px rgba(180, 140, 255, 0.3);
+}
+
 /* ◆ BUTTONS ───────────────────────────── */
 button {
   font-family: inherit;
