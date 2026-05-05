@@ -400,6 +400,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-05 | 〈Live Sync Conduit Activation〉— Elucidator.conf で `CONFIG_ZMK_STUDIO=y` を有効化、`CONFIG_ZMK_STUDIO_LOCKING=n` でパスワード解除。これにより公式 zmk.studio から Web Bluetooth/USB 経由でキーマップをライブ書換可能となる（再ビルド不要）。central 側（Elucidator）にのみ設定追加、peripheral（Dark_Repulser）は変更なし。Phase 2 として Cardinal Editor へのライブ接続統合を予定。 |
 | 2026-05-05 | 〈Modifier Stratification〉— Memory Rewrite フォームに修飾キー独立トグルを追加。`Sft` / `Ctl` / `Alt` / `Gui` をチップ式チェックボックスで個別選択でき、トグル状態は対象フィールド（Tap / Hold）の値に `Sft+Ctl+TAB` 形式で自動結合される。既存値の修飾キープレフィックス（`Sft+TAB` `Gui+A` 等）も `splitModifiers()` でパースして UI に反映する双方向同期。ターゲット切替時はそのフィールドの修飾キー状態に同期。 |
 | 2026-05-05 | 〈Sword Skill Selector〉— Cardinal Editor の Memory Rewrite フォームに Quick Pick 機構を追加。レイヤー / 修飾キー / 文字 / 数字 / F1-F24 / 矢印 / 特殊キー / 記号 / ZMK behavior / **剣技 (Sword Skills)** / 使用中の値 の 11 カテゴリから値を選択可能とした。剣技カテゴリには 8 神器 × 4 方向 = 32 種の `&gE_up` 〜 `&gW_right` 全 mod-morph behavior を網羅。`<datalist>` によるオートコンプリートも併設。さらに `<Auto-Sealing>` として、起動時に localStorage に PAT があれば自動認証する挙動を追加。 |
 | 2026-05-05 | 〈Physical Layout Manifestation〉— Cardinal Editor の Visual Editor を `keymap.svg` 同等の左右分割物理レイアウト表示に進化。`config/Release_Recollection.json` の座標（x/y/w/h/r/rx/ry）を読み取り、各キーを `position: absolute` + `transform: rotate()` で正確に配置。親指列の回転（`r:9` `r:20` `r:-10` `r:-20`）も忠実に再現。flat grid からの fallback も維持。 |
