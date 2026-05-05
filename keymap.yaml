@@ -89,7 +89,7 @@ layers:
   - {type: held}
   - Sft+Gui+4
   SIGN:
-  - {t: ▽, type: trans}
+  - '%'
   - '!'
   - '#'
   - $
@@ -104,20 +104,20 @@ layers:
   - ''''
   - '`'
   - '?'
-  - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
+  - /
+  - '='
   - (
   - )
   - '-'
   - '@'
   - ;
   - LSHIFT
-  - {t: ▽, type: trans}
+  - Alt+Y
   - '|'
-  - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
+  - .
+  - ','
+  - +
+  - '*'
   - <
   - '>'
   - _
