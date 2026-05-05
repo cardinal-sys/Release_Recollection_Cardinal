@@ -59,6 +59,88 @@ const EDITABLE_PATHS = [
   'config/dts/mouse-gesture.local.dtsi',
 ];
 
+/* ◆ KEY PRESETS ── 神器選択候補 ──────── */
+const KEY_PRESETS = {
+  layers: [
+    'default', 'FUNCTION', 'SIGN', 'NUM', 'MOUSE', 'SCROLL', 'Bluetooth',
+    'GESTURE_E', 'GESTURE_R', 'GESTURE_S', 'GESTURE_B', 'GESTURE_T',
+    'GESTURE_A', 'GESTURE_D', 'GESTURE_W', 'SNIPE', 'NUM_SMART',
+  ],
+  modifiers: [
+    'LEFT SHIFT', 'RIGHT SHIFT',
+    'LEFT CONTROL', 'RIGHT CONTROL',
+    'LEFT ALT', 'RIGHT ALT',
+    'LEFT GUI', 'RIGHT GUI',
+  ],
+  letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+  digits: '0 1 2 3 4 5 6 7 8 9'.split(' '),
+  functionKeys: Array.from({ length: 24 }, (_, i) => `F${i + 1}`),
+  arrows: ['UP ARROW', 'DOWN ARROW', 'LEFT ARROW', 'RIGHT ARROW'],
+  special: [
+    'ESC', 'TAB', 'SPACE', 'ENTER', 'BACKSPACE', 'DELETE',
+    'CAPS', 'HOME', 'END', 'PAGE UP', 'PAGE DOWN', 'INSERT',
+    'PRINT SCREEN', 'PAUSE BREAK',
+  ],
+  symbols: [
+    '!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+    '-', '=', '+', '[', ']', '{', '}', '\\', ';', ':',
+    "'", '"', ',', '.', '/', '?', '<', '>', '|', '~', '`',
+  ],
+  behaviors: [
+    '&trans', '&none',
+    '&mkp MB1', '&mkp MB2', '&mkp MB3', '&mkp MB4', '&mkp MB5',
+    '&smart_num 16', '&smart_snipe 15',
+    '&bt BT_CLR', '&bt BT_NXT', '&bt BT_PRV',
+    '&bt BT_SEL 0', '&bt BT_SEL 1', '&bt BT_SEL 2',
+    'Sft+TAB', 'Ctl+TAB', 'Sft+Ctl+TAB',
+    'Gui+A', 'Gui+C', 'Gui+V', 'Gui+X', 'Gui+Z', 'Gui+Y',
+    'Gui+Q', 'Gui+W', 'Gui+M', 'Gui+P',
+    'Alt+Y',
+    // Enhance Armament behaviors
+    '&drag_on', '&drag_off', '&dragkey',
+    '&g_shft', '&gesture_mo_kp',
+    '&ht_arrows_alt', '&ht_snipe',
+    '&lm', '&lt_mkp', '&mod_mkp',
+    '&rotate', '&safari_reload_once',
+    '&swapper', '&swapper_rev',
+  ],
+  gestures: [
+    // Sharp Nail (E) — コピー/ペースト/アンドゥ/リドゥ
+    '&gE_up', '&gE_down', '&gE_left', '&gE_right',
+    // Vorpal Strike (R)
+    '&gR_up', '&gR_down', '&gR_left', '&gR_right',
+    // The Eclipse (S)
+    '&gS_up', '&gS_down', '&gS_left', '&gS_right',
+    // Howling Octave (B)
+    '&gB_up', '&gB_down', '&gB_left', '&gB_right',
+    // Sonic Leap (T)
+    '&gT_up', '&gT_down', '&gT_left', '&gT_right',
+    // Vertical Square (A)
+    '&gA_up', '&gA_down', '&gA_left', '&gA_right',
+    // Starburst Stream (D)
+    '&gD_up', '&gD_down', '&gD_left', '&gD_right',
+    // Horizontal (W)
+    '&gW_up', '&gW_down', '&gW_left', '&gW_right',
+  ],
+};
+
+function collectUsedKeys(yamlData) {
+  const set = new Set();
+  if (!yamlData?.layers) return [];
+  for (const layer of Object.values(yamlData.layers)) {
+    for (const entry of layer) {
+      if (entry === null || entry === undefined) continue;
+      if (typeof entry === 'string') {
+        set.add(entry);
+      } else if (typeof entry === 'object') {
+        if (entry.t) set.add(entry.t);
+        if (entry.h) set.add(entry.h);
+      }
+    }
+  }
+  return Array.from(set).sort();
+}
+
 /* CodeMirror モード判定 */
 function modeForPath(path) {
   if (path.endsWith('.yaml') || path.endsWith('.yml')) return 'yaml';
@@ -116,6 +198,11 @@ const els = {
   editHold:        $('edit-hold'),
   applyEditBtn:    $('apply-edit-btn'),
   cancelEditBtn:   $('cancel-edit-btn'),
+  editCategory:    $('edit-category'),
+  editKeylist:     $('edit-keylist'),
+  editTarget:      $('edit-target'),
+  keyOptionsTap:   $('key-options-tap'),
+  keyOptionsHold:  $('key-options-hold'),
   commitMessage:   $('commit-message'),
   sealBtn:         $('seal-btn'),
   sealHint:        $('seal-hint'),
@@ -688,6 +775,60 @@ function renderEditForm() {
   els.editIndex.value = `${state.currentLayer}[${state.selectedIndex}]`;
   els.editTap.value = t;
   els.editHold.value = h;
+  refreshDatalists();
+}
+
+function refreshDatalists() {
+  // Datalist は Tap/Hold 入力欄のオートコンプリート用。全候補を投入
+  const all = [
+    ...KEY_PRESETS.layers,
+    ...KEY_PRESETS.modifiers,
+    ...KEY_PRESETS.letters,
+    ...KEY_PRESETS.digits,
+    ...KEY_PRESETS.functionKeys,
+    ...KEY_PRESETS.arrows,
+    ...KEY_PRESETS.special,
+    ...KEY_PRESETS.symbols,
+    ...KEY_PRESETS.behaviors,
+    ...KEY_PRESETS.gestures,
+    ...collectUsedKeys(state.yamlData),
+  ];
+  const unique = Array.from(new Set(all));
+  const html = unique.map((v) => `<option value="${v.replace(/"/g, '&quot;')}">`).join('');
+  els.keyOptionsTap.innerHTML = html;
+  els.keyOptionsHold.innerHTML = html;
+}
+
+function refreshKeylist() {
+  const cat = els.editCategory.value;
+  if (!cat) {
+    els.editKeylist.classList.add('hidden');
+    els.editKeylist.innerHTML = '<option value="">— 選択 —</option>';
+    return;
+  }
+  let options;
+  if (cat === 'used') {
+    options = collectUsedKeys(state.yamlData);
+  } else {
+    options = KEY_PRESETS[cat] || [];
+  }
+  els.editKeylist.classList.remove('hidden');
+  els.editKeylist.innerHTML =
+    '<option value="">— 選択 —</option>' +
+    options
+      .map((v) => `<option value="${v.replace(/"/g, '&quot;')}">${v}</option>`)
+      .join('');
+}
+
+function applyQuickPick() {
+  const value = els.editKeylist.value;
+  if (!value) return;
+  const target = els.editTarget.value;
+  if (target === 'tap') {
+    els.editTap.value = value;
+  } else {
+    els.editHold.value = value;
+  }
 }
 
 function applyVisualEdit() {
@@ -788,6 +929,8 @@ function init() {
   els.sealBtn.addEventListener('click', handleSeal);
   els.applyEditBtn.addEventListener('click', applyVisualEdit);
   els.cancelEditBtn.addEventListener('click', cancelVisualEdit);
+  els.editCategory.addEventListener('change', refreshKeylist);
+  els.editKeylist.addEventListener('change', applyQuickPick);
   els.viewCode.addEventListener('click', () => {
     state.viewMode = 'code';
     if (state.activePath) {
@@ -802,7 +945,14 @@ function init() {
 
   setStatus('Awaiting authentication', 'idle');
   log('Cardinal Editor initialized');
-  log('Enter your GitHub PAT (repo scope) to begin');
+
+  // 〈Auto-Sealing〉— stored PAT があれば即座に認証する
+  if (els.patInput.value.trim()) {
+    log('Auto-authenticating with stored PAT...');
+    handleAuth();
+  } else {
+    log('Enter your GitHub PAT (repo scope) to begin');
+  }
 }
 
 init();

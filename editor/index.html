@@ -101,11 +101,37 @@
           </div>
           <div class="form-row">
             <label>Tap （t:）</label>
-            <input type="text" id="edit-tap" placeholder="例: A, ESC, &smart_num 16">
+            <input type="text" id="edit-tap" list="key-options-tap" placeholder="例: A, ESC, &smart_num 16" autocomplete="off">
+            <datalist id="key-options-tap"></datalist>
           </div>
           <div class="form-row">
             <label>Hold （h:）</label>
-            <input type="text" id="edit-hold" placeholder="例: LEFT SHIFT, NUM, GESTURE_W">
+            <input type="text" id="edit-hold" list="key-options-hold" placeholder="例: LEFT SHIFT, NUM, GESTURE_W" autocomplete="off">
+            <datalist id="key-options-hold"></datalist>
+          </div>
+          <div class="form-row key-categories">
+            <label>Quick Pick</label>
+            <select id="edit-category" class="category-select">
+              <option value="">— カテゴリ選択 —</option>
+              <option value="layers">レイヤー</option>
+              <option value="modifiers">修飾キー</option>
+              <option value="letters">文字 (A-Z)</option>
+              <option value="digits">数字 (0-9)</option>
+              <option value="functionKeys">F1-F24</option>
+              <option value="arrows">矢印</option>
+              <option value="special">特殊キー</option>
+              <option value="symbols">記号</option>
+              <option value="behaviors">ZMK behavior</option>
+              <option value="gestures">剣技 (Sword Skills)</option>
+              <option value="used">使用中の値</option>
+            </select>
+            <select id="edit-keylist" class="key-select hidden">
+              <option value="">— 選択 —</option>
+            </select>
+            <select id="edit-target" class="target-select">
+              <option value="tap">→ Tap</option>
+              <option value="hold">→ Hold</option>
+            </select>
           </div>
           <div class="form-row">
             <button id="apply-edit-btn" class="btn-primary">〈 Apply 〉</button>

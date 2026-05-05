@@ -529,6 +529,34 @@ input[type="password"]:focus {
 
 input[readonly] { opacity: 0.6; cursor: not-allowed; }
 
+select {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-accent);
+  color: var(--text-primary);
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: var(--shadow-glow);
+}
+
+.key-categories {
+  background: var(--bg-elevated);
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px dashed var(--border-soft);
+}
+
+.category-select { flex: 1.5; min-width: 100px; }
+.key-select      { flex: 2; min-width: 120px; }
+.target-select   { flex: 0.8; min-width: 80px; }
+
 /* ◆ BUTTONS ───────────────────────────── */
 button {
   font-family: inherit;

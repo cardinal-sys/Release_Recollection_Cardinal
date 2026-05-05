@@ -60,6 +60,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 - **Code Editor** — CodeMirror による DTS / YAML 構文ハイライト + 括弧マッチング + Active Line Highlight
 - **Visual Editor**（`keymap.yaml` 限定）— `config/Release_Recollection.json` のレイアウト座標から **左右分割の物理キーボード配置を再現**。親指列の回転（`r:`）も `transform: rotate()` で忠実に表現。レイヤー切替タブ + キーのクリック編纂で `t:` `h:` を直接書換
+- **Quick Pick**（神器選択候補）— レイヤー / 修飾キー / 文字 / 数字 / F1-F24 / 矢印 / 特殊キー / 記号 / ZMK behavior / **剣技 (Sword Skills)** / 使用中の値 の 11 カテゴリから値を選択可能。剣技カテゴリには 8 神器 × 4 方向 = 32 種の `&gE_*` 〜 `&gW_*` 全 mod-morph behavior が含まれる。Tap/Hold いずれにも適用ターゲットを切替可能。`<datalist>` でオートコンプリートも併設
 
 ### ◆ 封印術式 ── Sealing Protocol
 
@@ -398,6 +399,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-05 | 〈Sword Skill Selector〉— Cardinal Editor の Memory Rewrite フォームに Quick Pick 機構を追加。レイヤー / 修飾キー / 文字 / 数字 / F1-F24 / 矢印 / 特殊キー / 記号 / ZMK behavior / **剣技 (Sword Skills)** / 使用中の値 の 11 カテゴリから値を選択可能とした。剣技カテゴリには 8 神器 × 4 方向 = 32 種の `&gE_up` 〜 `&gW_right` 全 mod-morph behavior を網羅。`<datalist>` によるオートコンプリートも併設。さらに `<Auto-Sealing>` として、起動時に localStorage に PAT があれば自動認証する挙動を追加。 |
 | 2026-05-05 | 〈Physical Layout Manifestation〉— Cardinal Editor の Visual Editor を `keymap.svg` 同等の左右分割物理レイアウト表示に進化。`config/Release_Recollection.json` の座標（x/y/w/h/r/rx/ry）を読み取り、各キーを `position: absolute` + `transform: rotate()` で正確に配置。親指列の回転（`r:9` `r:20` `r:-10` `r:-20`）も忠実に再現。flat grid からの fallback も維持。 |
 | 2026-05-05 | 〈Cardinal Editor Resurrection〉— Web 記憶書換術式を `editor/` に復活。GitHub PAT 認証 + Tree API による複数ファイル一括コミット（〈Sealing〉）対応。CodeMirror 5 で DTS / YAML / JSON / overlay / conf を構文ハイライト編纂、`keymap.yaml` には Visual Editor（レイヤー切替タブ + キーグリッド クリック編纂）を併設。編纂対象は `config/keymap/` 全域・コンボ・マクロ・ジェスチャー・shield 設定・west.yml まで包括する完全制御権を解放。`scripts/cardinal_editor_server.py` で `python3 -m http.server 3001 --directory editor` 相当のローカル展開を簡略化。 |
 | 2026-05-05 | 〈Sign Expansion〉— [ Synthesis 02 ] SIGN レイヤーの空きスロット（Row 0-2 の `&trans`）を全充填。ESC ホールドタップ時の左手アクセス可動域を優先し、Row 0 Col 0 に `%`、Row 1 中央 Col 5-6 に `/` `=`、Row 2 中央 Col 5-6 に `+` `*`、Row 2 左 Col 1/3/4 に `¥` `.` `,` を配置。新規8記号（`%` `/` `=` `+` `*` `¥` `.` `,`）で空き完全閉殻。`¥` は `&kp LA(Y)` で Mac US配列の Option+Y 入力に対応。`^` は使用頻度低により今回除外。Row 3 親指列はデフォルト修飾キー透過のため `&trans` 維持。 |
