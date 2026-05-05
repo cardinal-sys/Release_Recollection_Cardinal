@@ -4,9 +4,9 @@
 
 SIGN {
     bindings = <
-&trans              &kp EXCLAMATION  &kp HASH         &kp DOLLAR    &kp AMPERSAND                                  &kp LEFT_BRACKET  &kp RIGHT_BRACKET  &kp LEFT_BRACE  &kp RIGHT_BRACE  &kp TILDE
-&mt LSHIFT TAB      &kp DOUBLE_QUOTES &kp APOSTROPHE  &kp GRAVE     &kp QUESTION    &trans       &trans            &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &kp MINUS  &kp AT_SIGN  &kp SEMICOLON
-&kp LSHIFT          &trans           &kp PIPE         &trans        &trans          &trans       &trans            &kp LESS_THAN     &kp GREATER_THAN   &kp UNDERSCORE  &kp BACKSLASH  &kp COLON
+&kp PERCENT         &kp EXCLAMATION  &kp HASH         &kp DOLLAR    &kp AMPERSAND                                  &kp LEFT_BRACKET  &kp RIGHT_BRACKET  &kp LEFT_BRACE  &kp RIGHT_BRACE  &kp TILDE
+&mt LSHIFT TAB      &kp DOUBLE_QUOTES &kp APOSTROPHE  &kp GRAVE     &kp QUESTION    &kp SLASH    &kp EQUAL         &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &kp MINUS  &kp AT_SIGN  &kp SEMICOLON
+&kp LSHIFT          &kp LA(Y)        &kp PIPE         &kp PERIOD    &kp COMMA       &kp PLUS     &kp ASTERISK      &kp LESS_THAN     &kp GREATER_THAN   &kp UNDERSCORE  &kp BACKSLASH  &kp COLON
 &trans              &trans           &trans           &trans        &trans          &trans       &trans            &trans                                                            &trans
     >;
 
