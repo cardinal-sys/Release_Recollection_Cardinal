@@ -21,6 +21,60 @@
 
 ══════════════════════════════════════════════
 
+## ◆ CARDINAL EDITOR ── 記憶書換術式
+
+*管理者権限を以て神器の記憶を直接書き換える Web 術式。ブラウザ上で `keymap.yaml` のキーを視覚編集し、`config/` 以下の DTS / YAML / overlay / conf を全域編纂し、〈Sealing〉により GitHub へ一括封印（コミット）する。*
+
+> **[ CARDINAL ]** 〈Cardinal Editor〉は静的サイトとして `editor/` 配下に構築されている。GitHub API + Tree API を直接叩いて複数ファイルを 1 コミットで送信する設計。
+
+### ◆ 起動方法 ── Invocation
+
+```bash
+# ローカル起動（http://localhost:3001 で展開）
+python3 -m http.server 3001 --directory editor
+# または
+cd editor && python3 -m http.server 3001
+```
+
+GitHub Pages を有効化すれば `https://cardinal-sys.github.io/Release_Recollection/editor/` でも展開可能。
+
+### ◆ 認証関門 ── Authentication Gate
+
+GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入力。トークンは localStorage にのみ保存され、GitHub API の Bearer 認証に使用される。
+
+### ◆ 編纂対象 ── Editable Modules
+
+| 領域 | ファイル |
+|---|---|
+| キーマップ描画 | `keymap.yaml` `keymap_drawer.yaml` |
+| 神器エントリ | `config/Release_Recollection.keymap` |
+| コンボ術式 | `config/keymap/10_combos.dtsi` |
+| マクロ術式 | `config/keymap/20_macros.dtsi` |
+| Enhance Armament | `config/keymap/30_*` `31_*` `35_*` |
+| 剣技（ジェスチャー） | `config/keymap/40_*` 〜 `47_*` |
+| 階層（レイヤー） | `config/keymap/layers/*.dtsi` |
+| Shield 設定 | `config/boards/shields/Release_Recollection/*` |
+| west.yml | `config/west.yml` |
+
+### ◆ 編纂モード ── Edit Modes
+
+- **Code Editor** — CodeMirror による DTS / YAML 構文ハイライト + 括弧マッチング + Active Line Highlight
+- **Visual Editor**（`keymap.yaml` 限定）— レイヤー切替タブ + キーグリッドのクリック編纂で `t:` `h:` を直接書換
+
+### ◆ 封印術式 ── Sealing Protocol
+
+複数ファイル変更を 1 コミットで送信する Tree API 連鎖：
+
+1. ブランチ ref → base commit → base tree を取得
+2. 変更ファイルごとに Blob 生成
+3. 新規 Tree を作成（base_tree からの差分）
+4. 新規 Commit を作成（parent = base commit）
+5. ブランチ ref を新 Commit へ更新
+
+> **[ SYSTEM ]** 〈Sealing〉は確認ダイアログを経由する。誤封印を防ぐカーディナル安全装置。
+
+══════════════════════════════════════════════
+
 ## ◆ SYNTHESIS REGISTRY ── レイヤー構成
 
 *カーディナルシステムにより展開されたシンセシス一覧。アクティブなシンセシスは STATUS CRYSTAL が示す。*
@@ -344,6 +398,7 @@
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-05 | 〈Cardinal Editor Resurrection〉— Web 記憶書換術式を `editor/` に復活。GitHub PAT 認証 + Tree API による複数ファイル一括コミット（〈Sealing〉）対応。CodeMirror 5 で DTS / YAML / JSON / overlay / conf を構文ハイライト編纂、`keymap.yaml` には Visual Editor（レイヤー切替タブ + キーグリッド クリック編纂）を併設。編纂対象は `config/keymap/` 全域・コンボ・マクロ・ジェスチャー・shield 設定・west.yml まで包括する完全制御権を解放。`scripts/cardinal_editor_server.py` で `python3 -m http.server 3001 --directory editor` 相当のローカル展開を簡略化。 |
 | 2026-05-05 | 〈Sign Expansion〉— [ Synthesis 02 ] SIGN レイヤーの空きスロット（Row 0-2 の `&trans`）を全充填。ESC ホールドタップ時の左手アクセス可動域を優先し、Row 0 Col 0 に `%`、Row 1 中央 Col 5-6 に `/` `=`、Row 2 中央 Col 5-6 に `+` `*`、Row 2 左 Col 1/3/4 に `¥` `.` `,` を配置。新規8記号（`%` `/` `=` `+` `*` `¥` `.` `,`）で空き完全閉殻。`¥` は `&kp LA(Y)` で Mac US配列の Option+Y 入力に対応。`^` は使用頻度低により今回除外。Row 3 親指列はデフォルト修飾キー透過のため `&trans` 維持。 |
 | 2026-05-02 | 〈Sacred Name Ascension〉— shield・keymap・behavior モジュール群を 〈Recollection〉 → 〈Release Recollection〉 へ昇華。`config/Recollection.keymap` → `config/Release_Recollection.keymap`、shield ディレクトリ `Recollection/` → `Release_Recollection/`、内部 dtsi/zmk.yml/module.yml の id/name も同名で統一。武装制御系 behavior を 〈Enhance Armament〉 名義で再編し、`30_behaviors_base.dtsi` → `30_enhance_armament_base.dtsi`、`31_behaviors_layers.dtsi` → `31_enhance_armament_layers.dtsi`。新規 `35_enhance_armament.dtsi` を拡張術式の依代として確保。神器の真名（Release Recollection）と武装完全支配術（Enhance Armament）が階位通り整合した。 |
 | 2026-05-02 | 〈Sign Rename〉— [ Synthesis 02 ] のレイヤー名を `ARROW_SIGN` → `SIGN` へ改名。〈Sign Reforge〉で記号入力専用に再構築済みのため、旧名「ARROW」の名残を払拭しシンプルな名称へ統一。レイヤー番号・バインドは据え置き、定義ファイルも `02_arrow_sign.dtsi` → `02_sign.dtsi` に同時リネーム。 |
