@@ -77,6 +77,7 @@ const state = {
   // Visual editor state (keymap.yaml only)
   yamlData: null,
   originalYamlData: null,
+  layoutData: null,       // QMK info JSON (config/Release_Recollection.json)
   currentLayer: 'default',
   selectedIndex: null,
   modifiedKeys: new Set(),
@@ -534,7 +535,7 @@ function buildKey(t, h) {
   return { t: tap, h: hold };
 }
 
-function reloadVisualEditor() {
+async function reloadVisualEditor() {
   const file = state.files.get('keymap.yaml');
   if (!file) return;
   try {
@@ -545,6 +546,19 @@ function reloadVisualEditor() {
     state.viewMode = 'code';
     showCodeEditor('keymap.yaml', file);
     return;
+  }
+  // Load physical layout JSON if not already loaded
+  if (!state.layoutData) {
+    try {
+      if (!state.files.has('config/Release_Recollection.json')) {
+        await fetchFile('config/Release_Recollection.json');
+      }
+      const jf = state.files.get('config/Release_Recollection.json');
+      state.layoutData = JSON.parse(jf.content);
+      log('Physical layout loaded', 'success');
+    } catch (e) {
+      log(`Layout load failed: ${e.message}`, 'warning');
+    }
   }
   renderVisual();
 }
@@ -572,33 +586,95 @@ function renderVisual() {
   // Grid
   els.keymapGrid.innerHTML = '';
   const layer = state.yamlData.layers[state.currentLayer] || [];
-  layer.forEach((entry, idx) => {
-    const cell = document.createElement('div');
-    cell.className = 'key-cell';
-    if (state.selectedIndex === idx) cell.classList.add('selected');
-    if (state.modifiedKeys.has(`${state.currentLayer}:${idx}`)) cell.classList.add('modified');
+  const layout = state.layoutData?.layouts?.default_layout?.layout || null;
 
-    const { t, h } = parseKey(entry);
-    const tapEl = document.createElement('div');
-    tapEl.className = 'key-tap';
-    tapEl.textContent = t || '·';
-    cell.appendChild(tapEl);
-
-    if (h) {
-      const holdEl = document.createElement('div');
-      holdEl.className = 'key-hold';
-      holdEl.textContent = h;
-      cell.appendChild(holdEl);
-    }
-    cell.onclick = () => {
-      state.selectedIndex = idx;
-      renderEditForm();
-      renderVisual();
-    };
-    els.keymapGrid.appendChild(cell);
-  });
+  if (layout && layout.length === layer.length) {
+    renderPhysicalLayout(layer, layout);
+  } else {
+    renderFlatGrid(layer);
+  }
 
   renderEditForm();
+}
+
+function renderFlatGrid(layer) {
+  els.keymapGrid.classList.remove('physical-layout');
+  els.keymapGrid.style.cssText = '';
+  layer.forEach((entry, idx) => {
+    const cell = createKeyCell(entry, idx);
+    els.keymapGrid.appendChild(cell);
+  });
+}
+
+function renderPhysicalLayout(layer, layout) {
+  els.keymapGrid.classList.add('physical-layout');
+  const unitPx = 56;
+  const gap = 4;
+
+  // Compute bounds (account for rotation by checking rx/ry)
+  let maxX = 0, maxY = 0;
+  for (const k of layout) {
+    const w = k.w ?? 1;
+    const h = k.h ?? 1;
+    maxX = Math.max(maxX, (k.x ?? 0) + w);
+    maxY = Math.max(maxY, (k.y ?? 0) + h);
+  }
+  const padding = 12;
+  els.keymapGrid.style.cssText =
+    `position: relative; width: ${maxX * unitPx + padding * 2}px; ` +
+    `height: ${maxY * unitPx + padding * 2}px; ` +
+    `padding: ${padding}px; margin: 0 auto;`;
+
+  layer.forEach((entry, idx) => {
+    const pos = layout[idx];
+    const cell = createKeyCell(entry, idx);
+    cell.classList.add('key-physical');
+
+    const w = (pos.w ?? 1) * unitPx - gap;
+    const h = (pos.h ?? 1) * unitPx - gap;
+    cell.style.position = 'absolute';
+    cell.style.left = `${(pos.x ?? 0) * unitPx + padding + gap / 2}px`;
+    cell.style.top = `${(pos.y ?? 0) * unitPx + padding + gap / 2}px`;
+    cell.style.width = `${w}px`;
+    cell.style.height = `${h}px`;
+
+    if (pos.r) {
+      const rx = pos.rx ?? pos.x ?? 0;
+      const ry = pos.ry ?? pos.y ?? 0;
+      const ox = (rx - (pos.x ?? 0)) * unitPx;
+      const oy = (ry - (pos.y ?? 0)) * unitPx;
+      cell.style.transformOrigin = `${ox}px ${oy}px`;
+      cell.style.transform = `rotate(${pos.r}deg)`;
+    }
+
+    els.keymapGrid.appendChild(cell);
+  });
+}
+
+function createKeyCell(entry, idx) {
+  const cell = document.createElement('div');
+  cell.className = 'key-cell';
+  if (state.selectedIndex === idx) cell.classList.add('selected');
+  if (state.modifiedKeys.has(`${state.currentLayer}:${idx}`)) cell.classList.add('modified');
+
+  const { t, h } = parseKey(entry);
+  const tapEl = document.createElement('div');
+  tapEl.className = 'key-tap';
+  tapEl.textContent = t || '·';
+  cell.appendChild(tapEl);
+
+  if (h) {
+    const holdEl = document.createElement('div');
+    holdEl.className = 'key-hold';
+    holdEl.textContent = h;
+    cell.appendChild(holdEl);
+  }
+  cell.onclick = () => {
+    state.selectedIndex = idx;
+    renderEditForm();
+    renderVisual();
+  };
+  return cell;
 }
 
 function renderEditForm() {

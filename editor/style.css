@@ -408,6 +408,20 @@ body {
   font-size: 0.7rem;
 }
 
+.keymap-grid.physical-layout {
+  display: block;
+  background: linear-gradient(135deg, var(--bg-deep), var(--bg-panel));
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  overflow: visible;
+}
+
+.keymap-grid.physical-layout .key-cell {
+  min-height: 0;
+  font-size: 0.65rem;
+  padding: 4px;
+}
+
 .key-cell {
   background: var(--bg-elevated);
   border: 1px solid var(--border-accent);
