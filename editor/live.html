@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《 Cardinal Editor — Live Sync Conduit 》</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Live Sync 専用スタイル */
+    .live-shell {
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 24px;
+    }
+    .live-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-accent);
+      border-radius: 4px;
+      padding: 24px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .live-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: linear-gradient(180deg, var(--accent-violet), var(--accent-cyan));
+    }
+    .live-panel h2 {
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      color: var(--accent-violet);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--border-accent);
+    }
+    .conduit-state {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: var(--bg-deep);
+      border-radius: 3px;
+      margin-bottom: 12px;
+    }
+    .conduit-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .conduit-indicator.connecting { background: var(--accent-gold); animation: pulse 1s infinite; }
+    .conduit-indicator.connected  { background: var(--accent-success); box-shadow: 0 0 8px var(--accent-success); }
+    .conduit-indicator.error      { background: var(--accent-crimson); }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.3; }
+    }
+    .conduit-label {
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+    }
+    .conduit-detail {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .live-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .device-info {
+      background: var(--bg-deep);
+      padding: 12px;
+      font-size: 0.75rem;
+      border-radius: 3px;
+      margin-top: 12px;
+    }
+    .device-info dt {
+      color: var(--accent-cyan);
+      letter-spacing: 0.1em;
+      margin-top: 8px;
+    }
+    .device-info dt:first-child { margin-top: 0; }
+    .device-info dd {
+      color: var(--text-primary);
+      margin-left: 16px;
+      word-break: break-all;
+    }
+    .nav-back {
+      display: inline-block;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      padding: 6px 12px;
+      border: 1px solid var(--border-accent);
+      border-radius: 2px;
+    }
+    .nav-back:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+  </style>
+</head>
+<body>
+  <header class="cardinal-header">
+    <div class="header-left">
+      <h1>《 LIVE SYNC CONDUIT 》</h1>
+      <p class="subtitle">— Cardinal Editor 直接接続術式 / PoC —</p>
+    </div>
+    <div class="header-right">
+      <a href="index.html" class="nav-back">← Cardinal Editor</a>
+    </div>
+  </header>
+
+  <main class="live-shell">
+    <!-- ◆ Conduit Status -->
+    <section class="live-panel">
+      <h2>◆ CONDUIT STATUS ── 接続状態</h2>
+      <div class="conduit-state">
+        <span id="conduit-indicator" class="conduit-indicator"></span>
+        <div>
+          <div id="conduit-label" class="conduit-label">Disconnected</div>
+          <div id="conduit-detail" class="conduit-detail">〈 Connect via Web Bluetooth 〉ボタンを押して神器に接続</div>
+        </div>
+      </div>
+      <div class="live-actions">
+        <button id="connect-btn" class="btn-primary">〈 Connect via Web Bluetooth 〉</button>
+        <button id="disconnect-btn" class="btn-ghost hidden">[ Disconnect ]</button>
+        <button id="probe-btn" class="btn-ghost hidden">〈 Probe Device 〉</button>
+      </div>
+    </section>
+
+    <!-- ◆ Device Info -->
+    <section id="device-section" class="live-panel hidden">
+      <h2>◆ DEVICE INFO ── 神器情報</h2>
+      <dl id="device-info" class="device-info">
+        <dt>Device Label</dt><dd id="info-label">—</dd>
+      </dl>
+    </section>
+
+    <!-- ◆ System Log -->
+    <section class="live-panel">
+      <h2>◆ SYSTEM LOG ── 動作記録</h2>
+      <pre id="log-output" class="log-output" style="max-height: 240px;"></pre>
+    </section>
+
+    <!-- ◆ Phase 2 Notes -->
+    <section class="live-panel">
+      <h2>◆ PHASE 2 NOTES ── 構築段階注記</h2>
+      <p class="hint">
+        現状は <strong>Step 2 (PoC)</strong> ── Web Bluetooth 接続 + Transport 確立 まで。
+        次段階で RPC リクエストを発行し、キーマップの取得・書換を実装する。
+      </p>
+      <p class="hint" style="margin-top: 8px;">
+        前提条件: Elucidator 側で <code>CONFIG_ZMK_STUDIO=y</code> が有効化された
+        ファームウェアが書き込まれていること。
+      </p>
+    </section>
+  </main>
+
+  <footer class="cardinal-footer">
+    <p>&lt;&lt; LIVE SYNC CONDUIT 〉〉— PoC / Phase 2 / Step 2</p>
+  </footer>
+
+  <script type="module" src="live.js"></script>
+</body>
+</html>

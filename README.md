@@ -27,6 +27,18 @@
 
 > **[ CARDINAL ]** 〈Cardinal Editor〉は静的サイトとして `editor/` 配下に構築されている。GitHub API + Tree API を直接叩いて複数ファイルを 1 コミットで送信する設計。
 
+### ◆ 〈Live Sync Conduit〉── 直接接続術式（Phase 2 / PoC）
+
+`editor/live.html` で **公式 ZMK Studio と同じ Web Bluetooth プロトコル**による直接接続を実現する PoC。`@zmkfirmware/zmk-studio-ts-client@0.0.18` を **esm.sh 経由でビルド不要に組み込み**、Service UUID `00000000-0196-6107-c967-c5cfb1c2482a` の GATT サービスへ接続する。
+
+| 段階 | 状態 |
+|---|---|
+| Step 1: ZMK Studio 有効化（`CONFIG_ZMK_STUDIO=y`） | ✅ |
+| Step 2: PoC（Web Bluetooth 接続 + Transport 確立） | ✅ |
+| Step 3: RPC キーマップ取得・書換 + Visual Editor 同期 | 未着手 |
+
+> **[ SYSTEM ]** Live Sync Conduit を使うには Elucidator (central) に ZMK Studio 有効化版ファームウェアが書き込まれている必要がある。Chrome / Edge など Web Bluetooth API 対応ブラウザ必須。
+
 ### ◆ 起動方法 ── Invocation
 
 ```bash
@@ -400,6 +412,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-05 | 〈Live Sync Conduit PoC〉— Cardinal Editor に Phase 2 Step 2 として `editor/live.html` を追加。`@zmkfirmware/zmk-studio-ts-client@0.0.18` を esm.sh 経由でビルド不要に組み込み、公式 ZMK Studio と同じ GATT Service UUID（`00000000-0196-6107-c967-c5cfb1c2482a`）で Web Bluetooth 接続する。Connect / Disconnect / Probe ボタン、接続状態インジケータ（pulse 演出）、デバイス情報表示、System Log を実装。実 RPC リクエスト発行は Step 3 で実装予定。Cardinal Editor 本体（`index.html`）の右上に⚡Live Sync ナビゲーションリンクも追加。 |
 | 2026-05-05 | 〈Live Sync Conduit Activation〉— Elucidator.conf で `CONFIG_ZMK_STUDIO=y` を有効化、`CONFIG_ZMK_STUDIO_LOCKING=n` でパスワード解除。これにより公式 zmk.studio から Web Bluetooth/USB 経由でキーマップをライブ書換可能となる（再ビルド不要）。central 側（Elucidator）にのみ設定追加、peripheral（Dark_Repulser）は変更なし。Phase 2 として Cardinal Editor へのライブ接続統合を予定。 |
 | 2026-05-05 | 〈Modifier Stratification〉— Memory Rewrite フォームに修飾キー独立トグルを追加。`Sft` / `Ctl` / `Alt` / `Gui` をチップ式チェックボックスで個別選択でき、トグル状態は対象フィールド（Tap / Hold）の値に `Sft+Ctl+TAB` 形式で自動結合される。既存値の修飾キープレフィックス（`Sft+TAB` `Gui+A` 等）も `splitModifiers()` でパースして UI に反映する双方向同期。ターゲット切替時はそのフィールドの修飾キー状態に同期。 |
 | 2026-05-05 | 〈Sword Skill Selector〉— Cardinal Editor の Memory Rewrite フォームに Quick Pick 機構を追加。レイヤー / 修飾キー / 文字 / 数字 / F1-F24 / 矢印 / 特殊キー / 記号 / ZMK behavior / **剣技 (Sword Skills)** / 使用中の値 の 11 カテゴリから値を選択可能とした。剣技カテゴリには 8 神器 × 4 方向 = 32 種の `&gE_up` 〜 `&gW_right` 全 mod-morph behavior を網羅。`<datalist>` によるオートコンプリートも併設。さらに `<Auto-Sealing>` として、起動時に localStorage に PAT があれば自動認証する挙動を追加。 |

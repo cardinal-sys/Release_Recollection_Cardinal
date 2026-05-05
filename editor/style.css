@@ -75,6 +75,22 @@ body {
   align-items: center;
 }
 
+.nav-link {
+  color: var(--accent-violet);
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  border: 1px solid var(--accent-violet);
+  border-radius: 2px;
+  font-size: 0.7rem;
+  transition: all 0.1s ease;
+}
+
+.nav-link:hover {
+  background: rgba(180, 140, 255, 0.15);
+  box-shadow: 0 0 8px rgba(180, 140, 255, 0.3);
+}
+
 #status-indicator {
   font-weight: bold;
   letter-spacing: 0.1em;
