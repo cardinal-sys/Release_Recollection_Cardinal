@@ -5,6 +5,7 @@
  * =============================== */
 
 import * as gattTransport from 'https://esm.sh/@zmkfirmware/zmk-studio-ts-client@0.0.18/transport/gatt';
+import * as serialTransport from 'https://esm.sh/@zmkfirmware/zmk-studio-ts-client@0.0.18/transport/serial';
 import { create_rpc_connection } from 'https://esm.sh/@zmkfirmware/zmk-studio-ts-client@0.0.18';
 
 const $ = (id) => document.getElementById(id);
@@ -12,12 +13,13 @@ const els = {
   indicator: $('conduit-indicator'),
   label:     $('conduit-label'),
   detail:    $('conduit-detail'),
-  connectBtn:    $('connect-btn'),
-  disconnectBtn: $('disconnect-btn'),
-  probeBtn:      $('probe-btn'),
-  deviceSection: $('device-section'),
-  infoLabel:     $('info-label'),
-  logOutput:     $('log-output'),
+  connectBleBtn:    $('connect-ble-btn'),
+  connectSerialBtn: $('connect-serial-btn'),
+  disconnectBtn:    $('disconnect-btn'),
+  probeBtn:         $('probe-btn'),
+  deviceSection:    $('device-section'),
+  infoLabel:        $('info-label'),
+  logOutput:        $('log-output'),
 };
 
 const state = {
@@ -40,48 +42,68 @@ function setConduitState(state, label, detail) {
   if (detail !== undefined) els.detail.textContent = detail;
 }
 
-async function handleConnect() {
+async function establishConnection(transport, kind) {
+  state.transport = transport;
+  log(`Transport 確立 (${kind}): ${transport.label}`, 'success');
+
+  const rpc = create_rpc_connection(transport);
+  state.rpc = rpc;
+  log('RpcConnection 確立', 'success');
+
+  setConduitState('connected', `Connected: ${rpc.label}`, `Live Sync Conduit (${kind}) が確立されました`);
+  els.connectBleBtn.classList.add('hidden');
+  els.connectSerialBtn.classList.add('hidden');
+  els.disconnectBtn.classList.remove('hidden');
+  els.probeBtn.classList.remove('hidden');
+  els.deviceSection.classList.remove('hidden');
+  els.infoLabel.textContent = rpc.label;
+
+  // Notification subscription
+  (async () => {
+    const reader = rpc.notification_readable.getReader();
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        log(`[notification] ${JSON.stringify(value).slice(0, 120)}`, 'info');
+      }
+    } catch (e) {
+      log(`Notification stream closed: ${e.message || e}`, 'warning');
+    }
+  })();
+}
+
+async function handleConnectBle() {
   if (!('bluetooth' in navigator)) {
     log('Web Bluetooth が利用できません。Chrome / Edge を使用してください。', 'error');
     setConduitState('error', 'Unsupported', 'Web Bluetooth not available');
     return;
   }
-
   try {
-    setConduitState('connecting', 'Requesting device...', 'デバイス選択ダイアログを開いています');
+    setConduitState('connecting', 'Requesting BLE device...', 'デバイス選択ダイアログを開いています');
     log('navigator.bluetooth.requestDevice() を呼び出し...');
-
     const transport = await gattTransport.connect();
-    state.transport = transport;
-    log(`Transport 確立: ${transport.label}`, 'success');
-
-    const rpc = create_rpc_connection(transport);
-    state.rpc = rpc;
-    log('RpcConnection 確立', 'success');
-
-    setConduitState('connected', `Connected: ${rpc.label}`, 'Live Sync Conduit が確立されました');
-    els.connectBtn.classList.add('hidden');
-    els.disconnectBtn.classList.remove('hidden');
-    els.probeBtn.classList.remove('hidden');
-    els.deviceSection.classList.remove('hidden');
-    els.infoLabel.textContent = rpc.label;
-
-    // Notification subscription
-    (async () => {
-      const reader = rpc.notification_readable.getReader();
-      try {
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          log(`[notification] ${JSON.stringify(value).slice(0, 120)}`, 'info');
-        }
-      } catch (e) {
-        log(`Notification stream closed: ${e.message || e}`, 'warning');
-      }
-    })();
+    await establishConnection(transport, 'BLE');
   } catch (err) {
-    log(`Connect failed: ${err.message || err}`, 'error');
-    setConduitState('error', 'Connect failed', err.message || String(err));
+    log(`BLE Connect failed: ${err.message || err}`, 'error');
+    setConduitState('error', 'BLE Connect failed', err.message || String(err));
+  }
+}
+
+async function handleConnectSerial() {
+  if (!('serial' in navigator)) {
+    log('Web Serial が利用できません。Chrome / Edge を使用してください。', 'error');
+    setConduitState('error', 'Unsupported', 'Web Serial not available');
+    return;
+  }
+  try {
+    setConduitState('connecting', 'Requesting serial port...', 'シリアルポート選択ダイアログを開いています');
+    log('navigator.serial.requestPort() を呼び出し...');
+    const transport = await serialTransport.connect();
+    await establishConnection(transport, 'USB Serial');
+  } catch (err) {
+    log(`Serial Connect failed: ${err.message || err}`, 'error');
+    setConduitState('error', 'Serial Connect failed', err.message || String(err));
   }
 }
 
@@ -92,8 +114,9 @@ function handleDisconnect() {
   }
   state.transport = null;
   state.rpc = null;
-  setConduitState('', 'Disconnected', '〈 Connect via Web Bluetooth 〉ボタンを押して神器に接続');
-  els.connectBtn.classList.remove('hidden');
+  setConduitState('', 'Disconnected', 'Bluetooth または USB Serial で神器に接続してください');
+  els.connectBleBtn.classList.remove('hidden');
+  els.connectSerialBtn.classList.remove('hidden');
   els.disconnectBtn.classList.add('hidden');
   els.probeBtn.classList.add('hidden');
   els.deviceSection.classList.add('hidden');
@@ -108,11 +131,14 @@ async function handleProbe() {
 }
 
 function init() {
-  els.connectBtn.addEventListener('click', handleConnect);
+  els.connectBleBtn.addEventListener('click', handleConnectBle);
+  els.connectSerialBtn.addEventListener('click', handleConnectSerial);
   els.disconnectBtn.addEventListener('click', handleDisconnect);
   els.probeBtn.addEventListener('click', handleProbe);
   log('Live Sync Conduit initialized');
   log('@zmkfirmware/zmk-studio-ts-client@0.0.18 loaded via esm.sh');
+  if (!('bluetooth' in navigator)) log('Web Bluetooth API: 利用不可', 'warning');
+  if (!('serial' in navigator))    log('Web Serial API: 利用不可', 'warning');
 }
 
 init();

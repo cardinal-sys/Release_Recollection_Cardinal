@@ -128,10 +128,14 @@
         </div>
       </div>
       <div class="live-actions">
-        <button id="connect-btn" class="btn-primary">〈 Connect via Web Bluetooth 〉</button>
+        <button id="connect-ble-btn" class="btn-primary">〈 Connect via Bluetooth 〉</button>
+        <button id="connect-serial-btn" class="btn-primary">〈 Connect via USB Serial 〉</button>
         <button id="disconnect-btn" class="btn-ghost hidden">[ Disconnect ]</button>
         <button id="probe-btn" class="btn-ghost hidden">〈 Probe Device 〉</button>
       </div>
+      <p class="hint" style="margin-top: 8px;">
+        <strong>USB 接続推奨</strong> ── BLE は macOS で既に HID 接続済みのデバイスを Web Bluetooth から再選択できない場合があります。USB ケーブルで接続して Serial を使うのが確実です。
+      </p>
     </section>
 
     <!-- ◆ Device Info -->
