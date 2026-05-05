@@ -28,7 +28,8 @@ const state = {
   deviceInfo: null,
   lockState: null,
   keymap: null,
-  behaviors: {},     // behavior_id -> details
+  behaviors: {},        // behavior_id -> details
+  physicalLayout: null, // active KeyPhysicalAttrs[] (already scaled to unit)
 };
 
 function log(msg, kind = 'info') {
@@ -168,6 +169,35 @@ async function fetchKeymap() {
   return km;
 }
 
+async function fetchPhysicalLayouts() {
+  log('GetPhysicalLayouts...');
+  const resp = await rpc({ keymap: { getPhysicalLayouts: true } });
+  const data = resp?.keymap?.getPhysicalLayouts;
+  if (!data) {
+    log('No physical layouts available', 'warning');
+    return null;
+  }
+  const idx = data.activeLayoutIndex || 0;
+  const layout = data.layouts?.[idx];
+  if (!layout) {
+    log(`Active layout #${idx} not found`, 'warning');
+    return null;
+  }
+  // KeyPhysicalAttrs values are sint32, divide by 100 → keyboard units
+  const keys = (layout.keys || []).map((k) => ({
+    width:  (k.width  || 100) / 100,
+    height: (k.height || 100) / 100,
+    x:      (k.x      || 0)   / 100,
+    y:      (k.y      || 0)   / 100,
+    r:      (k.r      || 0)   / 100,
+    rx:     (k.rx     || 0)   / 100,
+    ry:     (k.ry     || 0)   / 100,
+  }));
+  state.physicalLayout = keys;
+  log(`PhysicalLayout: ${layout.name} (${keys.length} keys)`, 'success');
+  return keys;
+}
+
 async function fetchBehaviors() {
   log('ListAllBehaviors...');
   const resp = await rpc({ behaviors: { listAllBehaviors: true } });
@@ -189,6 +219,7 @@ async function handleProbe() {
     await fetchDeviceInfo();
     await fetchLockState();
     await fetchBehaviors();
+    await fetchPhysicalLayouts();
     await fetchKeymap();
     renderKeymapView();
     log('--- 〈 Memory Recall 〉 complete ---', 'success');
@@ -237,22 +268,59 @@ function renderKeymapView() {
     sum.textContent = `▸ Layer ${layer.id}: ${layer.name || '(unnamed)'} — ${layer.bindings?.length || 0} bindings`;
     wrap.appendChild(sum);
 
+    const useLayout = state.physicalLayout && state.physicalLayout.length === (layer.bindings?.length || 0);
     const grid = document.createElement('div');
-    grid.className = 'live-binding-grid';
-    (layer.bindings || []).forEach((b, i) => {
-      const cell = document.createElement('div');
-      cell.className = 'live-binding-cell live-clickable';
-      cell.title = `Click to edit — [${i}] behaviorId=${b.behaviorId} param1=${b.param1} param2=${b.param2}`;
-      cell.innerHTML =
-        `<div class="bind-pos">[${i}]</div>` +
-        `<div class="bind-name">${behaviorName(b.behaviorId)}</div>` +
-        `<div class="bind-params">${b.param1} / ${b.param2}</div>`;
-      cell.onclick = () => openBindingEditor(layer.id, i, b);
-      grid.appendChild(cell);
-    });
+    grid.className = useLayout ? 'live-physical-grid' : 'live-binding-grid';
+
+    if (useLayout) {
+      const unitPx = 56, gap = 4, padding = 12;
+      let maxX = 0, maxY = 0;
+      for (const k of state.physicalLayout) {
+        maxX = Math.max(maxX, k.x + k.width);
+        maxY = Math.max(maxY, k.y + k.height);
+      }
+      grid.style.cssText =
+        `position: relative; width: ${maxX * unitPx + padding * 2}px; ` +
+        `height: ${maxY * unitPx + padding * 2}px; ` +
+        `padding: ${padding}px; margin: 0 auto;`;
+
+      (layer.bindings || []).forEach((b, i) => {
+        const pos = state.physicalLayout[i];
+        const cell = createBindingCell(layer.id, i, b);
+        cell.style.position = 'absolute';
+        cell.style.left   = `${pos.x * unitPx + padding + gap / 2}px`;
+        cell.style.top    = `${pos.y * unitPx + padding + gap / 2}px`;
+        cell.style.width  = `${pos.width * unitPx - gap}px`;
+        cell.style.height = `${pos.height * unitPx - gap}px`;
+        if (pos.r) {
+          const ox = (pos.rx - pos.x) * unitPx;
+          const oy = (pos.ry - pos.y) * unitPx;
+          cell.style.transformOrigin = `${ox}px ${oy}px`;
+          cell.style.transform = `rotate(${pos.r}deg)`;
+        }
+        grid.appendChild(cell);
+      });
+    } else {
+      (layer.bindings || []).forEach((b, i) => {
+        grid.appendChild(createBindingCell(layer.id, i, b));
+      });
+    }
+
     wrap.appendChild(grid);
     layersEl.appendChild(wrap);
   }
+}
+
+function createBindingCell(layerId, i, b) {
+  const cell = document.createElement('div');
+  cell.className = 'live-binding-cell live-clickable';
+  cell.title = `Click to edit — [${i}] behaviorId=${b.behaviorId} param1=${b.param1} param2=${b.param2}`;
+  cell.innerHTML =
+    `<div class="bind-pos">[${i}]</div>` +
+    `<div class="bind-name">${behaviorName(b.behaviorId)}</div>` +
+    `<div class="bind-params">${b.param1} / ${b.param2}</div>`;
+  cell.onclick = () => openBindingEditor(layerId, i, b);
+  return cell;
 }
 
 /* ◆ BINDING EDITOR ──────────────────── */
