@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《 Cardinal Editor 》— Release Recollection</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- CodeMirror 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/theme/dracula.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/yaml/yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/selection/active-line.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/search/searchcursor.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/search/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/dialog/dialog.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/dialog/dialog.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+</head>
+<body>
+  <header class="cardinal-header">
+    <div class="header-left">
+      <h1>《 CARDINAL EDITOR 》</h1>
+      <p class="subtitle">— Release Recollection 記憶書換術式 —</p>
+    </div>
+    <div class="header-right">
+      <span id="status-indicator" class="status-idle">[ IDLE ]</span>
+      <span id="status-text">Awaiting authentication...</span>
+    </div>
+  </header>
+
+  <!-- ◆ AUTHENTICATION GATE ─ 認証関門 -->
+  <section id="auth-section" class="auth-bar">
+    <div class="auth-form">
+      <input type="password" id="pat-input" placeholder="GitHub PAT (ghp_xxx, repo scope)">
+      <input type="text" id="repo-input" value="cardinal-sys/Release_Recollection" placeholder="owner/repo">
+      <input type="text" id="branch-input" value="main" placeholder="branch">
+      <button id="auth-btn" class="btn-primary">〈 Authenticate 〉</button>
+    </div>
+    <p class="auth-hint">
+      PAT は localStorage に保存されます。<code>repo</code> スコープが必要です。
+    </p>
+  </section>
+
+  <!-- ◆ MAIN EDITOR SHELL ─ -->
+  <main id="editor-shell" class="editor-shell hidden">
+
+    <!-- ◆ SIDEBAR ─ ファイル一覧 -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>◆ FILE TREE</h2>
+        <button id="reload-tree-btn" class="btn-tiny" title="Reload file list">↻</button>
+      </div>
+      <div id="file-tree" class="file-tree">
+        <p class="hint">Authenticate to load files...</p>
+      </div>
+      <div class="sidebar-footer">
+        <h3>◆ MODIFIED</h3>
+        <ul id="modified-list" class="modified-list">
+          <li class="hint">No changes</li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- ◆ EDITOR AREA ─ -->
+    <section class="editor-main">
+      <!-- Tab Bar -->
+      <div id="tab-bar" class="tab-bar"></div>
+
+      <!-- View Mode Switch (keymap.yaml only) -->
+      <div id="view-switch" class="view-switch hidden">
+        <button id="view-code" class="view-btn active">[ Code ]</button>
+        <button id="view-visual" class="view-btn">[ Visual Editor ]</button>
+      </div>
+
+      <!-- Code Editor -->
+      <div id="code-editor-wrap" class="code-editor-wrap">
+        <div id="code-editor"></div>
+        <div id="empty-state" class="empty-state">
+          <p>《 No file open 》</p>
+          <p class="hint">サイドバーからファイルを選択してください。</p>
+        </div>
+      </div>
+
+      <!-- Visual Editor (keymap.yaml only) -->
+      <div id="visual-editor" class="visual-editor hidden">
+        <div class="visual-toolbar">
+          <div id="layer-tabs" class="layer-tabs"></div>
+        </div>
+        <div id="keymap-grid" class="keymap-grid"></div>
+        <div id="key-edit-form" class="key-edit-form hidden">
+          <h3>◆ MEMORY REWRITE ── 記憶書換</h3>
+          <div class="form-row">
+            <label>Position</label>
+            <input type="text" id="edit-index" readonly>
+          </div>
+          <div class="form-row">
+            <label>Tap （t:）</label>
+            <input type="text" id="edit-tap" placeholder="例: A, ESC, &smart_num 16">
+          </div>
+          <div class="form-row">
+            <label>Hold （h:）</label>
+            <input type="text" id="edit-hold" placeholder="例: LEFT SHIFT, NUM, GESTURE_W">
+          </div>
+          <div class="form-row">
+            <button id="apply-edit-btn" class="btn-primary">〈 Apply 〉</button>
+            <button id="cancel-edit-btn" class="btn-ghost">[ Cancel ]</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ◆ SEALING & LOG ─ -->
+    <aside class="rightbar">
+      <div class="seal-panel">
+        <h2>◆ SEALING ── 封印</h2>
+        <div class="form-row">
+          <input type="text" id="commit-message" placeholder="edit(...): 〈...〉— ...">
+        </div>
+        <div class="form-row">
+          <button id="seal-btn" class="btn-seal">〈 SEAL & COMMIT 〉</button>
+        </div>
+        <p class="hint" id="seal-hint">No modified files</p>
+      </div>
+
+      <div class="log-panel">
+        <h2>◆ SYSTEM LOG ── 動作記録</h2>
+        <pre id="log-output" class="log-output"></pre>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="cardinal-footer">
+    <p>&lt;&lt; CARDINAL SYSTEM &gt;&gt; — 記憶書換術式は管理者権限を要する</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

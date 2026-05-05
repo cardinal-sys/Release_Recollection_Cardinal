@@ -6,6 +6,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["scripts/keymap_preview_server.py"],
       "port": 3000
+    },
+    {
+      "name": "cardinal-editor",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["http-server", "/Users/maedaakio/Documents/GitHub/Release_Recollection/editor", "-p", "3001", "-c-1", "--silent"],
+      "port": 3001
     }
   ]
 }
