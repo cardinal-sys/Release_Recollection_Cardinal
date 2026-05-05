@@ -157,6 +157,39 @@
       font-size: 0.55rem;
       font-family: monospace;
     }
+    .live-clickable { cursor: pointer; }
+    .live-clickable:hover {
+      border-color: var(--accent-violet);
+      background: rgba(180, 140, 255, 0.1);
+    }
+    .bind-form {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .bind-form label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.1em;
+    }
+    .bind-input {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-accent);
+      color: var(--text-primary);
+      padding: 6px 8px;
+      font-family: inherit;
+      font-size: 0.8rem;
+      border-radius: 2px;
+    }
+    .bind-input:focus {
+      outline: none;
+      border-color: var(--accent-violet);
+      box-shadow: 0 0 8px rgba(180, 140, 255, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -205,6 +238,35 @@
       <h2>◆ MEMORY MATRIX ── 記憶展開</h2>
       <div id="keymap-summary"></div>
       <div id="keymap-layers"></div>
+    </section>
+
+    <!-- ◆ Binding Editor -->
+    <section id="bind-editor" class="live-panel hidden">
+      <h2>◆ MEMORY REWRITE LIVE ── 直接書換</h2>
+      <p class="hint">
+        binding を編集して〈 Apply 〉で <code>SetLayerBinding</code> + <code>SaveChanges</code> を発行します。即時にキーボードへ反映されます。
+      </p>
+      <input type="hidden" id="bind-layer-id">
+      <input type="hidden" id="bind-position">
+      <dl class="device-info">
+        <dt>Position</dt><dd id="bind-position-display">—</dd>
+        <dt>Current</dt><dd id="bind-current">—</dd>
+      </dl>
+      <div class="bind-form">
+        <label>Behavior
+          <select id="bind-behavior" class="bind-input"></select>
+        </label>
+        <label>param1
+          <input type="number" id="bind-param1" class="bind-input" value="0">
+        </label>
+        <label>param2
+          <input type="number" id="bind-param2" class="bind-input" value="0">
+        </label>
+      </div>
+      <div class="live-actions" style="margin-top: 12px;">
+        <button id="bind-apply-btn" class="btn-seal">〈 Apply & Save 〉</button>
+        <button id="bind-cancel-btn" class="btn-ghost">[ Cancel ]</button>
+      </div>
     </section>
 
     <!-- ◆ System Log -->

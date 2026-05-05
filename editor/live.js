@@ -232,6 +232,7 @@ function renderKeymapView() {
   for (const layer of state.keymap.layers || []) {
     const wrap = document.createElement('details');
     wrap.className = 'layer-details';
+    if (layer.id === 0) wrap.open = true;
     const sum = document.createElement('summary');
     sum.textContent = `▸ Layer ${layer.id}: ${layer.name || '(unnamed)'} — ${layer.bindings?.length || 0} bindings`;
     wrap.appendChild(sum);
@@ -240,16 +241,88 @@ function renderKeymapView() {
     grid.className = 'live-binding-grid';
     (layer.bindings || []).forEach((b, i) => {
       const cell = document.createElement('div');
-      cell.className = 'live-binding-cell';
-      cell.title = `[${i}] behaviorId=${b.behaviorId} param1=${b.param1} param2=${b.param2}`;
+      cell.className = 'live-binding-cell live-clickable';
+      cell.title = `Click to edit — [${i}] behaviorId=${b.behaviorId} param1=${b.param1} param2=${b.param2}`;
       cell.innerHTML =
         `<div class="bind-pos">[${i}]</div>` +
         `<div class="bind-name">${behaviorName(b.behaviorId)}</div>` +
         `<div class="bind-params">${b.param1} / ${b.param2}</div>`;
+      cell.onclick = () => openBindingEditor(layer.id, i, b);
       grid.appendChild(cell);
     });
     wrap.appendChild(grid);
     layersEl.appendChild(wrap);
+  }
+}
+
+/* ◆ BINDING EDITOR ──────────────────── */
+function openBindingEditor(layerId, position, currentBinding) {
+  const dlg = document.getElementById('bind-editor');
+  document.getElementById('bind-layer-id').value = layerId;
+  document.getElementById('bind-position').value = position;
+  document.getElementById('bind-position-display').textContent =
+    `Layer ${layerId} [${position}]`;
+
+  // Behavior dropdown
+  const behSel = document.getElementById('bind-behavior');
+  behSel.innerHTML = '';
+  const sortedIds = Object.keys(state.behaviors).map(Number).sort((a, b) => a - b);
+  for (const id of sortedIds) {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = `${state.behaviors[id].displayName} (id=${id})`;
+    if (id === currentBinding.behaviorId) opt.selected = true;
+    behSel.appendChild(opt);
+  }
+
+  document.getElementById('bind-param1').value = currentBinding.param1 ?? 0;
+  document.getElementById('bind-param2').value = currentBinding.param2 ?? 0;
+
+  dlg.classList.remove('hidden');
+  document.getElementById('bind-current').textContent =
+    `Current: ${behaviorName(currentBinding.behaviorId)} (id=${currentBinding.behaviorId}) / ` +
+    `param1=${currentBinding.param1} / param2=${currentBinding.param2}`;
+}
+
+function closeBindingEditor() {
+  document.getElementById('bind-editor').classList.add('hidden');
+}
+
+async function applyBindingEdit() {
+  const layerId  = Number(document.getElementById('bind-layer-id').value);
+  const position = Number(document.getElementById('bind-position').value);
+  const behaviorId = Number(document.getElementById('bind-behavior').value);
+  const param1 = Number(document.getElementById('bind-param1').value) || 0;
+  const param2 = Number(document.getElementById('bind-param2').value) || 0;
+
+  log(`SetLayerBinding: layer=${layerId} pos=${position} behavior=${behaviorId} p1=${param1} p2=${param2}`);
+  try {
+    const resp = await rpc({
+      keymap: {
+        setLayerBinding: {
+          layerId, keyPosition: position,
+          binding: { behaviorId, param1, param2 },
+        },
+      },
+    });
+    const code = resp?.keymap?.setLayerBinding;
+    log(`SetLayerBinding response code: ${code}`,
+        code === 0 ? 'success' : 'error');
+
+    if (code === 0) {
+      // Save changes (永続化)
+      log('SaveChanges...');
+      const saveResp = await rpc({ keymap: { saveChanges: true } });
+      const ok = saveResp?.keymap?.saveChanges?.ok;
+      log(`SaveChanges ok=${ok}`, ok ? 'success' : 'warning');
+
+      // Refresh keymap
+      await fetchKeymap();
+      renderKeymapView();
+      closeBindingEditor();
+    }
+  } catch (e) {
+    log(`Edit failed: ${e.message || e}`, 'error');
   }
 }
 
@@ -263,8 +336,15 @@ function init() {
   if (!('bluetooth' in navigator)) log('Web Bluetooth API: 利用不可', 'warning');
   if (!('serial' in navigator))    log('Web Serial API: 利用不可', 'warning');
 
+  // Binding editor handlers
+  document.getElementById('bind-apply-btn').addEventListener('click', applyBindingEdit);
+  document.getElementById('bind-cancel-btn').addEventListener('click', closeBindingEditor);
+
   // Debug bridge: 開発時のみ window 経由で state にアクセスできるように
-  window.__cardinal_live = { state, renderKeymapView, behaviorName, handleProbe };
+  window.__cardinal_live = {
+    state, renderKeymapView, behaviorName, handleProbe,
+    openBindingEditor, applyBindingEdit, closeBindingEditor,
+  };
 }
 
 init();
