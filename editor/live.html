@@ -323,6 +323,55 @@
       font-weight: bold;
     }
 
+    /* ◆ Beyond Live Sync grid ─────────────── */
+    .beyond-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .beyond-card {
+      display: block;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-soft);
+      border-left: 3px solid var(--accent-cyan);
+      border-radius: 3px;
+      padding: 10px 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.1s ease;
+    }
+    .beyond-card:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(126, 207, 255, 0.3);
+      transform: translateY(-1px);
+    }
+    .beyond-card h3 {
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      color: var(--accent-cyan);
+      margin-bottom: 4px;
+    }
+    .beyond-card p {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .beyond-card code {
+      font-size: 0.6rem;
+      color: var(--accent-gold);
+      background: var(--bg-elevated);
+      padding: 1px 6px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+    .beyond-card.beyond-yaml {
+      border-left-color: var(--accent-violet);
+    }
+    .beyond-card.beyond-yaml h3 {
+      color: var(--accent-violet);
+    }
+
     /* ◆ Floating Binding Editor ─────────────── */
     #bind-editor {
       position: fixed;
@@ -519,6 +568,86 @@
     <section class="live-panel">
       <h2>◆ SYSTEM LOG ── 動作記録</h2>
       <pre id="log-output" class="log-output" style="max-height: 240px;"></pre>
+    </section>
+
+    <!-- ◆ Beyond Live Sync ── ZMK Studio API で編集できない領域 -->
+    <section class="live-panel">
+      <h2>◆ BEYOND LIVE SYNC ── 神器領域外の編纂</h2>
+      <p class="hint">
+        ZMK Studio API で書き換えられないものは、Cardinal Editor 本体で
+        ソースファイルを直接編纂します。各リンクをクリックすると該当ファイルを
+        開いた状態の Cardinal Editor が起動します。
+      </p>
+      <div class="beyond-grid">
+        <a href="index.html?file=config%2Fkeymap%2F10_combos.dtsi" class="beyond-card">
+          <h3>◆ コンボ</h3>
+          <p>同時押し検出 — 親指コンボ・スクロール操作・ジェスチャー起動</p>
+          <code>config/keymap/10_combos.dtsi</code>
+        </a>
+        <a href="index.html?file=config%2Fkeymap%2F20_macros.dtsi" class="beyond-card">
+          <h3>◆ マクロ</h3>
+          <p>連続入力の自動化 — 複数キー一括送出</p>
+          <code>config/keymap/20_macros.dtsi</code>
+        </a>
+        <a href="index.html?file=config%2Fkeymap%2F40_sharp_nail.dtsi" class="beyond-card">
+          <h3>◆ 剣技 — Sharp Nail (E)</h3>
+          <p>コピー / ペースト / アンドゥ / リドゥ系</p>
+          <code>config/keymap/40_sharp_nail.dtsi</code>
+        </a>
+        <a href="index.html?file=config%2Fkeymap%2F41_vorpal_strike.dtsi" class="beyond-card">
+          <h3>◆ 剣技 — Vorpal Strike (R)</h3>
+          <code>config/keymap/41_vorpal_strike.dtsi</code>
+        </a>
+        <a href="index.html?file=config%2Fkeymap%2F42_the_eclipse.dtsi" class="beyond-card">
+          <h3>◆ 剣技 — The Eclipse (S)</h3>
+          <code>config/keymap/42_the_eclipse.dtsi</code>
+        </a>
+        <a href="index.html?file=config%2Fkeymap%2F43_howling_octave.dtsi" class="beyond-card">
+          <h3>◆ 剣技 — Howling Octave (B)</h3>
+          <code>config/keymap/43_howling_octave.dtsi</code>
+        </a>
+        <a href="index.html?file=config%2Fkeymap%2F44_sonic_leap.dtsi" class="beyond-card">
+          <h3>◆ 剣技 — Sonic Leap (T)</h3>
+          <code>config/keymap/44_sonic_leap.dtsi</code>
+        </a>
+        <a href="index.html?file=config%2Fkeymap%2F45_vertical_square.dtsi" class="beyond-card">
+          <h3>◆ 剣技 — Vertical Square (A)</h3>
+          <code>config/keymap/45_vertical_square.dtsi</code>
+        </a>
+        <a href="index.html?file=config%2Fkeymap%2F46_starburst_stream.dtsi" class="beyond-card">
+          <h3>◆ 剣技 — Starburst Stream (D)</h3>
+          <code>config/keymap/46_starburst_stream.dtsi</code>
+        </a>
+        <a href="index.html?file=config%2Fkeymap%2F47_horizontal.dtsi" class="beyond-card">
+          <h3>◆ 剣技 — Horizontal (W)</h3>
+          <code>config/keymap/47_horizontal.dtsi</code>
+        </a>
+        <a href="index.html?file=config%2Fkeymap%2F30_enhance_armament_base.dtsi" class="beyond-card">
+          <h3>◆ Enhance Armament — 基礎</h3>
+          <p>hold-tap / sensor-rotate / sticky-key / tri-state</p>
+          <code>30_enhance_armament_base.dtsi</code>
+        </a>
+        <a href="index.html?file=config%2Fkeymap%2F31_enhance_armament_layers.dtsi" class="beyond-card">
+          <h3>◆ Enhance Armament — 階層</h3>
+          <p>レイヤー制御 behavior / auto-layer</p>
+          <code>31_enhance_armament_layers.dtsi</code>
+        </a>
+        <a href="index.html?file=keymap.yaml" class="beyond-card beyond-yaml">
+          <h3>◆ keymap.yaml — Visual Editor</h3>
+          <p>物理レイアウトでキーマップを編纂（描画用 yaml）</p>
+          <code>keymap.yaml</code>
+        </a>
+        <a href="index.html?file=config%2Fboards%2Fshields%2FRelease_Recollection%2FElucidator.conf" class="beyond-card">
+          <h3>◆ Shield 設定 — Elucidator</h3>
+          <p>右手 / central / トラックボール / Bluetooth / ZMK Studio</p>
+          <code>Elucidator.conf</code>
+        </a>
+        <a href="index.html?file=config%2Fboards%2Fshields%2FRelease_Recollection%2FDark_Repulser.conf" class="beyond-card">
+          <h3>◆ Shield 設定 — Dark Repulser</h3>
+          <p>左手 / peripheral</p>
+          <code>Dark_Repulser.conf</code>
+        </a>
+      </div>
     </section>
 
     <!-- ◆ Phase 2 Notes -->
