@@ -470,6 +470,18 @@ function openBindingEditor(layerId, position, currentBinding, cellEl) {
   document.getElementById('qp-category').value = '';
   document.getElementById('qp-value').innerHTML = '<option value="">—</option>';
   document.getElementById('qp-target').value = 'param1';
+
+  // Mod Mask Builder: 既存 param1 から mod mask を逆算してチェックを反映（Mod-Tap 系のみ）
+  resetModChips();
+  if (HID_BEHAVIOR_NAMES.has(behaviorName(currentBinding.behaviorId)) &&
+      currentBinding.param1 < 256) {
+    const mask = currentBinding.param1;
+    const ids = ['mm-lctl','mm-lsft','mm-lalt','mm-lgui','mm-rctl','mm-rsft','mm-ralt','mm-rgui'];
+    for (let i = 0; i < 8; i++) {
+      const cb = document.getElementById(ids[i]);
+      if (cb && (mask & (1 << i))) cb.checked = true;
+    }
+  }
   updateResolvedHints();
 
   dlg.classList.remove('hidden');
@@ -596,7 +608,62 @@ function getQuickPickOptions(category) {
     case 'layers':
       return (state.keymap?.layers || []).map((l) =>
         [`${l.id}: ${l.name || '(unnamed)'}`, l.id]);
+    case 'used-param1':
+    case 'used-param2': {
+      const which = category === 'used-param1' ? 'param1' : 'param2';
+      const collected = new Map(); // value -> sample binding behavior name
+      for (const layer of state.keymap?.layers || []) {
+        for (const b of layer.bindings || []) {
+          const v = b[which];
+          if (v === undefined || v === null) continue;
+          if (!collected.has(v)) {
+            const bn = behaviorName(b.behaviorId);
+            const resolved = paramLabel(bn, v);
+            const label = resolved && resolved !== String(v)
+              ? `${resolved} — used by ${bn}`
+              : `${v} — used by ${bn}`;
+            collected.set(v, label);
+          }
+        }
+      }
+      // value 順にソート
+      return Array.from(collected.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([value, label]) => [label, value]);
+    }
     default: return [];
+  }
+}
+
+function buildModMaskFromChips() {
+  let mask = 0;
+  for (const id of ['mm-lctl','mm-lsft','mm-lalt','mm-lgui','mm-rctl','mm-rsft','mm-ralt','mm-rgui']) {
+    const cb = document.getElementById(id);
+    if (cb?.checked) mask |= Number(cb.dataset.mask);
+  }
+  return mask;
+}
+
+function applyModMask() {
+  const mask = buildModMaskFromChips();
+  const target = document.getElementById('mm-target').value;
+  const inputId = target === 'param1' ? 'bind-param1' : 'bind-param2';
+  document.getElementById(inputId).value = mask;
+  log(`Mod Mask ${decodeMask(mask)} (=${mask}) → ${target}`);
+  updateResolvedHints();
+}
+
+function decodeMask(mask) {
+  const labels = ['LCtl','LSft','LAlt','LGui','RCtl','RSft','RAlt','RGui'];
+  const parts = [];
+  for (let i = 0; i < 8; i++) if (mask & (1 << i)) parts.push(labels[i]);
+  return parts.length ? parts.join('+') : 'none';
+}
+
+function resetModChips() {
+  for (const id of ['mm-lctl','mm-lsft','mm-lalt','mm-lgui','mm-rctl','mm-rsft','mm-ralt','mm-rgui']) {
+    const cb = document.getElementById(id);
+    if (cb) cb.checked = false;
   }
 }
 
@@ -693,11 +760,15 @@ function init() {
   document.getElementById('bind-param1').addEventListener('input', updateResolvedHints);
   document.getElementById('bind-param2').addEventListener('input', updateResolvedHints);
 
+  // Mod Mask Builder handlers
+  document.getElementById('mm-apply-btn').addEventListener('click', applyModMask);
+
   // Debug bridge: 開発時のみ window 経由で state にアクセスできるように
   window.__cardinal_live = {
     state, renderKeymapView, behaviorName, handleProbe,
     openBindingEditor, applyBindingEdit, closeBindingEditor,
     refreshQpValueList, applyQuickPick, updateResolvedHints,
+    buildModMaskFromChips, applyModMask, decodeMask, resetModChips,
   };
 }
 

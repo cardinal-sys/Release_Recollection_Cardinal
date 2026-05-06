@@ -275,6 +275,53 @@
       margin-top: 2px;
       min-height: 0.8em;
     }
+    .mod-mask-block {
+      background: rgba(180, 140, 255, 0.07);
+      border: 1px dashed var(--border-soft);
+      border-radius: 3px;
+      padding: 8px;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    .mod-mask-block h4 {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--accent-violet);
+      margin-bottom: 6px;
+    }
+    .mod-chip-row {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+    .live-mod-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-accent);
+      border-radius: 2px;
+      padding: 3px 8px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      transition: all 0.1s ease;
+      flex: 1;
+      justify-content: center;
+    }
+    .live-mod-chip:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+    .live-mod-chip input { margin: 0; cursor: pointer; accent-color: var(--accent-violet); }
+    .live-mod-chip:has(input:checked) {
+      background: rgba(180, 140, 255, 0.18);
+      border-color: var(--accent-violet);
+      color: var(--accent-violet);
+      font-weight: bold;
+    }
 
     /* ◆ Floating Binding Editor ─────────────── */
     #bind-editor {
@@ -420,9 +467,35 @@
             <option value="hid-mouse">マウス (consumer)</option>
             <option value="hid-media">メディア</option>
             <option value="layers">レイヤー</option>
-            <option value="modmask">Mod Mask（修飾複合）</option>
+            <option value="used-param1">使用中 (param1)</option>
+            <option value="used-param2">使用中 (param2)</option>
           </select>
           <select id="qp-value" class="bind-input qp-val"><option value="">—</option></select>
+        </div>
+      </div>
+
+      <!-- ◆ Mod Mask Builder（Mod-Tap などの param1 用） -->
+      <div class="mod-mask-block">
+        <h4>◆ Mod Mask Builder <span class="hint" style="font-size: 0.6rem;">— Mod-Tap の param1 用</span></h4>
+        <div class="mod-chip-row">
+          <label class="live-mod-chip"><input type="checkbox" id="mm-lctl" data-mask="1"><span>LCtl</span></label>
+          <label class="live-mod-chip"><input type="checkbox" id="mm-lsft" data-mask="2"><span>LSft</span></label>
+          <label class="live-mod-chip"><input type="checkbox" id="mm-lalt" data-mask="4"><span>LAlt</span></label>
+          <label class="live-mod-chip"><input type="checkbox" id="mm-lgui" data-mask="8"><span>LGui</span></label>
+        </div>
+        <div class="mod-chip-row">
+          <label class="live-mod-chip"><input type="checkbox" id="mm-rctl" data-mask="16"><span>RCtl</span></label>
+          <label class="live-mod-chip"><input type="checkbox" id="mm-rsft" data-mask="32"><span>RSft</span></label>
+          <label class="live-mod-chip"><input type="checkbox" id="mm-ralt" data-mask="64"><span>RAlt</span></label>
+          <label class="live-mod-chip"><input type="checkbox" id="mm-rgui" data-mask="128"><span>RGui</span></label>
+        </div>
+        <div class="qp-row" style="margin-top: 6px;">
+          <label class="qp-label">→ apply to</label>
+          <select id="mm-target" class="bind-input">
+            <option value="param1">param1</option>
+            <option value="param2">param2</option>
+          </select>
+          <button id="mm-apply-btn" class="btn-ghost" style="font-size: 0.65rem;">Build & Apply</button>
         </div>
       </div>
 
