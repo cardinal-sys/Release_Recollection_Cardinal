@@ -114,6 +114,7 @@ async function establishConnection(transport, kind) {
 
   setConduitState('connected', `Connected: ${rpcConn.label}`, `Live Sync Conduit (${kind}) が確立されました`);
   els.connectBleBtn.classList.add('hidden');
+  document.getElementById('connect-ble-all-btn').classList.add('hidden');
   els.connectSerialBtn.classList.add('hidden');
   els.disconnectBtn.classList.remove('hidden');
   els.probeBtn.classList.remove('hidden');
@@ -138,21 +139,79 @@ async function establishConnection(transport, kind) {
   })();
 }
 
+// ZMK Studio Service UUID（gatt.ts と同じ）
+const ZMK_STUDIO_SERVICE_UUID = '00000000-0196-6107-c967-c5cfb1c2482a';
+const ZMK_STUDIO_RPC_CHRC_UUID = '00000001-0196-6107-c967-c5cfb1c2482a';
+
+// macOS で advertising data に Studio UUID が含まれない場合に備えた、
+// "全デバイス表示モード" 対応の自前 BLE transport
+async function connectBleAcceptAll() {
+  const dev = await navigator.bluetooth.requestDevice({
+    acceptAllDevices: true,
+    optionalServices: [ZMK_STUDIO_SERVICE_UUID],
+  });
+  if (!dev.gatt) throw new Error('No GATT service on selected device');
+  const label = dev.name || 'Unknown';
+  if (!dev.gatt.connected) await dev.gatt.connect();
+  const svc = await dev.gatt.getPrimaryService(ZMK_STUDIO_SERVICE_UUID)
+    .catch((e) => { throw new Error(`Selected device does not expose ZMK Studio service: ${e.message}`); });
+  const char = await svc.getCharacteristic(ZMK_STUDIO_RPC_CHRC_UUID);
+
+  const abortController = new AbortController();
+  const readable = new ReadableStream({
+    async start(controller) {
+      await char.stopNotifications().catch(() => {});
+      await char.startNotifications();
+      const handler = (ev) => {
+        const buf = ev.target?.value?.buffer;
+        if (buf) controller.enqueue(new Uint8Array(buf));
+      };
+      char.addEventListener('characteristicvaluechanged', handler);
+      const onDisconnect = () => {
+        char.removeEventListener('characteristicvaluechanged', handler);
+        dev.removeEventListener('gattserverdisconnected', onDisconnect);
+        controller.close();
+      };
+      dev.addEventListener('gattserverdisconnected', onDisconnect);
+    },
+  });
+  const writable = new WritableStream({
+    write(chunk) { return char.writeValueWithoutResponse(chunk); },
+  });
+  abortController.signal.addEventListener('abort', () => dev.gatt?.disconnect());
+  return { label, abortController, readable, writable };
+}
+
 async function handleConnectBle() {
   if (!('bluetooth' in navigator)) {
     log('Web Bluetooth が利用できません。Chrome / Edge を使用してください。', 'error');
     setConduitState('error', 'Unsupported', 'Web Bluetooth not available');
     return;
   }
+  // モード選択: 通常（filtered）→ 失敗したら acceptAll でリトライを促す
+  const useAcceptAll = window.__cardinal_live_mode_accept_all === true;
   try {
-    setConduitState('connecting', 'Requesting BLE device...', 'デバイス選択ダイアログを開いています');
-    log('navigator.bluetooth.requestDevice() を呼び出し...');
-    const transport = await gattTransport.connect();
+    setConduitState('connecting', 'Requesting BLE device...', useAcceptAll
+      ? 'Accept-All モード: 全デバイス表示'
+      : 'Service UUID フィルタモード');
+    log(`navigator.bluetooth.requestDevice() — ${useAcceptAll ? 'acceptAllDevices' : 'service-filter'}`);
+    const transport = useAcceptAll
+      ? await connectBleAcceptAll()
+      : await gattTransport.connect();
     await establishConnection(transport, 'BLE');
   } catch (err) {
     log(`BLE Connect failed: ${err.message || err}`, 'error');
     setConduitState('error', 'BLE Connect failed', err.message || String(err));
+    if (!useAcceptAll && /NotFoundError|cancelled|未検出/i.test(err.message || '')) {
+      log('Hint: もし Elucidator がスキャンに出てこなかった場合は、〈 BLE: Accept All 〉ボタンで全デバイス表示モードをお試しください。', 'warning');
+    }
   }
+}
+
+async function handleConnectBleAcceptAll() {
+  window.__cardinal_live_mode_accept_all = true;
+  try { await handleConnectBle(); }
+  finally { window.__cardinal_live_mode_accept_all = false; }
 }
 
 async function handleConnectSerial() {
@@ -181,6 +240,7 @@ function handleDisconnect() {
   state.rpc = null;
   setConduitState('', 'Disconnected', 'Bluetooth または USB Serial で神器に接続してください');
   els.connectBleBtn.classList.remove('hidden');
+  document.getElementById('connect-ble-all-btn').classList.remove('hidden');
   els.connectSerialBtn.classList.remove('hidden');
   els.disconnectBtn.classList.add('hidden');
   els.probeBtn.classList.add('hidden');
@@ -885,6 +945,7 @@ async function applyBindingEdit() {
 
 function init() {
   els.connectBleBtn.addEventListener('click', handleConnectBle);
+  document.getElementById('connect-ble-all-btn').addEventListener('click', handleConnectBleAcceptAll);
   els.connectSerialBtn.addEventListener('click', handleConnectSerial);
   els.disconnectBtn.addEventListener('click', handleDisconnect);
   els.probeBtn.addEventListener('click', handleProbe);
