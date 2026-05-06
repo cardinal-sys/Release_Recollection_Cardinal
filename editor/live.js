@@ -466,22 +466,9 @@ function openBindingEditor(layerId, position, currentBinding, cellEl) {
   document.getElementById('bind-param1').value = currentBinding.param1 ?? 0;
   document.getElementById('bind-param2').value = currentBinding.param2 ?? 0;
 
-  // Quick Pick reset
-  document.getElementById('qp-category').value = '';
-  document.getElementById('qp-value').innerHTML = '<option value="">—</option>';
-  document.getElementById('qp-target').value = 'param1';
+  // 動的選択 UI を behavior に応じて構築
+  renderDynamicSlots(behaviorName(currentBinding.behaviorId), currentBinding);
 
-  // Mod Mask Builder: 既存 param1 から mod mask を逆算してチェックを反映（Mod-Tap 系のみ）
-  resetModChips();
-  if (HID_BEHAVIOR_NAMES.has(behaviorName(currentBinding.behaviorId)) &&
-      currentBinding.param1 < 256) {
-    const mask = currentBinding.param1;
-    const ids = ['mm-lctl','mm-lsft','mm-lalt','mm-lgui','mm-rctl','mm-rsft','mm-ralt','mm-rgui'];
-    for (let i = 0; i < 8; i++) {
-      const cb = document.getElementById(ids[i]);
-      if (cb && (mask & (1 << i))) cb.checked = true;
-    }
-  }
   updateResolvedHints();
 
   dlg.classList.remove('hidden');
@@ -504,6 +491,38 @@ function closeBindingEditor() {
   document.body.classList.remove('bind-editor-open');
   document.querySelectorAll('.live-binding-cell.editing')
     .forEach((el) => el.classList.remove('editing'));
+}
+
+/* ◆ BEHAVIOR PARAM SPEC ───────────────── */
+// 各 behavior の param1 / param2 の役割を定義
+// type: 'hid' (HID Usage) | 'layer' | 'modmask' | 'mouse' | 'none' | 'number'
+const BEHAVIOR_PARAM_SPEC = {
+  'Key Press':       { p1: { type: 'hid',     label: 'キー' },         p2: { type: 'none' } },
+  'Mod-Tap':         { p1: { type: 'modmask', label: '修飾キー (ホールド時)' }, p2: { type: 'hid', label: 'キー (タップ時)' } },
+  'Layer-Tap':       { p1: { type: 'layer',   label: 'レイヤー (ホールド時)' }, p2: { type: 'hid', label: 'キー (タップ時)' } },
+  'Momentary Layer': { p1: { type: 'layer',   label: 'レイヤー' },     p2: { type: 'none' } },
+  'Toggle Layer':    { p1: { type: 'layer',   label: 'レイヤー' },     p2: { type: 'none' } },
+  'To Layer':        { p1: { type: 'layer',   label: 'レイヤー' },     p2: { type: 'none' } },
+  'Sticky Key':      { p1: { type: 'hid',     label: 'キー' },         p2: { type: 'none' } },
+  'Sticky Layer':    { p1: { type: 'layer',   label: 'レイヤー' },     p2: { type: 'none' } },
+  'Mouse Key Press': { p1: { type: 'mouse',   label: 'マウスボタン' },  p2: { type: 'none' } },
+  'Key Repeat':      { p1: { type: 'hid',     label: 'キー' },         p2: { type: 'none' } },
+  'Key Toggle':      { p1: { type: 'hid',     label: 'キー' },         p2: { type: 'none' } },
+  'Grave/Escape':    { p1: { type: 'hid',     label: 'キー' },         p2: { type: 'none' } },
+  'Transparent':     { p1: { type: 'none' },  p2: { type: 'none' } },
+  'None':            { p1: { type: 'none' },  p2: { type: 'none' } },
+  // ZMK Studio Special
+  'Studio Unlock':   { p1: { type: 'none' },  p2: { type: 'none' } },
+  'Bootloader':      { p1: { type: 'none' },  p2: { type: 'none' } },
+  'Reset':           { p1: { type: 'none' },  p2: { type: 'none' } },
+};
+
+function specForBehavior(name) {
+  if (BEHAVIOR_PARAM_SPEC[name]) return BEHAVIOR_PARAM_SPEC[name];
+  // Default: Mouse Key Press 系 / Gesture系も layer 扱い
+  if (/GESTURE|gesture/.test(name)) return { p1: { type: 'layer', label: 'レイヤー' }, p2: { type: 'hid', label: 'キー' } };
+  if (/^smart_/.test(name)) return { p1: { type: 'layer', label: 'レイヤー' }, p2: { type: 'none' } };
+  return { p1: { type: 'number', label: 'param1' }, p2: { type: 'number', label: 'param2' } };
 }
 
 /* ◆ QUICK PICK ────────────────────────── */
@@ -635,57 +654,182 @@ function getQuickPickOptions(category) {
   }
 }
 
-function buildModMaskFromChips() {
-  let mask = 0;
-  for (const id of ['mm-lctl','mm-lsft','mm-lalt','mm-lgui','mm-rctl','mm-rsft','mm-ralt','mm-rgui']) {
-    const cb = document.getElementById(id);
-    if (cb?.checked) mask |= Number(cb.dataset.mask);
+/* ◆ DYNAMIC SLOT RENDERER ─────────────── */
+function renderDynamicSlots(behaviorName, currentBinding) {
+  const spec = specForBehavior(behaviorName);
+  renderSlot(1, spec.p1, currentBinding.param1 ?? 0);
+  renderSlot(2, spec.p2, currentBinding.param2 ?? 0);
+}
+
+function renderSlot(slotNum, slotSpec, currentValue) {
+  const slot = document.getElementById(`dyn-slot-${slotNum}`);
+  const labelEl = document.getElementById(`dyn-slot-${slotNum}-label`);
+  const body = document.getElementById(`dyn-slot-${slotNum}-body`);
+  body.innerHTML = '';
+
+  if (slotSpec.type === 'none') {
+    slot.classList.add('hidden');
+    return;
   }
-  return mask;
-}
+  slot.classList.remove('hidden');
+  labelEl.textContent = `◆ ${slotSpec.label || `Slot ${slotNum}`}`;
 
-function applyModMask() {
-  const mask = buildModMaskFromChips();
-  const target = document.getElementById('mm-target').value;
-  const inputId = target === 'param1' ? 'bind-param1' : 'bind-param2';
-  document.getElementById(inputId).value = mask;
-  log(`Mod Mask ${decodeMask(mask)} (=${mask}) → ${target}`);
-  updateResolvedHints();
-}
+  const paramId = slotNum === 1 ? 'bind-param1' : 'bind-param2';
 
-function decodeMask(mask) {
-  const labels = ['LCtl','LSft','LAlt','LGui','RCtl','RSft','RAlt','RGui'];
-  const parts = [];
-  for (let i = 0; i < 8; i++) if (mask & (1 << i)) parts.push(labels[i]);
-  return parts.length ? parts.join('+') : 'none';
-}
-
-function resetModChips() {
-  for (const id of ['mm-lctl','mm-lsft','mm-lalt','mm-lgui','mm-rctl','mm-rsft','mm-ralt','mm-rgui']) {
-    const cb = document.getElementById(id);
-    if (cb) cb.checked = false;
+  switch (slotSpec.type) {
+    case 'hid':       buildHidSelector(body, paramId, currentValue); break;
+    case 'layer':     buildLayerSelector(body, paramId, currentValue); break;
+    case 'modmask':   buildModMaskSelector(body, paramId, currentValue); break;
+    case 'mouse':     buildMouseSelector(body, paramId, currentValue); break;
+    case 'number':    buildNumberInput(body, paramId, currentValue); break;
   }
 }
 
-function refreshQpValueList() {
-  const cat = document.getElementById('qp-category').value;
-  const sel = document.getElementById('qp-value');
-  sel.innerHTML = '<option value="">—</option>';
-  for (const [label, value] of getQuickPickOptions(cat)) {
+function buildHidSelector(parent, paramId, current) {
+  const row = document.createElement('div');
+  row.className = 'dyn-row';
+  row.innerHTML = `
+    <label>カテゴリ</label>
+    <select class="bind-input dyn-cat">
+      <option value="hid-letters">文字 (A-Z)</option>
+      <option value="hid-digits">数字 (0-9)</option>
+      <option value="hid-functions">F1-F24</option>
+      <option value="hid-arrows">矢印</option>
+      <option value="hid-special">特殊キー</option>
+      <option value="hid-symbols">記号</option>
+      <option value="hid-modifiers">修飾キー</option>
+      <option value="hid-media">メディア</option>
+      <option value="hid-mouse">マウス</option>
+      <option value="used-${paramId === 'bind-param1' ? 'param1' : 'param2'}">使用中の値</option>
+    </select>
+    <label>キー</label>
+    <select class="bind-input dyn-val"></select>
+  `;
+  parent.appendChild(row);
+
+  const cat = row.querySelector('.dyn-cat');
+  const val = row.querySelector('.dyn-val');
+
+  // 現在値が含まれるカテゴリを推測してデフォルト選択
+  cat.value = guessHidCategory(current) || 'hid-letters';
+  refillValueOptions(val, cat.value, current);
+
+  cat.addEventListener('change', () => refillValueOptions(val, cat.value, null));
+  val.addEventListener('change', () => {
+    if (val.value !== '') {
+      document.getElementById(paramId).value = val.value;
+      updateResolvedHints();
+    }
+  });
+}
+
+function refillValueOptions(selectEl, category, currentValue) {
+  selectEl.innerHTML = '<option value="">— 選択 —</option>';
+  for (const [label, value] of getQuickPickOptions(category)) {
     const opt = document.createElement('option');
     opt.value = String(value);
-    opt.textContent = `${label}  (${value})`;
-    sel.appendChild(opt);
+    opt.textContent = label;
+    if (currentValue !== null && currentValue !== undefined && Number(value) === Number(currentValue)) {
+      opt.selected = true;
+    }
+    selectEl.appendChild(opt);
   }
 }
 
-function applyQuickPick() {
-  const sel = document.getElementById('qp-value');
-  if (!sel.value) return;
-  const target = document.getElementById('qp-target').value;
-  const inputId = target === 'param1' ? 'bind-param1' : 'bind-param2';
-  document.getElementById(inputId).value = sel.value;
-  updateResolvedHints();
+function guessHidCategory(usage) {
+  if (!usage) return null;
+  const page = (usage >> 16) & 0xff;
+  const id = usage & 0xffff;
+  if (page === 12) return 'hid-media';
+  if (page !== 7) return null;
+  if (id >= 4 && id <= 29) return 'hid-letters';
+  if ((id >= 30 && id <= 39)) return 'hid-digits';
+  if ((id >= 58 && id <= 69) || (id >= 104 && id <= 115)) return 'hid-functions';
+  if (id >= 79 && id <= 82) return 'hid-arrows';
+  if (id >= 224 && id <= 231) return 'hid-modifiers';
+  if (id === 41 || id === 43 || id === 44 || id === 40 || id === 42 || id === 76 || id === 57 || id === 74 || id === 77 || id === 75 || id === 78 || id === 73 || id === 70) return 'hid-special';
+  if ((id >= 45 && id <= 56)) return 'hid-symbols';
+  return null;
+}
+
+function buildLayerSelector(parent, paramId, current) {
+  const row = document.createElement('div');
+  row.className = 'dyn-row';
+  row.innerHTML = `<label>レイヤー</label><select class="bind-input dyn-val"></select>`;
+  parent.appendChild(row);
+  const sel = row.querySelector('.dyn-val');
+  for (const layer of state.keymap?.layers || []) {
+    const opt = document.createElement('option');
+    opt.value = String(layer.id);
+    opt.textContent = `${layer.id}: ${layer.name || '(unnamed)'}`;
+    if (Number(layer.id) === Number(current)) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', () => {
+    document.getElementById(paramId).value = sel.value;
+    updateResolvedHints();
+  });
+}
+
+function buildModMaskSelector(parent, paramId, current) {
+  const block = document.createElement('div');
+  block.innerHTML = `
+    <p class="hint" style="font-size: 0.65rem; margin-bottom: 6px;">複数選択可（OR 結合）</p>
+    <div class="mod-chip-row" data-row="L"></div>
+    <div class="mod-chip-row" data-row="R"></div>
+  `;
+  const left = block.querySelector('[data-row="L"]');
+  const right = block.querySelector('[data-row="R"]');
+  const items = [
+    ['LCtl', 0x01, left], ['LSft', 0x02, left], ['LAlt', 0x04, left], ['LGui', 0x08, left],
+    ['RCtl', 0x10, right], ['RSft', 0x20, right], ['RAlt', 0x40, right], ['RGui', 0x80, right],
+  ];
+  for (const [label, mask, container] of items) {
+    const chip = document.createElement('label');
+    chip.className = 'live-mod-chip';
+    chip.innerHTML = `<input type="checkbox" data-mask="${mask}"${current & mask ? ' checked' : ''}><span>${label}</span>`;
+    chip.querySelector('input').addEventListener('change', () => {
+      let total = 0;
+      for (const cb of block.querySelectorAll('input[type=checkbox]')) {
+        if (cb.checked) total |= Number(cb.dataset.mask);
+      }
+      document.getElementById(paramId).value = total;
+      updateResolvedHints();
+    });
+    container.appendChild(chip);
+  }
+  parent.appendChild(block);
+}
+
+function buildMouseSelector(parent, paramId, current) {
+  const row = document.createElement('div');
+  row.className = 'dyn-row';
+  row.innerHTML = `<label>ボタン</label><select class="bind-input dyn-val"></select>`;
+  parent.appendChild(row);
+  const sel = row.querySelector('.dyn-val');
+  for (const [label, value] of HID_MOUSE) {
+    const opt = document.createElement('option');
+    opt.value = String(value);
+    opt.textContent = label;
+    if (Number(value) === Number(current)) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', () => {
+    document.getElementById(paramId).value = sel.value;
+    updateResolvedHints();
+  });
+}
+
+function buildNumberInput(parent, paramId, current) {
+  const row = document.createElement('div');
+  row.className = 'dyn-row';
+  row.innerHTML = `<label>数値</label><input type="number" class="bind-input dyn-val" value="${current}">`;
+  parent.appendChild(row);
+  const inp = row.querySelector('.dyn-val');
+  inp.addEventListener('input', () => {
+    document.getElementById(paramId).value = inp.value;
+    updateResolvedHints();
+  });
 }
 
 function updateResolvedHints() {
@@ -753,22 +897,25 @@ function init() {
   document.getElementById('bind-apply-btn').addEventListener('click', applyBindingEdit);
   document.getElementById('bind-cancel-btn').addEventListener('click', closeBindingEditor);
 
-  // Quick Pick handlers
-  document.getElementById('qp-category').addEventListener('change', refreshQpValueList);
-  document.getElementById('qp-value').addEventListener('change', applyQuickPick);
-  document.getElementById('bind-behavior').addEventListener('change', updateResolvedHints);
+  // Behavior 切替時に動的 UI を再構築
+  document.getElementById('bind-behavior').addEventListener('change', () => {
+    const behaviorId = Number(document.getElementById('bind-behavior').value);
+    const fullName = behaviorName(behaviorId);
+    // 既存 param 値を継承して再描画
+    renderDynamicSlots(fullName, {
+      param1: Number(document.getElementById('bind-param1').value) || 0,
+      param2: Number(document.getElementById('bind-param2').value) || 0,
+    });
+    updateResolvedHints();
+  });
   document.getElementById('bind-param1').addEventListener('input', updateResolvedHints);
   document.getElementById('bind-param2').addEventListener('input', updateResolvedHints);
-
-  // Mod Mask Builder handlers
-  document.getElementById('mm-apply-btn').addEventListener('click', applyModMask);
 
   // Debug bridge: 開発時のみ window 経由で state にアクセスできるように
   window.__cardinal_live = {
     state, renderKeymapView, behaviorName, handleProbe,
     openBindingEditor, applyBindingEdit, closeBindingEditor,
-    refreshQpValueList, applyQuickPick, updateResolvedHints,
-    buildModMaskFromChips, applyModMask, decodeMask, resetModChips,
+    renderDynamicSlots, updateResolvedHints,
   };
 }
 

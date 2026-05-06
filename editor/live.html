@@ -322,6 +322,54 @@
       color: var(--accent-violet);
       font-weight: bold;
     }
+    .dyn-slot {
+      background: rgba(126, 207, 255, 0.06);
+      border: 1px dashed var(--border-soft);
+      border-left: 2px solid var(--accent-cyan);
+      border-radius: 3px;
+      padding: 10px;
+      margin: 8px 0;
+    }
+    .dyn-slot h4 {
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      color: var(--accent-cyan);
+      margin-bottom: 8px;
+    }
+    .dyn-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 8px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .dyn-row label {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+    .dyn-row select, .dyn-row input {
+      width: 100%;
+    }
+    .advanced-params {
+      margin-top: 12px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-soft);
+      border-radius: 3px;
+      padding: 8px 10px;
+    }
+    .advanced-params summary {
+      cursor: pointer;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      user-select: none;
+    }
+    .advanced-params[open] summary {
+      color: var(--accent-gold);
+      margin-bottom: 6px;
+    }
 
     /* ◆ Beyond Live Sync grid ─────────────── */
     .beyond-grid {
@@ -489,75 +537,35 @@
         <dt>Current</dt><dd id="bind-current">—</dd>
       </dl>
       <div class="bind-form">
-        <label class="bind-label-row">Behavior
+        <label class="bind-label-row">術式 (Behavior)
           <select id="bind-behavior" class="bind-input"></select>
         </label>
       </div>
 
-      <!-- ◆ Quick Pick: HID Usage / Layer / Modifier -->
-      <div class="quick-pick-block">
-        <h4>◆ Quick Pick</h4>
-        <div class="qp-row">
-          <label class="qp-label">target</label>
-          <select id="qp-target" class="bind-input qp-target">
-            <option value="param1">→ param1</option>
-            <option value="param2">→ param2</option>
-          </select>
-          <label class="qp-label">category</label>
-          <select id="qp-category" class="bind-input qp-cat">
-            <option value="">—</option>
-            <option value="hid-letters">文字 (A-Z)</option>
-            <option value="hid-digits">数字 (0-9)</option>
-            <option value="hid-functions">F1-F24</option>
-            <option value="hid-arrows">矢印</option>
-            <option value="hid-special">特殊キー (ESC/TAB/etc)</option>
-            <option value="hid-symbols">記号</option>
-            <option value="hid-modifiers">修飾キー</option>
-            <option value="hid-mouse">マウス (consumer)</option>
-            <option value="hid-media">メディア</option>
-            <option value="layers">レイヤー</option>
-            <option value="used-param1">使用中 (param1)</option>
-            <option value="used-param2">使用中 (param2)</option>
-          </select>
-          <select id="qp-value" class="bind-input qp-val"><option value="">—</option></select>
-        </div>
+      <!-- ◆ 動的選択 UI（behavior に応じて表示が切り替わる） -->
+      <div id="dyn-slot-1" class="dyn-slot hidden">
+        <h4 id="dyn-slot-1-label">◆ Slot 1</h4>
+        <div id="dyn-slot-1-body"></div>
+      </div>
+      <div id="dyn-slot-2" class="dyn-slot hidden">
+        <h4 id="dyn-slot-2-label">◆ Slot 2</h4>
+        <div id="dyn-slot-2-body"></div>
       </div>
 
-      <!-- ◆ Mod Mask Builder（Mod-Tap などの param1 用） -->
-      <div class="mod-mask-block">
-        <h4>◆ Mod Mask Builder <span class="hint" style="font-size: 0.6rem;">— Mod-Tap の param1 用</span></h4>
-        <div class="mod-chip-row">
-          <label class="live-mod-chip"><input type="checkbox" id="mm-lctl" data-mask="1"><span>LCtl</span></label>
-          <label class="live-mod-chip"><input type="checkbox" id="mm-lsft" data-mask="2"><span>LSft</span></label>
-          <label class="live-mod-chip"><input type="checkbox" id="mm-lalt" data-mask="4"><span>LAlt</span></label>
-          <label class="live-mod-chip"><input type="checkbox" id="mm-lgui" data-mask="8"><span>LGui</span></label>
+      <!-- ◆ 上級者向け: 数値直接入力（折りたたみ） -->
+      <details class="advanced-params">
+        <summary>◆ Advanced — param1 / param2 数値直接入力</summary>
+        <div class="bind-form">
+          <label>param1
+            <input type="number" id="bind-param1" class="bind-input" value="0">
+            <span class="bind-resolved" id="bind-p1-resolved"></span>
+          </label>
+          <label>param2
+            <input type="number" id="bind-param2" class="bind-input" value="0">
+            <span class="bind-resolved" id="bind-p2-resolved"></span>
+          </label>
         </div>
-        <div class="mod-chip-row">
-          <label class="live-mod-chip"><input type="checkbox" id="mm-rctl" data-mask="16"><span>RCtl</span></label>
-          <label class="live-mod-chip"><input type="checkbox" id="mm-rsft" data-mask="32"><span>RSft</span></label>
-          <label class="live-mod-chip"><input type="checkbox" id="mm-ralt" data-mask="64"><span>RAlt</span></label>
-          <label class="live-mod-chip"><input type="checkbox" id="mm-rgui" data-mask="128"><span>RGui</span></label>
-        </div>
-        <div class="qp-row" style="margin-top: 6px;">
-          <label class="qp-label">→ apply to</label>
-          <select id="mm-target" class="bind-input">
-            <option value="param1">param1</option>
-            <option value="param2">param2</option>
-          </select>
-          <button id="mm-apply-btn" class="btn-ghost" style="font-size: 0.65rem;">Build & Apply</button>
-        </div>
-      </div>
-
-      <div class="bind-form">
-        <label>param1
-          <input type="number" id="bind-param1" class="bind-input" value="0">
-          <span class="bind-resolved" id="bind-p1-resolved"></span>
-        </label>
-        <label>param2
-          <input type="number" id="bind-param2" class="bind-input" value="0">
-          <span class="bind-resolved" id="bind-p2-resolved"></span>
-        </label>
-      </div>
+      </details>
       <div class="live-actions" style="margin-top: 12px;">
         <button id="bind-apply-btn" class="btn-seal">〈 Apply & Save 〉</button>
         <button id="bind-cancel-btn" class="btn-ghost">[ Cancel ]</button>
