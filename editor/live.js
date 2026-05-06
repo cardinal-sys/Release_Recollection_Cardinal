@@ -308,7 +308,7 @@ function renderKeymapView() {
     grid.className = useLayout ? 'live-physical-grid' : 'live-binding-grid';
 
     if (useLayout) {
-      const unitPx = 72, gap = 4, padding = 12;
+      const unitPx = 80, gap = 6, padding = 24;
       let maxX = 0, maxY = 0;
       for (const k of state.physicalLayout) {
         maxX = Math.max(maxX, k.x + k.width);
