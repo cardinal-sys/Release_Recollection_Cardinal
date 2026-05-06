@@ -134,14 +134,41 @@
       border: 1px solid var(--border-soft);
       border-radius: 6px;
       margin-top: 8px;
+      overflow: visible;
     }
     .live-physical-grid .live-binding-cell {
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 4px;
-      font-size: 0.55rem;
+      padding: 2px;
+      gap: 1px;
+      overflow: hidden;
+    }
+    .live-physical-grid .bind-pos {
+      font-size: 0.5rem;
+      line-height: 1;
+      color: var(--text-dim);
+    }
+    .live-physical-grid .bind-name {
+      font-size: 0.6rem;
+      line-height: 1.1;
+      font-weight: bold;
+      color: var(--text-primary);
+      text-align: center;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      word-break: break-all;
+    }
+    .live-physical-grid .bind-params {
+      font-size: 0.45rem;
+      line-height: 1;
+      color: var(--text-secondary);
+      font-family: monospace;
     }
     .live-binding-cell {
       background: var(--bg-elevated);

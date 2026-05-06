@@ -228,10 +228,45 @@ async function handleProbe() {
   }
 }
 
+// ZMK Studio 公式の behavior 短縮名マップ
+const BEHAVIOR_SHORT_NAMES = {
+  'Key Press': '',
+  'Bootloader': 'Boot',
+  'External Power': 'Ext Pwr',
+  'Grave/Escape': 'Grv/Esc',
+  'Key Repeat': 'Rept',
+  'Key Toggle': 'Togg',
+  'Momentary Layer': 'MO',
+  'Output Selection': 'Out',
+  'Sticky Key': 'Stky',
+  'Studio Unlock': 'Unlock',
+  'Toggle Layer': 'TogL',
+  'Transparent': '·',
+  'Mod-Tap': 'MT',
+  'Layer-Tap': 'LT',
+  'Mouse Key Press': 'MKP',
+};
+
+const MAX_HEADER_LEN = 9;
+
+function shortenName(name) {
+  if (name === undefined || name === null) return '';
+  if (BEHAVIOR_SHORT_NAMES[name] !== undefined) return BEHAVIOR_SHORT_NAMES[name];
+  if (name.length <= MAX_HEADER_LEN) return name;
+  // 単語を分割して、それぞれの先頭数文字を結合
+  const words = name.split(/[\s,_-]+/);
+  const perWord = Math.max(1, Math.trunc(MAX_HEADER_LEN / words.length));
+  return words.map((w) => w.substring(0, perWord)).join('');
+}
+
 function behaviorName(id) {
   const det = state.behaviors[id];
   if (det) return det.displayName || `behavior#${id}`;
   return `behavior#${id}`;
+}
+
+function behaviorShortName(id) {
+  return shortenName(behaviorName(id));
 }
 
 function renderKeymapView() {
@@ -273,7 +308,7 @@ function renderKeymapView() {
     grid.className = useLayout ? 'live-physical-grid' : 'live-binding-grid';
 
     if (useLayout) {
-      const unitPx = 56, gap = 4, padding = 12;
+      const unitPx = 72, gap = 4, padding = 12;
       let maxX = 0, maxY = 0;
       for (const k of state.physicalLayout) {
         maxX = Math.max(maxX, k.x + k.width);
@@ -314,11 +349,18 @@ function renderKeymapView() {
 function createBindingCell(layerId, i, b) {
   const cell = document.createElement('div');
   cell.className = 'live-binding-cell live-clickable';
-  cell.title = `Click to edit — [${i}] behaviorId=${b.behaviorId} param1=${b.param1} param2=${b.param2}`;
+  const fullName = behaviorName(b.behaviorId);
+  const shortName = behaviorShortName(b.behaviorId);
+  cell.title = `[${i}] ${fullName} (id=${b.behaviorId}) param1=${b.param1} param2=${b.param2}\nClick to edit`;
+  // 短縮名 + パラメータ表示。短縮名が空（&kp）の場合は param1 のみ
+  const headerHtml = shortName ? `<div class="bind-name">${shortName}</div>` : '';
+  const paramHtml = b.param1 || b.param2
+    ? `<div class="bind-params">${b.param1}${b.param2 ? `/${b.param2}` : ''}</div>`
+    : '';
   cell.innerHTML =
     `<div class="bind-pos">[${i}]</div>` +
-    `<div class="bind-name">${behaviorName(b.behaviorId)}</div>` +
-    `<div class="bind-params">${b.param1} / ${b.param2}</div>`;
+    headerHtml +
+    paramHtml;
   cell.onclick = () => openBindingEditor(layerId, i, b);
   return cell;
 }
