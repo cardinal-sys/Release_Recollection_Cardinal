@@ -361,12 +361,12 @@ function createBindingCell(layerId, i, b) {
     `<div class="bind-pos">[${i}]</div>` +
     headerHtml +
     paramHtml;
-  cell.onclick = () => openBindingEditor(layerId, i, b);
+  cell.onclick = () => openBindingEditor(layerId, i, b, cell);
   return cell;
 }
 
 /* ◆ BINDING EDITOR ──────────────────── */
-function openBindingEditor(layerId, position, currentBinding) {
+function openBindingEditor(layerId, position, currentBinding, cellEl) {
   const dlg = document.getElementById('bind-editor');
   document.getElementById('bind-layer-id').value = layerId;
   document.getElementById('bind-position').value = position;
@@ -389,13 +389,25 @@ function openBindingEditor(layerId, position, currentBinding) {
   document.getElementById('bind-param2').value = currentBinding.param2 ?? 0;
 
   dlg.classList.remove('hidden');
+  document.body.classList.add('bind-editor-open');
   document.getElementById('bind-current').textContent =
     `Current: ${behaviorName(currentBinding.behaviorId)} (id=${currentBinding.behaviorId}) / ` +
     `param1=${currentBinding.param1} / param2=${currentBinding.param2}`;
+
+  // 編集中セルをハイライト
+  document.querySelectorAll('.live-binding-cell.editing')
+    .forEach((el) => el.classList.remove('editing'));
+  if (cellEl) {
+    cellEl.classList.add('editing');
+    cellEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+  }
 }
 
 function closeBindingEditor() {
   document.getElementById('bind-editor').classList.add('hidden');
+  document.body.classList.remove('bind-editor-open');
+  document.querySelectorAll('.live-binding-cell.editing')
+    .forEach((el) => el.classList.remove('editing'));
 }
 
 async function applyBindingEdit() {

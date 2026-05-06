@@ -234,6 +234,61 @@
       border-color: var(--accent-violet);
       box-shadow: 0 0 8px rgba(180, 140, 255, 0.3);
     }
+
+    /* ◆ Floating Binding Editor ─────────────── */
+    #bind-editor {
+      position: fixed;
+      top: 50%;
+      right: 24px;
+      transform: translateY(-50%);
+      width: 380px;
+      max-width: calc(100vw - 48px);
+      max-height: 85vh;
+      overflow-y: auto;
+      z-index: 200;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7),
+                  0 0 0 1px var(--accent-violet),
+                  0 0 24px rgba(180, 140, 255, 0.3);
+      animation: bind-editor-in 0.2s ease-out;
+    }
+    @keyframes bind-editor-in {
+      from { opacity: 0; transform: translateY(-50%) translateX(20px); }
+      to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+    }
+    /* 編集パネルが開いている時、本体に右側余白を確保して図が隠れないようにする */
+    body.bind-editor-open .live-shell {
+      padding-right: 444px;
+      transition: padding-right 0.2s ease-out;
+    }
+    body.bind-editor-open .live-physical-grid {
+      margin-left: 0;
+      margin-right: auto;
+    }
+    /* クリックされたセルを強調 */
+    .live-binding-cell.editing {
+      outline: 2px solid var(--accent-violet);
+      outline-offset: 2px;
+      box-shadow: 0 0 16px rgba(180, 140, 255, 0.6);
+      z-index: 5;
+    }
+    @media (max-width: 1100px) {
+      #bind-editor {
+        top: auto;
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+        transform: none;
+      }
+      body.bind-editor-open .live-shell {
+        padding-right: 24px;
+        padding-bottom: 360px;
+      }
+      @keyframes bind-editor-in {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+    }
   </style>
 </head>
 <body>
