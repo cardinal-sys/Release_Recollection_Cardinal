@@ -234,6 +234,47 @@
       border-color: var(--accent-violet);
       box-shadow: 0 0 8px rgba(180, 140, 255, 0.3);
     }
+    .bind-label-row {
+      grid-column: 1 / -1;
+    }
+    .quick-pick-block {
+      background: rgba(180, 140, 255, 0.07);
+      border: 1px dashed var(--border-soft);
+      border-radius: 3px;
+      padding: 8px;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    .quick-pick-block h4 {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--accent-violet);
+      margin-bottom: 6px;
+    }
+    .qp-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto 1fr;
+      gap: 4px;
+      align-items: center;
+    }
+    .qp-row > select {
+      grid-column: span 1;
+    }
+    .qp-row .qp-val {
+      grid-column: 1 / -1;
+    }
+    .qp-label {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.1em;
+    }
+    .bind-resolved {
+      font-size: 0.65rem;
+      color: var(--accent-cyan);
+      letter-spacing: 0.1em;
+      margin-top: 2px;
+      min-height: 0.8em;
+    }
 
     /* ◆ Floating Binding Editor ─────────────── */
     #bind-editor {
@@ -352,14 +393,47 @@
         <dt>Current</dt><dd id="bind-current">—</dd>
       </dl>
       <div class="bind-form">
-        <label>Behavior
+        <label class="bind-label-row">Behavior
           <select id="bind-behavior" class="bind-input"></select>
         </label>
+      </div>
+
+      <!-- ◆ Quick Pick: HID Usage / Layer / Modifier -->
+      <div class="quick-pick-block">
+        <h4>◆ Quick Pick</h4>
+        <div class="qp-row">
+          <label class="qp-label">target</label>
+          <select id="qp-target" class="bind-input qp-target">
+            <option value="param1">→ param1</option>
+            <option value="param2">→ param2</option>
+          </select>
+          <label class="qp-label">category</label>
+          <select id="qp-category" class="bind-input qp-cat">
+            <option value="">—</option>
+            <option value="hid-letters">文字 (A-Z)</option>
+            <option value="hid-digits">数字 (0-9)</option>
+            <option value="hid-functions">F1-F24</option>
+            <option value="hid-arrows">矢印</option>
+            <option value="hid-special">特殊キー (ESC/TAB/etc)</option>
+            <option value="hid-symbols">記号</option>
+            <option value="hid-modifiers">修飾キー</option>
+            <option value="hid-mouse">マウス (consumer)</option>
+            <option value="hid-media">メディア</option>
+            <option value="layers">レイヤー</option>
+            <option value="modmask">Mod Mask（修飾複合）</option>
+          </select>
+          <select id="qp-value" class="bind-input qp-val"><option value="">—</option></select>
+        </div>
+      </div>
+
+      <div class="bind-form">
         <label>param1
           <input type="number" id="bind-param1" class="bind-input" value="0">
+          <span class="bind-resolved" id="bind-p1-resolved"></span>
         </label>
         <label>param2
           <input type="number" id="bind-param2" class="bind-input" value="0">
+          <span class="bind-resolved" id="bind-p2-resolved"></span>
         </label>
       </div>
       <div class="live-actions" style="margin-top: 12px;">

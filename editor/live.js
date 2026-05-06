@@ -466,6 +466,12 @@ function openBindingEditor(layerId, position, currentBinding, cellEl) {
   document.getElementById('bind-param1').value = currentBinding.param1 ?? 0;
   document.getElementById('bind-param2').value = currentBinding.param2 ?? 0;
 
+  // Quick Pick reset
+  document.getElementById('qp-category').value = '';
+  document.getElementById('qp-value').innerHTML = '<option value="">—</option>';
+  document.getElementById('qp-target').value = 'param1';
+  updateResolvedHints();
+
   dlg.classList.remove('hidden');
   document.body.classList.add('bind-editor-open');
   document.getElementById('bind-current').textContent =
@@ -486,6 +492,146 @@ function closeBindingEditor() {
   document.body.classList.remove('bind-editor-open');
   document.querySelectorAll('.live-binding-cell.editing')
     .forEach((el) => el.classList.remove('editing'));
+}
+
+/* ◆ QUICK PICK ────────────────────────── */
+
+// HID usage helpers (page<<16 | id)
+const HID_USAGE = (page, id) => (page << 16) + id;
+const KBD = (id) => HID_USAGE(7, id);   // Keyboard / Keypad
+const CON = (id) => HID_USAGE(12, id);  // Consumer
+
+// 修飾キー (Mod Mask) for Mod-Tap などの param1
+// ZMK の MOD_LCTL=0x01, LSFT=0x02, LALT=0x04, LGUI=0x08, RCTL=0x10, RSFT=0x20, RALT=0x40, RGUI=0x80
+const MOD_MASKS = [
+  ['LCTL', 0x01], ['LSFT', 0x02], ['LALT', 0x04], ['LGUI', 0x08],
+  ['RCTL', 0x10], ['RSFT', 0x20], ['RALT', 0x40], ['RGUI', 0x80],
+];
+
+function buildHidLetters() {
+  const out = [];
+  for (let i = 0; i < 26; i++) {
+    out.push([String.fromCharCode(65 + i), KBD(4 + i)]);
+  }
+  return out;
+}
+function buildHidDigits() {
+  // 1-9: 30..38, 0: 39
+  const out = [];
+  for (let n = 1; n <= 9; n++) out.push([String(n), KBD(29 + n)]);
+  out.push(['0', KBD(39)]);
+  return out;
+}
+function buildHidFunctions() {
+  const out = [];
+  // F1-F12: 58..69, F13-F24: 104..115
+  for (let n = 1; n <= 12; n++) out.push([`F${n}`, KBD(57 + n)]);
+  for (let n = 13; n <= 24; n++) out.push([`F${n}`, KBD(91 + n)]);
+  return out;
+}
+const HID_ARROWS = [
+  ['→ RIGHT', KBD(79)],
+  ['← LEFT',  KBD(80)],
+  ['↓ DOWN',  KBD(81)],
+  ['↑ UP',    KBD(82)],
+];
+const HID_SPECIAL = [
+  ['ESC',       KBD(41)],
+  ['TAB',       KBD(43)],
+  ['SPACE',     KBD(44)],
+  ['ENTER',     KBD(40)],
+  ['BACKSPACE', KBD(42)],
+  ['DELETE',    KBD(76)],
+  ['CAPS',      KBD(57)],
+  ['HOME',      KBD(74)],
+  ['END',       KBD(77)],
+  ['PAGE UP',   KBD(75)],
+  ['PAGE DOWN', KBD(78)],
+  ['INSERT',    KBD(73)],
+  ['PRINT',     KBD(70)],
+];
+const HID_SYMBOLS = [
+  ['-', KBD(45)], ['=', KBD(46)], ['[', KBD(47)], [']', KBD(48)],
+  ['\\', KBD(49)], [';', KBD(51)], ["'", KBD(52)], ['`', KBD(53)],
+  [',', KBD(54)], ['.', KBD(55)], ['/', KBD(56)],
+];
+const HID_MODIFIERS = [
+  ['LEFT SHIFT',   KBD(225)],
+  ['RIGHT SHIFT',  KBD(229)],
+  ['LEFT CONTROL', KBD(224)],
+  ['RIGHT CONTROL',KBD(228)],
+  ['LEFT ALT',     KBD(226)],
+  ['RIGHT ALT',    KBD(230)],
+  ['LEFT GUI',     KBD(227)],
+  ['RIGHT GUI',    KBD(231)],
+];
+const HID_MEDIA = [
+  ['Play/Pause',   CON(0xCD)],
+  ['Mute',         CON(0xE2)],
+  ['Vol +',        CON(0xE9)],
+  ['Vol -',        CON(0xEA)],
+  ['Next Track',   CON(0xB5)],
+  ['Prev Track',   CON(0xB6)],
+];
+const HID_MOUSE = [
+  ['MB1 (Left)',   1],
+  ['MB2 (Right)',  2],
+  ['MB3 (Middle)', 4],
+  ['MB4 (Back)',   8],
+  ['MB5 (Fwd)',    16],
+];
+
+function getQuickPickOptions(category) {
+  switch (category) {
+    case 'hid-letters':   return buildHidLetters();
+    case 'hid-digits':    return buildHidDigits();
+    case 'hid-functions': return buildHidFunctions();
+    case 'hid-arrows':    return HID_ARROWS;
+    case 'hid-special':   return HID_SPECIAL;
+    case 'hid-symbols':   return HID_SYMBOLS;
+    case 'hid-modifiers': return HID_MODIFIERS;
+    case 'hid-media':     return HID_MEDIA;
+    case 'hid-mouse':     return HID_MOUSE;
+    case 'modmask':       return MOD_MASKS;
+    case 'layers':
+      return (state.keymap?.layers || []).map((l) =>
+        [`${l.id}: ${l.name || '(unnamed)'}`, l.id]);
+    default: return [];
+  }
+}
+
+function refreshQpValueList() {
+  const cat = document.getElementById('qp-category').value;
+  const sel = document.getElementById('qp-value');
+  sel.innerHTML = '<option value="">—</option>';
+  for (const [label, value] of getQuickPickOptions(cat)) {
+    const opt = document.createElement('option');
+    opt.value = String(value);
+    opt.textContent = `${label}  (${value})`;
+    sel.appendChild(opt);
+  }
+}
+
+function applyQuickPick() {
+  const sel = document.getElementById('qp-value');
+  if (!sel.value) return;
+  const target = document.getElementById('qp-target').value;
+  const inputId = target === 'param1' ? 'bind-param1' : 'bind-param2';
+  document.getElementById(inputId).value = sel.value;
+  updateResolvedHints();
+}
+
+function updateResolvedHints() {
+  const behaviorId = Number(document.getElementById('bind-behavior').value);
+  const fullName = behaviorName(behaviorId);
+  const p1 = Number(document.getElementById('bind-param1').value) || 0;
+  const p2 = Number(document.getElementById('bind-param2').value) || 0;
+  const p1Resolved = paramLabel(fullName, p1);
+  const p2Resolved = paramLabel(fullName, p2);
+  document.getElementById('bind-p1-resolved').textContent =
+    p1Resolved && p1Resolved !== String(p1) ? `→ ${p1Resolved}` : '';
+  document.getElementById('bind-p2-resolved').textContent =
+    p2Resolved && p2Resolved !== String(p2) ? `→ ${p2Resolved}` : '';
 }
 
 async function applyBindingEdit() {
@@ -540,10 +686,18 @@ function init() {
   document.getElementById('bind-apply-btn').addEventListener('click', applyBindingEdit);
   document.getElementById('bind-cancel-btn').addEventListener('click', closeBindingEditor);
 
+  // Quick Pick handlers
+  document.getElementById('qp-category').addEventListener('change', refreshQpValueList);
+  document.getElementById('qp-value').addEventListener('change', applyQuickPick);
+  document.getElementById('bind-behavior').addEventListener('change', updateResolvedHints);
+  document.getElementById('bind-param1').addEventListener('input', updateResolvedHints);
+  document.getElementById('bind-param2').addEventListener('input', updateResolvedHints);
+
   // Debug bridge: 開発時のみ window 経由で state にアクセスできるように
   window.__cardinal_live = {
     state, renderKeymapView, behaviorName, handleProbe,
     openBindingEditor, applyBindingEdit, closeBindingEditor,
+    refreshQpValueList, applyQuickPick, updateResolvedHints,
   };
 }
 
