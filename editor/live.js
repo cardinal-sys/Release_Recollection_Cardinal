@@ -30,7 +30,64 @@ const state = {
   keymap: null,
   behaviors: {},        // behavior_id -> details
   physicalLayout: null, // active KeyPhysicalAttrs[] (already scaled to unit)
+  hidUsageTable: null,  // { [page]: { [id]: name } }
+  hidOverrides: null,   // ZMK Studio hid-usage-name-overrides.json
 };
+
+/* ◆ HID USAGE RESOLVER ──────────────── */
+const HID_TABLE_URL = 'https://raw.githubusercontent.com/zmkfirmware/zmk-studio/main/src/keyboard-and-consumer-usage-tables.json';
+const HID_OVERRIDES_URL = 'https://raw.githubusercontent.com/zmkfirmware/zmk-studio/main/src/hid-usage-name-overrides.json';
+
+async function loadHidUsageTable() {
+  if (state.hidUsageTable) return;
+  try {
+    const [tableRes, overridesRes] = await Promise.all([
+      fetch(HID_TABLE_URL),
+      fetch(HID_OVERRIDES_URL),
+    ]);
+    const table = await tableRes.json();
+    const overrides = await overridesRes.json();
+    // Index by page id -> { id -> Name }
+    const indexed = {};
+    for (const page of table.UsagePages || []) {
+      indexed[page.Id] = {};
+      for (const u of page.UsageIds || []) {
+        indexed[page.Id][u.Id] = u.Name;
+      }
+    }
+    state.hidUsageTable = indexed;
+    state.hidOverrides = overrides;
+  } catch (e) {
+    console.warn('HID table load failed:', e);
+  }
+}
+
+function resolveHidUsage(usage) {
+  if (!state.hidUsageTable) return null;
+  const page = (usage >> 16) & 0xffff;
+  const id = usage & 0xffff;
+  const ovr = state.hidOverrides?.[String(page & 0xff)]?.[String(id)];
+  if (ovr?.short) return ovr.short.replace(/^Keyboard /, '');
+  const name = state.hidUsageTable[page & 0xff]?.[id];
+  return name ? name.replace(/^Keyboard /, '') : null;
+}
+
+// behavior が HID usage を param1 として持つか判定
+const HID_BEHAVIOR_NAMES = new Set([
+  'Key Press', 'Mod-Tap', 'Layer-Tap', 'Mouse Key Press',
+  'Sticky Key', 'Key Repeat', 'Key Toggle', 'Grave/Escape',
+]);
+
+function paramLabel(behaviorIdOrName, param) {
+  const name = typeof behaviorIdOrName === 'number'
+    ? behaviorName(behaviorIdOrName)
+    : behaviorIdOrName;
+  if (HID_BEHAVIOR_NAMES.has(name)) {
+    const hid = resolveHidUsage(param);
+    if (hid) return hid;
+  }
+  return param ? String(param) : '';
+}
 
 function log(msg, kind = 'info') {
   const ts = new Date().toLocaleTimeString();
@@ -216,6 +273,11 @@ async function handleProbe() {
   if (!state.rpc) return;
   log('--- 〈 Memory Recall 〉 begin ---');
   try {
+    if (!state.hidUsageTable) {
+      log('Loading HID usage table from ZMK Studio...');
+      await loadHidUsageTable();
+      log(`HID usage pages: ${Object.keys(state.hidUsageTable || {}).length}`, 'success');
+    }
     await fetchDeviceInfo();
     await fetchLockState();
     await fetchBehaviors();
@@ -351,16 +413,32 @@ function createBindingCell(layerId, i, b) {
   cell.className = 'live-binding-cell live-clickable';
   const fullName = behaviorName(b.behaviorId);
   const shortName = behaviorShortName(b.behaviorId);
-  cell.title = `[${i}] ${fullName} (id=${b.behaviorId}) param1=${b.param1} param2=${b.param2}\nClick to edit`;
-  // 短縮名 + パラメータ表示。短縮名が空（&kp）の場合は param1 のみ
-  const headerHtml = shortName ? `<div class="bind-name">${shortName}</div>` : '';
-  const paramHtml = b.param1 || b.param2
-    ? `<div class="bind-params">${b.param1}${b.param2 ? `/${b.param2}` : ''}</div>`
-    : '';
+  // HID usage を解決して param1 / param2 を読みやすく
+  const p1Label = paramLabel(fullName, b.param1);
+  const p2Label = paramLabel(fullName, b.param2);
+  cell.title =
+    `[${i}] ${fullName} (id=${b.behaviorId})\n` +
+    `param1=${b.param1}${p1Label ? ` (${p1Label})` : ''}\n` +
+    `param2=${b.param2}${p2Label ? ` (${p2Label})` : ''}\n` +
+    'Click to edit';
+
+  // 主表示: HID 解決名（&kp なら 'A' 等） / それ以外は behavior 短縮名
+  const mainGlyph = shortName === '' && p1Label
+    ? p1Label                     // &kp の場合は HID 名のみ
+    : shortName || `#${b.behaviorId}`;
+
+  // 副情報: HID 解決済み behavior は param2 のみ表示 / それ以外は param 数値
+  let subInfo = '';
+  if (HID_BEHAVIOR_NAMES.has(fullName)) {
+    if (b.param2) subInfo = p2Label ? `+ ${p2Label}` : `+${b.param2}`;
+  } else if (b.param1 || b.param2) {
+    subInfo = `${b.param1}${b.param2 ? `/${b.param2}` : ''}`;
+  }
+
   cell.innerHTML =
     `<div class="bind-pos">[${i}]</div>` +
-    headerHtml +
-    paramHtml;
+    `<div class="bind-name">${mainGlyph}</div>` +
+    (subInfo ? `<div class="bind-params">${subInfo}</div>` : '');
   cell.onclick = () => openBindingEditor(layerId, i, b, cell);
   return cell;
 }
