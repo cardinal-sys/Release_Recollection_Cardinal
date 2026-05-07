@@ -940,6 +940,14 @@ async function handleAuth() {
     renderModifiedList();
     setStatus('Ready', 'success');
     log('File tree loaded — select a file to begin');
+
+    // 〈Cross Realm Summon〉— URL クエリで指定されたファイルを自動展開
+    const params = new URLSearchParams(window.location.search);
+    const requestedFile = params.get('file');
+    if (requestedFile && EDITABLE_PATHS.includes(requestedFile)) {
+      log(`Auto-opening ${requestedFile} from URL parameter`);
+      await openFile(requestedFile);
+    }
   } catch (err) {
     setStatus('Authentication failed', 'error');
     log(err.message, 'error');
