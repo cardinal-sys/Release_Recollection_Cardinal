@@ -41,14 +41,42 @@
 
 ### ◆ 起動方法 ── Invocation
 
+#### 〈オンライン〉GitHub Pages（推奨）
+
+`.github/workflows/deploy-editor.yml` により main ブランチの `editor/` が
+自動的に GitHub Pages へデプロイされる。HTTPS なので Web Bluetooth API が
+最も安定する。
+
+| 入口 | URL |
+|---|---|
+| Cardinal Editor (git 編纂) | `https://cardinal-sys.github.io/Release_Recollection/index.html` |
+| Live Sync Conduit (実機接続) | `https://cardinal-sys.github.io/Release_Recollection/live.html` |
+
+> **[ SYSTEM ]** 初回利用時は GitHub の Settings → Pages で Source を
+> "GitHub Actions" に設定する必要がある。
+
+#### 〈オフライン〉launchd 常駐（macOS）
+
+ローカルマシンに Cardinal Editor サーバを常駐させる：
+
 ```bash
-# ローカル起動（http://localhost:3001 で展開）
-python3 -m http.server 3001 --directory editor
-# または
-cd editor && python3 -m http.server 3001
+# 常駐化
+bash scripts/install_launchd.sh
+
+# 解除
+bash scripts/uninstall_launchd.sh
 ```
 
-GitHub Pages を有効化すれば `https://cardinal-sys.github.io/Release_Recollection/editor/` でも展開可能。
+常駐後、`http://localhost:3001` でいつでも利用可能。
+ログは `~/Library/Logs/cardinal-editor/server.log`。
+
+#### 〈ワンショット〉手動起動
+
+```bash
+python3 scripts/cardinal_editor_server.py
+# または
+python3 -m http.server 3001 --directory editor
+```
 
 ### ◆ 認証関門 ── Authentication Gate
 
@@ -413,6 +441,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 | DATE | ENTRY |
 |---|---|
 | 2026-05-05 | 〈Live Sync Conduit PoC〉— Cardinal Editor に Phase 2 Step 2 として `editor/live.html` を追加。`@zmkfirmware/zmk-studio-ts-client@0.0.18` を esm.sh 経由でビルド不要に組み込み、公式 ZMK Studio と同じ GATT Service UUID（`00000000-0196-6107-c967-c5cfb1c2482a`）で Web Bluetooth 接続する。Connect / Disconnect / Probe ボタン、接続状態インジケータ（pulse 演出）、デバイス情報表示、System Log を実装。実 RPC リクエスト発行は Step 3 で実装予定。Cardinal Editor 本体（`index.html`）の右上に⚡Live Sync ナビゲーションリンクも追加。 |
+| 2026-05-07 | 〈Cardinal Conduit Anchor〉— Cardinal Editor + Live Sync Conduit の常時利用化を実現。`.github/workflows/deploy-editor.yml` で `editor/` を GitHub Pages へ自動デプロイし、HTTPS の固定 URL（`https://cardinal-sys.github.io/Release_Recollection/live.html`）で実機接続が可能に。さらに `scripts/install_launchd.sh` で macOS launchd によるローカルサーバー常駐化（`http://localhost:3001`）にも対応。preview server を都度起動せずとも、ブックマーク 1 クリックで開ける運用に。 |
 | 2026-05-05 | 〈Live Sync Conduit Activation〉— Elucidator.conf で `CONFIG_ZMK_STUDIO=y` を有効化、`CONFIG_ZMK_STUDIO_LOCKING=n` でパスワード解除。これにより公式 zmk.studio から Web Bluetooth/USB 経由でキーマップをライブ書換可能となる（再ビルド不要）。central 側（Elucidator）にのみ設定追加、peripheral（Dark_Repulser）は変更なし。Phase 2 として Cardinal Editor へのライブ接続統合を予定。 |
 | 2026-05-05 | 〈Modifier Stratification〉— Memory Rewrite フォームに修飾キー独立トグルを追加。`Sft` / `Ctl` / `Alt` / `Gui` をチップ式チェックボックスで個別選択でき、トグル状態は対象フィールド（Tap / Hold）の値に `Sft+Ctl+TAB` 形式で自動結合される。既存値の修飾キープレフィックス（`Sft+TAB` `Gui+A` 等）も `splitModifiers()` でパースして UI に反映する双方向同期。ターゲット切替時はそのフィールドの修飾キー状態に同期。 |
 | 2026-05-05 | 〈Sword Skill Selector〉— Cardinal Editor の Memory Rewrite フォームに Quick Pick 機構を追加。レイヤー / 修飾キー / 文字 / 数字 / F1-F24 / 矢印 / 特殊キー / 記号 / ZMK behavior / **剣技 (Sword Skills)** / 使用中の値 の 11 カテゴリから値を選択可能とした。剣技カテゴリには 8 神器 × 4 方向 = 32 種の `&gE_up` 〜 `&gW_right` 全 mod-morph behavior を網羅。`<datalist>` によるオートコンプリートも併設。さらに `<Auto-Sealing>` として、起動時に localStorage に PAT があれば自動認証する挙動を追加。 |
