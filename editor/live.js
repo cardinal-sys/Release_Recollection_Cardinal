@@ -249,9 +249,31 @@ function handleDisconnect() {
 
 /* ◆ RPC HELPERS ─────────────────────── */
 
-async function rpc(req) {
+// 公式 ZMK Studio 同様、最初の RPC コールは応答が遅れたり失敗することがある。
+// タイムアウト + 自動再試行で堅牢化する。
+async function rpcWithTimeout(req, timeoutMs = 3000) {
   if (!state.rpc) throw new Error('Not connected');
-  return call_rpc(state.rpc, req);
+  const result = await Promise.race([
+    call_rpc(state.rpc, req).then((r) => ({ ok: true, value: r })).catch((e) => ({ ok: false, error: e })),
+    new Promise((resolve) => setTimeout(() => resolve({ ok: false, timeout: true }), timeoutMs)),
+  ]);
+  if (result.ok) return result.value;
+  if (result.timeout) throw new Error(`RPC timeout after ${timeoutMs}ms`);
+  throw result.error;
+}
+
+async function rpc(req, retries = 2) {
+  let lastError;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await rpcWithTimeout(req);
+    } catch (e) {
+      lastError = e;
+      log(`RPC attempt ${i + 1}/${retries + 1} failed: ${e.message || e}`, 'warning');
+      if (i < retries) await new Promise((r) => setTimeout(r, 200));
+    }
+  }
+  throw lastError;
 }
 
 async function fetchDeviceInfo() {
