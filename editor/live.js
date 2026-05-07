@@ -143,13 +143,8 @@ async function establishConnection(transport, kind) {
 const ZMK_STUDIO_SERVICE_UUID = '00000000-0196-6107-c967-c5cfb1c2482a';
 const ZMK_STUDIO_RPC_CHRC_UUID = '00000001-0196-6107-c967-c5cfb1c2482a';
 
-// macOS で advertising data に Studio UUID が含まれない場合に備えた、
-// "全デバイス表示モード" 対応の自前 BLE transport
-async function connectBleAcceptAll() {
-  const dev = await navigator.bluetooth.requestDevice({
-    acceptAllDevices: true,
-    optionalServices: [ZMK_STUDIO_SERVICE_UUID],
-  });
+// 共通の GATT transport setup（公式 zmk-studio-ts-client/transport/gatt.ts と同じロジック）
+async function setupGattTransport(dev) {
   if (!dev.gatt) throw new Error('No GATT service on selected device');
   const label = dev.name || 'Unknown';
   if (!dev.gatt.connected) await dev.gatt.connect();
@@ -180,6 +175,24 @@ async function connectBleAcceptAll() {
   });
   abortController.signal.addEventListener('abort', () => dev.gatt?.disconnect());
   return { label, abortController, readable, writable };
+}
+
+// ZMK Studio 公式と完全に同じ Service UUID フィルタ版（esm.sh 依存を排除）
+async function connectBleFiltered() {
+  const dev = await navigator.bluetooth.requestDevice({
+    filters: [{ services: [ZMK_STUDIO_SERVICE_UUID] }],
+    optionalServices: [ZMK_STUDIO_SERVICE_UUID],
+  });
+  return await setupGattTransport(dev);
+}
+
+// 全デバイス表示モード版
+async function connectBleAcceptAll() {
+  const dev = await navigator.bluetooth.requestDevice({
+    acceptAllDevices: true,
+    optionalServices: [ZMK_STUDIO_SERVICE_UUID],
+  });
+  return await setupGattTransport(dev);
 }
 
 async function handleConnectBle() {
