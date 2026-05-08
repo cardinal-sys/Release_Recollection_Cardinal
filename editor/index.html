@@ -77,6 +77,7 @@
       <div id="view-switch" class="view-switch hidden">
         <button id="view-code" class="view-btn active">[ Code ]</button>
         <button id="view-visual" class="view-btn">[ Visual Editor ]</button>
+        <button id="view-conf" class="view-btn">[ Settings Editor ]</button>
       </div>
 
       <!-- Code Editor -->
@@ -86,6 +87,15 @@
           <p>《 No file open 》</p>
           <p class="hint">サイドバーからファイルを選択してください。</p>
         </div>
+      </div>
+
+      <!-- Settings Editor (.conf files) -->
+      <div id="conf-editor" class="conf-editor hidden">
+        <div class="visual-toolbar">
+          <h3 style="font-size: 0.85rem; letter-spacing: 0.15em; color: var(--accent-cyan);">◆ Kconfig Settings Editor</h3>
+          <input type="text" id="conf-filter" placeholder="🔍 Filter (例: BLE)" style="margin-left: 12px;">
+        </div>
+        <div id="conf-entries" class="conf-entries"></div>
       </div>
 
       <!-- Visual Editor (keymap.yaml only) -->

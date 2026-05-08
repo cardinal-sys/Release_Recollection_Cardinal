@@ -511,24 +511,37 @@ async function openFile(path) {
   activateTab(path);
 }
 
+function isConfFile(path) {
+  return path.endsWith('.conf');
+}
+
 function activateTab(path) {
   state.activePath = path;
   const file = state.files.get(path);
   if (!file) return;
 
-  // Switch view: visual editor only for keymap.yaml
+  const confEditor = document.getElementById('conf-editor');
+  const viewConfBtn = document.getElementById('view-conf');
+
   if (path === 'keymap.yaml') {
     els.viewSwitch.classList.remove('hidden');
-    if (state.viewMode === 'visual') {
-      showVisualEditor();
-    } else {
-      showCodeEditor(path, file);
-    }
+    if (viewConfBtn) viewConfBtn.style.display = 'none';
+    if (state.viewMode === 'visual') showVisualEditor();
+    else showCodeEditor(path, file);
+  } else if (isConfFile(path)) {
+    els.viewSwitch.classList.remove('hidden');
+    els.viewVisual.style.display = 'none';
+    if (viewConfBtn) viewConfBtn.style.display = '';
+    if (state.viewMode === 'conf') showConfEditor(path, file);
+    else showCodeEditor(path, file);
   } else {
     els.viewSwitch.classList.add('hidden');
     state.viewMode = 'code';
     showCodeEditor(path, file);
   }
+
+  // Visual ボタンの表示は keymap.yaml の時だけ
+  els.viewVisual.style.display = path === 'keymap.yaml' ? '' : 'none';
 
   renderTabBar();
   renderFileTree();
@@ -538,6 +551,7 @@ function activateTab(path) {
 function showCodeEditor(path, file) {
   els.codeEditorWrap.classList.remove('hidden');
   els.visualEditor.classList.add('hidden');
+  document.getElementById('conf-editor').classList.add('hidden');
   els.emptyState.classList.add('hidden');
 
   if (!cm) initCodeMirror();
@@ -546,17 +560,197 @@ function showCodeEditor(path, file) {
   cm.clearHistory();
   setTimeout(() => cm.refresh(), 10);
 
-  // visual editor button state
   els.viewCode.classList.toggle('active', state.viewMode === 'code');
   els.viewVisual.classList.toggle('active', state.viewMode === 'visual');
+  document.getElementById('view-conf').classList.toggle('active', state.viewMode === 'conf');
 }
 
 function showVisualEditor() {
   els.codeEditorWrap.classList.add('hidden');
   els.visualEditor.classList.remove('hidden');
+  document.getElementById('conf-editor').classList.add('hidden');
   els.viewCode.classList.toggle('active', false);
   els.viewVisual.classList.toggle('active', true);
+  document.getElementById('view-conf').classList.toggle('active', false);
   reloadVisualEditor();
+}
+
+function showConfEditor(path, file) {
+  els.codeEditorWrap.classList.add('hidden');
+  els.visualEditor.classList.add('hidden');
+  document.getElementById('conf-editor').classList.remove('hidden');
+  els.viewCode.classList.toggle('active', false);
+  els.viewVisual.classList.toggle('active', false);
+  document.getElementById('view-conf').classList.toggle('active', true);
+  renderConfEditor(path, file);
+}
+
+/* ◆ KCONFIG (.conf) PARSER / EDITOR ─── */
+function parseConfFile(text) {
+  const lines = text.split('\n');
+  return lines.map((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return { type: 'blank', raw: line };
+    if (trimmed.startsWith('#')) return { type: 'comment', raw: line, text: trimmed.replace(/^#\s?/, '') };
+    const m = trimmed.match(/^([A-Z0-9_]+)\s*=\s*(.+)$/);
+    if (!m) return { type: 'unknown', raw: line };
+    const key = m[1];
+    const rawValue = m[2].trim();
+    let value, valueType;
+    if (rawValue === 'y' || rawValue === 'n') {
+      value = rawValue === 'y'; valueType = 'bool';
+    } else if (/^-?\d+$/.test(rawValue)) {
+      value = Number(rawValue); valueType = 'int';
+    } else if (/^"(.*)"$/.test(rawValue)) {
+      value = rawValue.slice(1, -1); valueType = 'string';
+    } else {
+      value = rawValue; valueType = 'raw';
+    }
+    return { type: 'config', key, value, valueType, raw: line };
+  });
+}
+
+function serializeConfEntries(entries) {
+  return entries.map((e) => {
+    if (e.type !== 'config' || !e.modified) return e.raw;
+    let v;
+    if (e.valueType === 'bool') v = e.value ? 'y' : 'n';
+    else if (e.valueType === 'string') v = `"${e.value}"`;
+    else v = String(e.value);
+    return `${e.key}=${v}`;
+  }).join('\n');
+}
+
+function renderConfEditor(path, file) {
+  const wrap = document.getElementById('conf-entries');
+  wrap.innerHTML = '';
+  const entries = parseConfFile(file.content);
+  const filterTerm = (document.getElementById('conf-filter').value || '').toLowerCase();
+
+  // group: コメントを section header として扱う
+  let pendingComment = '';
+  let renderedSections = 0;
+
+  entries.forEach((entry, idx) => {
+    if (entry.type === 'blank') {
+      pendingComment = '';
+      return;
+    }
+    if (entry.type === 'comment') {
+      pendingComment = entry.text;
+      return;
+    }
+    if (entry.type !== 'config') return;
+
+    if (filterTerm && !entry.key.toLowerCase().includes(filterTerm) && !pendingComment.toLowerCase().includes(filterTerm)) {
+      pendingComment = '';
+      return;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'conf-entry';
+    row.dataset.idx = idx;
+
+    const keyCell = document.createElement('div');
+    const keyEl = document.createElement('div');
+    keyEl.className = 'conf-key';
+    keyEl.textContent = entry.key;
+    keyCell.appendChild(keyEl);
+    if (pendingComment) {
+      const commentEl = document.createElement('div');
+      commentEl.className = 'conf-comment';
+      commentEl.textContent = pendingComment;
+      keyCell.appendChild(commentEl);
+      pendingComment = '';
+    }
+    row.appendChild(keyCell);
+
+    const ctl = document.createElement('div');
+    ctl.className = 'conf-control';
+    if (entry.valueType === 'bool') {
+      const lbl = document.createElement('label');
+      lbl.className = 'conf-bool-toggle';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = entry.value;
+      const lblText = document.createElement('span');
+      lblText.className = 'conf-bool-label';
+      lblText.textContent = entry.value ? 'y (enabled)' : 'n (disabled)';
+      cb.addEventListener('change', () => {
+        entry.value = cb.checked;
+        entry.modified = entry.value !== originalEntries[idx].value;
+        lblText.textContent = cb.checked ? 'y (enabled)' : 'n (disabled)';
+        row.classList.toggle('modified', entry.modified);
+        commitConfChange(path, entries);
+      });
+      lbl.appendChild(cb);
+      lbl.appendChild(lblText);
+      ctl.appendChild(lbl);
+    } else if (entry.valueType === 'int') {
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.value = entry.value;
+      inp.addEventListener('input', () => {
+        entry.value = Number(inp.value);
+        entry.modified = entry.value !== originalEntries[idx].value;
+        row.classList.toggle('modified', entry.modified);
+        commitConfChange(path, entries);
+      });
+      ctl.appendChild(inp);
+    } else if (entry.valueType === 'string') {
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.value = entry.value;
+      inp.size = 24;
+      inp.addEventListener('input', () => {
+        entry.value = inp.value;
+        entry.modified = entry.value !== originalEntries[idx].value;
+        row.classList.toggle('modified', entry.modified);
+        commitConfChange(path, entries);
+      });
+      ctl.appendChild(inp);
+    } else {
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.value = entry.value;
+      inp.addEventListener('input', () => {
+        entry.value = inp.value;
+        entry.modified = entry.value !== originalEntries[idx].value;
+        row.classList.toggle('modified', entry.modified);
+        commitConfChange(path, entries);
+      });
+      ctl.appendChild(inp);
+    }
+    row.appendChild(ctl);
+    wrap.appendChild(row);
+    renderedSections++;
+  });
+
+  if (renderedSections === 0) {
+    const p = document.createElement('p');
+    p.className = 'hint';
+    p.textContent = filterTerm
+      ? `'${filterTerm}' に一致する設定がありません。`
+      : 'パース可能な CONFIG 行がありません。';
+    wrap.appendChild(p);
+  }
+
+  // 元の値を保持して modified 判定に使う
+  var originalEntries = parseConfFile(file.original);
+}
+
+function commitConfChange(path, entries) {
+  const file = state.files.get(path);
+  if (!file) return;
+  const newContent = serializeConfEntries(entries);
+  file.content = newContent;
+  file.modified = file.content !== file.original;
+  if (cm && state.activePath === path && state.viewMode === 'code') {
+    cm.setValue(newContent);
+  }
+  renderTabBar();
+  renderFileTree();
+  renderModifiedList();
 }
 
 function closeTab(path) {
@@ -1021,6 +1215,19 @@ function init() {
   els.viewVisual.addEventListener('click', () => {
     state.viewMode = 'visual';
     if (state.activePath === 'keymap.yaml') showVisualEditor();
+  });
+  document.getElementById('view-conf').addEventListener('click', () => {
+    state.viewMode = 'conf';
+    if (state.activePath && isConfFile(state.activePath)) {
+      const f = state.files.get(state.activePath);
+      showConfEditor(state.activePath, f);
+    }
+  });
+  document.getElementById('conf-filter').addEventListener('input', () => {
+    if (state.activePath && isConfFile(state.activePath) && state.viewMode === 'conf') {
+      const f = state.files.get(state.activePath);
+      renderConfEditor(state.activePath, f);
+    }
   });
 
   setStatus('Awaiting authentication', 'idle');

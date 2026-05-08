@@ -376,7 +376,8 @@ body {
 }
 
 /* ◆ VISUAL EDITOR ─────────────────────── */
-.visual-editor {
+.visual-editor,
+.conf-editor {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -384,6 +385,110 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.conf-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: 'SF Mono', monospace;
+  font-size: 0.78rem;
+}
+
+.conf-entry {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-left: 2px solid var(--border-accent);
+  border-radius: 2px;
+}
+
+.conf-entry.modified {
+  border-left-color: var(--accent-gold);
+  background: rgba(255, 217, 122, 0.06);
+}
+
+.conf-entry .conf-key {
+  color: var(--accent-cyan);
+  font-weight: bold;
+  flex: 1 1 auto;
+  min-width: 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.conf-entry .conf-comment {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
+.conf-entry .conf-control {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.conf-entry .conf-control input,
+.conf-entry .conf-control select {
+  background: var(--bg-deep);
+  border: 1px solid var(--border-accent);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  border-radius: 2px;
+}
+
+.conf-bool-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+}
+
+.conf-bool-toggle input { accent-color: var(--accent-violet); cursor: pointer; }
+
+.conf-bool-toggle input:checked + .conf-bool-label {
+  color: var(--accent-success);
+}
+.conf-bool-toggle input:not(:checked) + .conf-bool-label {
+  color: var(--accent-crimson);
+}
+
+.conf-section-comment {
+  color: var(--accent-violet);
+  font-weight: bold;
+  padding: 12px 8px 4px;
+  letter-spacing: 0.05em;
+  border-top: 1px dashed var(--border-soft);
+  margin-top: 8px;
+}
+
+.conf-section-comment:first-child {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 4px;
+}
+
+#conf-filter {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-accent);
+  color: var(--text-primary);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border-radius: 2px;
+  flex: 1;
+  min-width: 120px;
 }
 
 .visual-toolbar {
