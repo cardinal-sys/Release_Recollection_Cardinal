@@ -201,30 +201,28 @@ async function handleConnectBle() {
     setConduitState('error', 'Unsupported', 'Web Bluetooth not available');
     return;
   }
-  // モード選択: 通常（filtered）→ 失敗したら acceptAll でリトライを促す
-  const useAcceptAll = window.__cardinal_live_mode_accept_all === true;
+  // ZMK は Studio service UUID を advertising data に含めないため、
+  // デフォルトで Accept All モードを使用する。
+  const useStrict = window.__cardinal_live_mode_strict === true;
   try {
-    setConduitState('connecting', 'Requesting BLE device...', useAcceptAll
-      ? 'Accept-All モード: 全デバイス表示'
-      : 'Service UUID フィルタモード');
-    log(`navigator.bluetooth.requestDevice() — ${useAcceptAll ? 'acceptAllDevices' : 'service-filter (native)'}`);
-    const transport = useAcceptAll
-      ? await connectBleAcceptAll()
-      : await connectBleFiltered();
+    setConduitState('connecting', 'Requesting BLE device...', useStrict
+      ? 'Strict (Service UUID Filter)'
+      : 'Accept All — リストから Elucidator を選択');
+    log(`navigator.bluetooth.requestDevice() — ${useStrict ? 'service-filter (strict)' : 'acceptAllDevices'}`);
+    const transport = useStrict
+      ? await connectBleFiltered()
+      : await connectBleAcceptAll();
     await establishConnection(transport, 'BLE');
   } catch (err) {
     log(`BLE Connect failed: ${err.message || err}`, 'error');
     setConduitState('error', 'BLE Connect failed', err.message || String(err));
-    if (!useAcceptAll && /NotFoundError|cancelled|未検出/i.test(err.message || '')) {
-      log('Hint: もし Elucidator がスキャンに出てこなかった場合は、〈 BLE: Accept All 〉ボタンで全デバイス表示モードをお試しください。', 'warning');
-    }
   }
 }
 
-async function handleConnectBleAcceptAll() {
-  window.__cardinal_live_mode_accept_all = true;
+async function handleConnectBleStrict() {
+  window.__cardinal_live_mode_strict = true;
   try { await handleConnectBle(); }
-  finally { window.__cardinal_live_mode_accept_all = false; }
+  finally { window.__cardinal_live_mode_strict = false; }
 }
 
 async function handleConnectSerial() {
@@ -980,7 +978,7 @@ async function applyBindingEdit() {
 
 function init() {
   els.connectBleBtn.addEventListener('click', handleConnectBle);
-  document.getElementById('connect-ble-all-btn').addEventListener('click', handleConnectBleAcceptAll);
+  document.getElementById('connect-ble-all-btn').addEventListener('click', handleConnectBleStrict);
   els.connectSerialBtn.addEventListener('click', handleConnectSerial);
   els.disconnectBtn.addEventListener('click', handleDisconnect);
   els.probeBtn.addEventListener('click', handleProbe);
