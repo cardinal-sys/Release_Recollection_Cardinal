@@ -345,6 +345,29 @@ async function fetchKeymap() {
   return km;
 }
 
+async function setLayerName(layerId, newName) {
+  log(`SetLayerProps layer=${layerId} name="${newName}"`);
+  const resp = await rpc({
+    keymap: {
+      setLayerProps: {
+        layerId,
+        name: newName,
+      },
+    },
+  });
+  const code = resp?.keymap?.setLayerProps;
+  log(`SetLayerProps response: ${code}`, code === 0 ? 'success' : 'error');
+  if (code === 0) {
+    log('SaveChanges...');
+    const saveResp = await rpc({ keymap: { saveChanges: true } });
+    const ok = saveResp?.keymap?.saveChanges?.ok;
+    log(`SaveChanges ok=${ok}`, ok ? 'success' : 'warning');
+    await fetchKeymap();
+    renderKeymapView();
+  }
+  return code === 0;
+}
+
 async function fetchPhysicalLayouts() {
   log('GetPhysicalLayouts...');
   const resp = await rpc({ keymap: { getPhysicalLayouts: true } });
@@ -481,7 +504,22 @@ function renderKeymapView() {
     wrap.className = 'layer-details';
     if (layer.id === 0) wrap.open = true;
     const sum = document.createElement('summary');
-    sum.textContent = `▸ Layer ${layer.id}: ${layer.name || '(unnamed)'} — ${layer.bindings?.length || 0} bindings`;
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = `▸ Layer ${layer.id}: ${layer.name || '(unnamed)'} — ${layer.bindings?.length || 0} bindings`;
+    sum.appendChild(titleSpan);
+    const renameBtn = document.createElement('button');
+    renameBtn.className = 'btn-tiny layer-rename-btn';
+    renameBtn.textContent = '✏️';
+    renameBtn.title = 'レイヤー名を変更';
+    renameBtn.onclick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const next = prompt(`Layer ${layer.id} の新しい名前:`, layer.name || '');
+      if (next === null || next === layer.name) return;
+      try { await setLayerName(layer.id, next); }
+      catch (err) { log(`Rename failed: ${err.message || err}`, 'error'); }
+    };
+    sum.appendChild(renameBtn);
     wrap.appendChild(sum);
 
     const useLayout = state.physicalLayout && state.physicalLayout.length === (layer.bindings?.length || 0);
