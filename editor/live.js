@@ -207,10 +207,10 @@ async function handleConnectBle() {
     setConduitState('connecting', 'Requesting BLE device...', useAcceptAll
       ? 'Accept-All モード: 全デバイス表示'
       : 'Service UUID フィルタモード');
-    log(`navigator.bluetooth.requestDevice() — ${useAcceptAll ? 'acceptAllDevices' : 'service-filter'}`);
+    log(`navigator.bluetooth.requestDevice() — ${useAcceptAll ? 'acceptAllDevices' : 'service-filter (native)'}`);
     const transport = useAcceptAll
       ? await connectBleAcceptAll()
-      : await gattTransport.connect();
+      : await connectBleFiltered();
     await establishConnection(transport, 'BLE');
   } catch (err) {
     log(`BLE Connect failed: ${err.message || err}`, 'error');
