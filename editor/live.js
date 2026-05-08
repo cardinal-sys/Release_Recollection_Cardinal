@@ -195,16 +195,42 @@ async function connectBleAcceptAll() {
   return await setupGattTransport(dev);
 }
 
+// 既知デバイスからの再接続（origin permission backend が必要）
+async function tryReconnectKnownDevice() {
+  if (typeof navigator.bluetooth.getDevices !== 'function') return null;
+  try {
+    const known = await navigator.bluetooth.getDevices();
+    log(`getDevices() returned ${known.length} known device(s)`);
+    if (known.length === 0) return null;
+    // 名前が Elucidator っぽい / もしくは前回接続したものを優先
+    const target = known.find((d) => /elucidator/i.test(d.name || ''))
+                || known[0];
+    log(`Reusing known device: ${target.name || '(no name)'}`);
+    return await setupGattTransport(target);
+  } catch (e) {
+    log(`getDevices reconnect failed: ${e.message || e}`, 'warning');
+    return null;
+  }
+}
+
 async function handleConnectBle() {
   if (!('bluetooth' in navigator)) {
     log('Web Bluetooth が利用できません。Chrome / Edge を使用してください。', 'error');
     setConduitState('error', 'Unsupported', 'Web Bluetooth not available');
     return;
   }
-  // ZMK は Studio service UUID を advertising data に含めないため、
-  // デフォルトで Accept All モードを使用する。
   const useStrict = window.__cardinal_live_mode_strict === true;
   try {
+    // ① 既知デバイス（origin permission backend）から再接続を試みる
+    if (!useStrict) {
+      setConduitState('connecting', 'Searching known devices...', 'Permission backend を確認中');
+      const reused = await tryReconnectKnownDevice();
+      if (reused) {
+        await establishConnection(reused, 'BLE (reused)');
+        return;
+      }
+    }
+    // ② ダイアログから新規選択
     setConduitState('connecting', 'Requesting BLE device...', useStrict
       ? 'Strict (Service UUID Filter)'
       : 'Accept All — リストから Elucidator を選択');
