@@ -78,6 +78,7 @@
         <button id="view-code" class="view-btn active">[ Code ]</button>
         <button id="view-visual" class="view-btn">[ Visual Editor ]</button>
         <button id="view-conf" class="view-btn">[ Settings Editor ]</button>
+        <button id="view-combos" class="view-btn">[ Combos Editor ]</button>
       </div>
 
       <!-- Code Editor -->
@@ -87,6 +88,20 @@
           <p>《 No file open 》</p>
           <p class="hint">サイドバーからファイルを選択してください。</p>
         </div>
+      </div>
+
+      <!-- Combos Editor (10_combos.dtsi) -->
+      <div id="combos-editor" class="combos-editor hidden">
+        <div class="visual-toolbar">
+          <h3 style="font-size: 0.85rem; letter-spacing: 0.15em; color: var(--accent-cyan);">◆ Combos Editor — 同時押し術式</h3>
+          <button id="combos-add-btn" class="btn-primary" style="font-size: 0.75rem; padding: 4px 12px;">+ 新規コンボ</button>
+        </div>
+        <p class="hint" style="font-size: 0.7rem; padding: 0 4px;">
+          各コンボは <code>name</code> + <code>bindings</code> + <code>key-positions</code> の三要素。
+          key-positions は物理キー位置のインデックス（数値、空白区切り）。bindings は ZMK behavior 表記
+          （例: <code>&amp;kp ESCAPE</code>, <code>&amp;mkp MB1</code>, <code>&amp;tog 5</code>）。
+        </p>
+        <div id="combos-entries" class="combos-entries"></div>
       </div>
 
       <!-- Settings Editor (.conf files) -->

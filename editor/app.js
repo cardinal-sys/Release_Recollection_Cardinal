@@ -515,6 +515,10 @@ function isConfFile(path) {
   return path.endsWith('.conf');
 }
 
+function isCombosFile(path) {
+  return path.endsWith('/10_combos.dtsi');
+}
+
 function activateTab(path) {
   state.activePath = path;
   const file = state.files.get(path);
@@ -530,9 +534,12 @@ function activateTab(path) {
     else showCodeEditor(path, file);
   } else if (isConfFile(path)) {
     els.viewSwitch.classList.remove('hidden');
-    els.viewVisual.style.display = 'none';
     if (viewConfBtn) viewConfBtn.style.display = '';
     if (state.viewMode === 'conf') showConfEditor(path, file);
+    else showCodeEditor(path, file);
+  } else if (isCombosFile(path)) {
+    els.viewSwitch.classList.remove('hidden');
+    if (state.viewMode === 'combos') showCombosEditor(path, file);
     else showCodeEditor(path, file);
   } else {
     els.viewSwitch.classList.add('hidden');
@@ -542,6 +549,9 @@ function activateTab(path) {
 
   // Visual ボタンの表示は keymap.yaml の時だけ
   els.viewVisual.style.display = path === 'keymap.yaml' ? '' : 'none';
+  if (viewConfBtn) viewConfBtn.style.display = isConfFile(path) ? '' : 'none';
+  const viewCombosBtn = document.getElementById('view-combos');
+  if (viewCombosBtn) viewCombosBtn.style.display = isCombosFile(path) ? '' : 'none';
 
   renderTabBar();
   renderFileTree();
@@ -552,6 +562,7 @@ function showCodeEditor(path, file) {
   els.codeEditorWrap.classList.remove('hidden');
   els.visualEditor.classList.add('hidden');
   document.getElementById('conf-editor').classList.add('hidden');
+  document.getElementById('combos-editor').classList.add('hidden');
   els.emptyState.classList.add('hidden');
 
   if (!cm) initCodeMirror();
@@ -563,6 +574,7 @@ function showCodeEditor(path, file) {
   els.viewCode.classList.toggle('active', state.viewMode === 'code');
   els.viewVisual.classList.toggle('active', state.viewMode === 'visual');
   document.getElementById('view-conf').classList.toggle('active', state.viewMode === 'conf');
+  document.getElementById('view-combos').classList.toggle('active', state.viewMode === 'combos');
 }
 
 function showVisualEditor() {
@@ -751,6 +763,167 @@ function commitConfChange(path, entries) {
   renderTabBar();
   renderFileTree();
   renderModifiedList();
+}
+
+/* ◆ COMBOS (10_combos.dtsi) PARSER / EDITOR ─── */
+function parseCombosFile(text) {
+  // ヘッダコメント（最初の `/* ... */`）を保持
+  let header = '';
+  const headerMatch = text.match(/^\s*\/\*[\s\S]*?\*\/\s*/);
+  if (headerMatch) {
+    header = headerMatch[0];
+  }
+  const body = text.slice(header.length);
+
+  const entries = [];
+  const re = /(\w+)\s*\{([\s\S]*?)\}\s*;/g;
+  let m;
+  while ((m = re.exec(body)) !== null) {
+    const name = m[1];
+    const inner = m[2];
+    const props = {};
+    // bindings = <...>;
+    const bindingsM = inner.match(/bindings\s*=\s*<\s*([\s\S]*?)\s*>\s*;/);
+    if (bindingsM) props.bindings = bindingsM[1].trim();
+    // key-positions = <...>;
+    const kpM = inner.match(/key-positions\s*=\s*<\s*([\s\S]*?)\s*>\s*;/);
+    if (kpM) props.keyPositions = kpM[1].trim();
+    // timeout-ms = <N>;
+    const timeoutM = inner.match(/timeout-ms\s*=\s*<\s*(\d+)\s*>\s*;/);
+    if (timeoutM) props.timeoutMs = Number(timeoutM[1]);
+    // layers = <...>;
+    const layersM = inner.match(/layers\s*=\s*<\s*([\s\S]*?)\s*>\s*;/);
+    if (layersM) props.layers = layersM[1].trim();
+    // require-prior-idle-ms = <N>;
+    const ripM = inner.match(/require-prior-idle-ms\s*=\s*<\s*(\d+)\s*>\s*;/);
+    if (ripM) props.requirePriorIdleMs = Number(ripM[1]);
+
+    entries.push({ name, ...props });
+  }
+  return { header, entries };
+}
+
+function serializeCombosFile(parsed) {
+  const lines = [];
+  if (parsed.header) lines.push(parsed.header.trimEnd());
+  if (parsed.entries.length > 0 && parsed.header) lines.push('');
+
+  for (const entry of parsed.entries) {
+    lines.push(`${entry.name} {`);
+    if (entry.bindings) lines.push(`    bindings = <${entry.bindings}>;`);
+    if (entry.keyPositions) lines.push(`    key-positions = <${entry.keyPositions}>;`);
+    if (entry.timeoutMs !== undefined && entry.timeoutMs !== null && entry.timeoutMs !== '') {
+      lines.push(`    timeout-ms = <${entry.timeoutMs}>;`);
+    }
+    if (entry.layers) lines.push(`    layers = <${entry.layers}>;`);
+    if (entry.requirePriorIdleMs !== undefined && entry.requirePriorIdleMs !== null && entry.requirePriorIdleMs !== '') {
+      lines.push(`    require-prior-idle-ms = <${entry.requirePriorIdleMs}>;`);
+    }
+    lines.push('};');
+    lines.push('');
+  }
+  return lines.join('\n').replace(/\n+$/, '\n');
+}
+
+function showCombosEditor(path, file) {
+  els.codeEditorWrap.classList.add('hidden');
+  els.visualEditor.classList.add('hidden');
+  document.getElementById('conf-editor').classList.add('hidden');
+  document.getElementById('combos-editor').classList.remove('hidden');
+  els.viewCode.classList.toggle('active', false);
+  els.viewVisual.classList.toggle('active', false);
+  document.getElementById('view-conf').classList.toggle('active', false);
+  document.getElementById('view-combos').classList.toggle('active', true);
+  renderCombosEditor(path, file);
+}
+
+function renderCombosEditor(path, file) {
+  const wrap = document.getElementById('combos-entries');
+  wrap.innerHTML = '';
+  const parsed = parseCombosFile(file.content);
+  const original = parseCombosFile(file.original);
+
+  parsed.entries.forEach((entry, idx) => {
+    const card = document.createElement('div');
+    card.className = 'combo-card';
+    const orig = original.entries[idx] || {};
+    const isModified = JSON.stringify(entry) !== JSON.stringify(orig);
+    if (isModified) card.classList.add('modified');
+
+    const nameLabel = makeField('Name', 'text', entry.name || '', (v) => {
+      entry.name = v;
+      commitCombosChange(path, parsed);
+    });
+    const bindingsLabel = makeField('Bindings', 'text', entry.bindings || '', (v) => {
+      entry.bindings = v;
+      commitCombosChange(path, parsed);
+    });
+    const kpLabel = makeField('Key Positions', 'text', entry.keyPositions || '', (v) => {
+      entry.keyPositions = v;
+      commitCombosChange(path, parsed);
+    });
+    bindingsLabel.querySelector('input').placeholder = '例: &kp ESCAPE';
+    kpLabel.querySelector('input').placeholder = '例: 0 1';
+
+    const actions = document.createElement('div');
+    actions.className = 'combo-actions';
+    const delBtn = document.createElement('button');
+    delBtn.className = 'combo-delete-btn';
+    delBtn.textContent = '✕ 削除';
+    delBtn.onclick = () => {
+      if (!confirm(`コンボ "${entry.name}" を削除しますか？`)) return;
+      parsed.entries.splice(idx, 1);
+      commitCombosChange(path, parsed);
+      renderCombosEditor(path, state.files.get(path));
+    };
+    actions.appendChild(delBtn);
+
+    card.appendChild(nameLabel);
+    card.appendChild(bindingsLabel);
+    card.appendChild(kpLabel);
+    card.appendChild(actions);
+    wrap.appendChild(card);
+  });
+}
+
+function makeField(labelText, type, value, onChange) {
+  const lbl = document.createElement('label');
+  const span = document.createElement('span');
+  span.textContent = labelText;
+  const inp = document.createElement('input');
+  inp.type = type;
+  inp.value = value;
+  inp.addEventListener('input', () => onChange(inp.value));
+  lbl.appendChild(span);
+  lbl.appendChild(inp);
+  return lbl;
+}
+
+function commitCombosChange(path, parsed) {
+  const file = state.files.get(path);
+  if (!file) return;
+  const newContent = serializeCombosFile(parsed);
+  file.content = newContent;
+  file.modified = file.content !== file.original;
+  if (cm && state.activePath === path && state.viewMode === 'code') {
+    cm.setValue(newContent);
+  }
+  renderTabBar();
+  renderFileTree();
+  renderModifiedList();
+}
+
+function addNewCombo(path) {
+  const file = state.files.get(path);
+  if (!file) return;
+  const parsed = parseCombosFile(file.content);
+  parsed.entries.push({
+    name: `new_combo_${parsed.entries.length + 1}`,
+    bindings: '&kp A',
+    keyPositions: '0 1',
+  });
+  commitCombosChange(path, parsed);
+  renderCombosEditor(path, state.files.get(path));
 }
 
 function closeTab(path) {
@@ -1227,6 +1400,18 @@ function init() {
     if (state.activePath && isConfFile(state.activePath) && state.viewMode === 'conf') {
       const f = state.files.get(state.activePath);
       renderConfEditor(state.activePath, f);
+    }
+  });
+  document.getElementById('view-combos').addEventListener('click', () => {
+    state.viewMode = 'combos';
+    if (state.activePath && isCombosFile(state.activePath)) {
+      const f = state.files.get(state.activePath);
+      showCombosEditor(state.activePath, f);
+    }
+  });
+  document.getElementById('combos-add-btn').addEventListener('click', () => {
+    if (state.activePath && isCombosFile(state.activePath)) {
+      addNewCombo(state.activePath);
     }
   });
 
