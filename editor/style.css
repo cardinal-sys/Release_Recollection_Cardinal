@@ -468,6 +468,73 @@ body {
   }
 }
 
+/* ◆ Combo card with physical key grid ──── */
+.combo-card-with-grid {
+  grid-template-columns: 1fr 1fr 1fr auto;
+  align-items: start;
+}
+
+.combo-card-with-grid .combo-grid-wrap {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.combo-kp-display {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.combo-kp-display .combo-kp-label {
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+.combo-kp-display code {
+  background: var(--bg-deep);
+  color: var(--accent-violet);
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 0.7rem;
+}
+
+.combo-key-grid {
+  background: linear-gradient(135deg, var(--bg-deep), var(--bg-panel));
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.combo-key-cell {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-accent);
+  border-radius: 2px;
+  font-size: 0.6rem;
+  font-family: 'SF Mono', monospace;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: all 0.1s;
+  user-select: none;
+}
+
+.combo-key-cell:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  transform: scale(1.05);
+}
+
+.combo-key-cell.selected {
+  background: rgba(180, 140, 255, 0.3);
+  border-color: var(--accent-violet);
+  color: var(--accent-violet);
+  font-weight: bold;
+  box-shadow: 0 0 6px rgba(180, 140, 255, 0.4);
+}
+
 .conf-entries {
   display: flex;
   flex-direction: column;

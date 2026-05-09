@@ -79,6 +79,9 @@
         <button id="view-visual" class="view-btn">[ Visual Editor ]</button>
         <button id="view-conf" class="view-btn">[ Settings Editor ]</button>
         <button id="view-combos" class="view-btn">[ Combos Editor ]</button>
+        <button id="view-gestures" class="view-btn">[ Gestures Editor ]</button>
+        <button id="view-macros" class="view-btn">[ Macros Editor ]</button>
+        <button id="view-behaviors" class="view-btn">[ Behaviors Editor ]</button>
       </div>
 
       <!-- Code Editor -->
@@ -88,6 +91,47 @@
           <p>《 No file open 》</p>
           <p class="hint">サイドバーからファイルを選択してください。</p>
         </div>
+      </div>
+
+      <!-- Gestures Editor (40-47_*.dtsi) -->
+      <div id="gestures-editor" class="combos-editor hidden">
+        <div class="visual-toolbar">
+          <h3 style="font-size: 0.85rem; letter-spacing: 0.15em; color: var(--accent-cyan);">◆ Gestures Editor — 剣技の編纂</h3>
+        </div>
+        <p class="hint" style="font-size: 0.7rem; padding: 0 4px;">
+          各方向の <code>bindings</code> は <strong>2 つ</strong>：
+          <strong>Default</strong>（修飾キーなし）と <strong>Mod-pressed</strong>（修飾キー押下時）。
+          例: <code>&amp;kp LG(C)</code>（コピー）/ <code>&amp;kp LG(X)</code>（カット）
+        </p>
+        <div id="gestures-entries" class="combos-entries"></div>
+      </div>
+
+      <!-- Macros Editor (20_macros.dtsi) -->
+      <div id="macros-editor" class="combos-editor hidden">
+        <div class="visual-toolbar">
+          <h3 style="font-size: 0.85rem; letter-spacing: 0.15em; color: var(--accent-cyan);">◆ Macros Editor — マクロ術式</h3>
+          <button id="macros-add-btn" class="btn-primary" style="font-size: 0.75rem; padding: 4px 12px;">+ 新規マクロ</button>
+        </div>
+        <p class="hint" style="font-size: 0.7rem; padding: 0 4px;">
+          各マクロは <code>bindings</code> sequence。<code>&amp;macro_press</code> /
+          <code>&amp;macro_tap</code> / <code>&amp;macro_release</code> で送出制御。
+          one-param / two-param 系では <code>MACRO_PLACEHOLDER</code> をそのまま残す。
+        </p>
+        <div id="macros-entries" class="combos-entries"></div>
+      </div>
+
+      <!-- Behaviors Editor (30/31/35_*.dtsi) -->
+      <div id="behaviors-editor" class="combos-editor hidden">
+        <div class="visual-toolbar">
+          <h3 style="font-size: 0.85rem; letter-spacing: 0.15em; color: var(--accent-cyan);">◆ Behaviors Editor — 武装完全支配術</h3>
+          <button id="behaviors-add-btn" class="btn-primary" style="font-size: 0.75rem; padding: 4px 12px;">+ 新規 Behavior</button>
+        </div>
+        <p class="hint" style="font-size: 0.7rem; padding: 0 4px;">
+          各 behavior の <code>compatible</code> で種別が決まる：
+          hold-tap / sticky-key / sensor-rotate / mod-morph / tri-state 等。
+          properties（<code>flavor</code> / <code>tapping-term-ms</code> 等）は behavior 種別ごとに異なる。
+        </p>
+        <div id="behaviors-entries" class="combos-entries"></div>
       </div>
 
       <!-- Combos Editor (10_combos.dtsi) -->
