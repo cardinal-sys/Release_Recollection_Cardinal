@@ -884,6 +884,28 @@ async function ensureLayoutLoaded() {
   }
 }
 
+async function ensureKeymapYamlLoaded() {
+  if (state.yamlData) return;
+  try {
+    if (!state.files.has('keymap.yaml')) {
+      await fetchFile('keymap.yaml');
+    }
+    const yf = state.files.get('keymap.yaml');
+    state.yamlData = jsyaml.load(yf.content);
+  } catch (e) {
+    log(`keymap.yaml load failed: ${e.message}`, 'warning');
+  }
+}
+
+function getKeyLabel(idx) {
+  const layer = state.yamlData?.layers?.default || [];
+  const entry = layer[idx];
+  if (entry === null || entry === undefined) return '';
+  if (typeof entry === 'string') return entry;
+  if (typeof entry === 'object') return entry.t || '';
+  return String(entry);
+}
+
 function renderPhysicalKeySelector(parent, selectedPositions, onChange) {
   const layout = state.layoutData?.layouts?.default_layout?.layout || [];
   if (layout.length === 0) {
@@ -896,9 +918,10 @@ function renderPhysicalKeySelector(parent, selectedPositions, onChange) {
 
   const grid = document.createElement('div');
   grid.className = 'combo-key-grid';
-  const unitPx = 30;
-  const gap = 2;
-  const padding = 8;
+  // Visual Editor と同じ見た目に合わせる: unitPx=56, gap=4, padding=12
+  const unitPx = 56;
+  const gap = 4;
+  const padding = 12;
   let maxX = 0, maxY = 0;
   for (const k of layout) {
     maxX = Math.max(maxX, (k.x ?? 0) + (k.width ?? 1));
@@ -912,7 +935,18 @@ function renderPhysicalKeySelector(parent, selectedPositions, onChange) {
     const cell = document.createElement('div');
     cell.className = 'combo-key-cell';
     if (selectedPositions.includes(idx)) cell.classList.add('selected');
-    cell.textContent = idx;
+
+    // Visual Editor と同じ表示構造: tap label + position number
+    const tapLabel = getKeyLabel(idx);
+    const labelEl = document.createElement('div');
+    labelEl.className = 'combo-key-label';
+    labelEl.textContent = tapLabel || '·';
+    const idxEl = document.createElement('div');
+    idxEl.className = 'combo-key-idx';
+    idxEl.textContent = `[${idx}]`;
+    cell.appendChild(idxEl);
+    cell.appendChild(labelEl);
+
     const w = (pos.width ?? 1) * unitPx - gap;
     const h = (pos.height ?? 1) * unitPx - gap;
     cell.style.cssText =
@@ -944,9 +978,9 @@ function renderCombosEditor(path, file) {
   const parsed = parseCombosFile(file.content);
   const original = parseCombosFile(file.original);
 
-  // layout を非同期で取得（未取得なら再描画）
-  if (!state.layoutData) {
-    ensureLayoutLoaded().then(() => {
+  // layout と keymap.yaml を非同期で取得（未取得なら再描画）
+  if (!state.layoutData || !state.yamlData) {
+    Promise.all([ensureLayoutLoaded(), ensureKeymapYamlLoaded()]).then(() => {
       if (state.activePath === path && state.viewMode === 'combos') {
         renderCombosEditor(path, state.files.get(path));
       }

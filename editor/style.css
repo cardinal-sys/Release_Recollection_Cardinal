@@ -509,30 +509,58 @@ body {
 .combo-key-cell {
   background: var(--bg-elevated);
   border: 1px solid var(--border-accent);
-  border-radius: 2px;
-  font-size: 0.6rem;
+  border-radius: 3px;
   font-family: 'SF Mono', monospace;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  color: var(--text-dim);
+  color: var(--text-secondary);
   transition: all 0.1s;
   user-select: none;
+  text-align: center;
+  word-break: break-all;
+  overflow: hidden;
+  padding: 2px;
+  gap: 1px;
+}
+
+.combo-key-cell .combo-key-idx {
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  line-height: 1;
+}
+
+.combo-key-cell .combo-key-label {
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: var(--text-primary);
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .combo-key-cell:hover {
   border-color: var(--accent-cyan);
-  color: var(--accent-cyan);
   transform: scale(1.05);
+  z-index: 5;
+}
+
+.combo-key-cell:hover .combo-key-label {
+  color: var(--accent-cyan);
 }
 
 .combo-key-cell.selected {
   background: rgba(180, 140, 255, 0.3);
   border-color: var(--accent-violet);
+  box-shadow: 0 0 8px rgba(180, 140, 255, 0.5);
+}
+
+.combo-key-cell.selected .combo-key-label,
+.combo-key-cell.selected .combo-key-idx {
   color: var(--accent-violet);
-  font-weight: bold;
-  box-shadow: 0 0 6px rgba(180, 140, 255, 0.4);
 }
 
 .conf-entries {
