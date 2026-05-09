@@ -519,6 +519,18 @@ function isCombosFile(path) {
   return path.endsWith('/10_combos.dtsi');
 }
 
+function isGestureFile(path) {
+  return /\/4[0-7]_[a-z_]+\.dtsi$/.test(path);
+}
+
+function isMacrosFile(path) {
+  return path.endsWith('/20_macros.dtsi');
+}
+
+function isBehaviorFile(path) {
+  return /\/(30|31|35)_enhance_armament[a-z_]*\.dtsi$/.test(path);
+}
+
 function activateTab(path) {
   state.activePath = path;
   const file = state.files.get(path);
@@ -541,28 +553,64 @@ function activateTab(path) {
     els.viewSwitch.classList.remove('hidden');
     if (state.viewMode === 'combos') showCombosEditor(path, file);
     else showCodeEditor(path, file);
+  } else if (isGestureFile(path)) {
+    els.viewSwitch.classList.remove('hidden');
+    if (state.viewMode === 'gestures') showGesturesEditor(path, file);
+    else showCodeEditor(path, file);
+  } else if (isMacrosFile(path)) {
+    els.viewSwitch.classList.remove('hidden');
+    if (state.viewMode === 'macros') showMacrosEditor(path, file);
+    else showCodeEditor(path, file);
+  } else if (isBehaviorFile(path)) {
+    els.viewSwitch.classList.remove('hidden');
+    if (state.viewMode === 'behaviors') showBehaviorsEditor(path, file);
+    else showCodeEditor(path, file);
   } else {
     els.viewSwitch.classList.add('hidden');
     state.viewMode = 'code';
     showCodeEditor(path, file);
   }
 
-  // Visual ボタンの表示は keymap.yaml の時だけ
+  // ビュータブの表示制御
   els.viewVisual.style.display = path === 'keymap.yaml' ? '' : 'none';
   if (viewConfBtn) viewConfBtn.style.display = isConfFile(path) ? '' : 'none';
   const viewCombosBtn = document.getElementById('view-combos');
   if (viewCombosBtn) viewCombosBtn.style.display = isCombosFile(path) ? '' : 'none';
+  const viewGesturesBtn = document.getElementById('view-gestures');
+  if (viewGesturesBtn) viewGesturesBtn.style.display = isGestureFile(path) ? '' : 'none';
+  const viewMacrosBtn = document.getElementById('view-macros');
+  if (viewMacrosBtn) viewMacrosBtn.style.display = isMacrosFile(path) ? '' : 'none';
+  const viewBehaviorsBtn = document.getElementById('view-behaviors');
+  if (viewBehaviorsBtn) viewBehaviorsBtn.style.display = isBehaviorFile(path) ? '' : 'none';
 
   renderTabBar();
   renderFileTree();
   setStatus(`Editing ${path}`, file.modified ? 'warning' : 'active');
 }
 
-function showCodeEditor(path, file) {
-  els.codeEditorWrap.classList.remove('hidden');
+function hideAllEditors() {
+  els.codeEditorWrap.classList.add('hidden');
   els.visualEditor.classList.add('hidden');
   document.getElementById('conf-editor').classList.add('hidden');
   document.getElementById('combos-editor').classList.add('hidden');
+  document.getElementById('gestures-editor').classList.add('hidden');
+  document.getElementById('macros-editor').classList.add('hidden');
+  document.getElementById('behaviors-editor').classList.add('hidden');
+}
+
+function updateViewBtns(mode) {
+  els.viewCode.classList.toggle('active', mode === 'code');
+  els.viewVisual.classList.toggle('active', mode === 'visual');
+  document.getElementById('view-conf').classList.toggle('active', mode === 'conf');
+  document.getElementById('view-combos').classList.toggle('active', mode === 'combos');
+  document.getElementById('view-gestures').classList.toggle('active', mode === 'gestures');
+  document.getElementById('view-macros').classList.toggle('active', mode === 'macros');
+  document.getElementById('view-behaviors').classList.toggle('active', mode === 'behaviors');
+}
+
+function showCodeEditor(path, file) {
+  hideAllEditors();
+  els.codeEditorWrap.classList.remove('hidden');
   els.emptyState.classList.add('hidden');
 
   if (!cm) initCodeMirror();
@@ -571,29 +619,20 @@ function showCodeEditor(path, file) {
   cm.clearHistory();
   setTimeout(() => cm.refresh(), 10);
 
-  els.viewCode.classList.toggle('active', state.viewMode === 'code');
-  els.viewVisual.classList.toggle('active', state.viewMode === 'visual');
-  document.getElementById('view-conf').classList.toggle('active', state.viewMode === 'conf');
-  document.getElementById('view-combos').classList.toggle('active', state.viewMode === 'combos');
+  updateViewBtns(state.viewMode);
 }
 
 function showVisualEditor() {
-  els.codeEditorWrap.classList.add('hidden');
+  hideAllEditors();
   els.visualEditor.classList.remove('hidden');
-  document.getElementById('conf-editor').classList.add('hidden');
-  els.viewCode.classList.toggle('active', false);
-  els.viewVisual.classList.toggle('active', true);
-  document.getElementById('view-conf').classList.toggle('active', false);
+  updateViewBtns('visual');
   reloadVisualEditor();
 }
 
 function showConfEditor(path, file) {
-  els.codeEditorWrap.classList.add('hidden');
-  els.visualEditor.classList.add('hidden');
+  hideAllEditors();
   document.getElementById('conf-editor').classList.remove('hidden');
-  els.viewCode.classList.toggle('active', false);
-  els.viewVisual.classList.toggle('active', false);
-  document.getElementById('view-conf').classList.toggle('active', true);
+  updateViewBtns('conf');
   renderConfEditor(path, file);
 }
 
@@ -826,14 +865,9 @@ function serializeCombosFile(parsed) {
 }
 
 function showCombosEditor(path, file) {
-  els.codeEditorWrap.classList.add('hidden');
-  els.visualEditor.classList.add('hidden');
-  document.getElementById('conf-editor').classList.add('hidden');
+  hideAllEditors();
   document.getElementById('combos-editor').classList.remove('hidden');
-  els.viewCode.classList.toggle('active', false);
-  els.viewVisual.classList.toggle('active', false);
-  document.getElementById('view-conf').classList.toggle('active', false);
-  document.getElementById('view-combos').classList.toggle('active', true);
+  updateViewBtns('combos');
   renderCombosEditor(path, file);
 }
 
@@ -924,6 +958,368 @@ function addNewCombo(path) {
   });
   commitCombosChange(path, parsed);
   renderCombosEditor(path, state.files.get(path));
+}
+
+/* ◆ COMMON DTS BEHAVIOR PARSER ─────────── */
+// `name: label { ... };` または `name { ... };` の構造を抽出
+// 各 property は `key = value;` または `key;` (boolean) として
+function parseDtsBlocks(text) {
+  let header = '';
+  const headerMatch = text.match(/^\s*\/\*[\s\S]*?\*\/\s*/);
+  if (headerMatch) header = headerMatch[0];
+  const body = text.slice(header.length);
+
+  const entries = [];
+  // name: label { ... };
+  const re = /(\w+)\s*:\s*(\w+)\s*\{([\s\S]*?)\}\s*;/g;
+  let m;
+  while ((m = re.exec(body)) !== null) {
+    const refName = m[1];
+    const label = m[2];
+    const inner = m[3];
+    entries.push({ refName, label, props: parseDtsProps(inner) });
+  }
+  return { header, entries };
+}
+
+function parseDtsProps(text) {
+  const props = [];
+  // key = value;  (key は #binding-cells のように # で始まる場合あり)
+  const re = /(#?[a-zA-Z][\w-]*)\s*=\s*([\s\S]*?);/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    props.push({ key: m[1], value: m[2].trim() });
+  }
+  return props;
+}
+
+function serializeDtsProps(props, indent = '    ') {
+  return props.map((p) => `${indent}${p.key} = ${p.value};`).join('\n');
+}
+
+function serializeDtsBlocks(parsed) {
+  const lines = [];
+  if (parsed.header) lines.push(parsed.header.trimEnd());
+  if (parsed.entries.length > 0 && parsed.header) lines.push('');
+  for (const entry of parsed.entries) {
+    lines.push(`${entry.refName}: ${entry.label} {`);
+    lines.push(serializeDtsProps(entry.props));
+    lines.push('};');
+    lines.push('');
+  }
+  return lines.join('\n').replace(/\n+$/, '\n');
+}
+
+function getProp(props, key) {
+  return props.find((p) => p.key === key);
+}
+
+function setProp(props, key, value) {
+  const p = getProp(props, key);
+  if (p) p.value = value;
+  else props.push({ key, value });
+}
+
+/* ◆ STEP 4: GESTURES EDITOR (40-47_*.dtsi) ─── */
+function showGesturesEditor(path, file) {
+  hideAllEditors();
+  document.getElementById('gestures-editor').classList.remove('hidden');
+  updateViewBtns('gestures');
+  renderGesturesEditor(path, file);
+}
+
+function renderGesturesEditor(path, file) {
+  const wrap = document.getElementById('gestures-entries');
+  wrap.innerHTML = '';
+  const parsed = parseDtsBlocks(file.content);
+  const original = parseDtsBlocks(file.original);
+
+  parsed.entries.forEach((entry, idx) => {
+    const card = document.createElement('div');
+    card.className = 'combo-card';
+    const orig = original.entries[idx] || {};
+    if (JSON.stringify(entry) !== JSON.stringify(orig)) card.classList.add('modified');
+
+    // mod-morph behavior: bindings = <default>, <mod-pressed>;
+    const bindings = getProp(entry.props, 'bindings');
+    let defaultBind = '', modBind = '';
+    if (bindings) {
+      const m = bindings.value.match(/<([\s\S]*?)>(?:\s*,\s*<([\s\S]*?)>)?/);
+      if (m) { defaultBind = m[1].trim(); modBind = (m[2] || '').trim(); }
+    }
+    const mods = getProp(entry.props, 'mods');
+
+    const nameLabel = makeField('Name', 'text', entry.refName, (v) => {
+      entry.refName = v; entry.label = v;
+      commitDtsChange(path, parsed);
+    });
+    const defaultLabel = makeField('Default', 'text', defaultBind, (v) => {
+      const newBind = modBind ? `<${v}>, <${modBind}>` : `<${v}>`;
+      setProp(entry.props, 'bindings', newBind);
+      commitDtsChange(path, parsed);
+    });
+    const modLabel = makeField('Mod-pressed', 'text', modBind, (v) => {
+      modBind = v;
+      const newBind = v ? `<${defaultBind}>, <${v}>` : `<${defaultBind}>`;
+      setProp(entry.props, 'bindings', newBind);
+      commitDtsChange(path, parsed);
+    });
+    defaultLabel.querySelector('input').placeholder = '例: &kp LG(C)';
+    modLabel.querySelector('input').placeholder = '例: &kp LG(X)';
+
+    card.appendChild(nameLabel);
+    card.appendChild(defaultLabel);
+    card.appendChild(modLabel);
+
+    if (mods) {
+      const modsLabel = document.createElement('div');
+      modsLabel.style.fontSize = '0.6rem';
+      modsLabel.style.color = 'var(--text-dim)';
+      modsLabel.style.gridColumn = '1 / -1';
+      modsLabel.textContent = `mods: ${mods.value}`;
+      card.appendChild(modsLabel);
+    }
+
+    wrap.appendChild(card);
+  });
+}
+
+function commitDtsChange(path, parsed) {
+  const file = state.files.get(path);
+  if (!file) return;
+  const newContent = serializeDtsBlocks(parsed);
+  file.content = newContent;
+  file.modified = file.content !== file.original;
+  if (cm && state.activePath === path && state.viewMode === 'code') {
+    cm.setValue(newContent);
+  }
+  renderTabBar();
+  renderFileTree();
+  renderModifiedList();
+}
+
+/* ◆ STEP 5: MACROS EDITOR (20_macros.dtsi) ─── */
+function showMacrosEditor(path, file) {
+  hideAllEditors();
+  document.getElementById('macros-editor').classList.remove('hidden');
+  updateViewBtns('macros');
+  renderMacrosEditor(path, file);
+}
+
+function renderMacrosEditor(path, file) {
+  const wrap = document.getElementById('macros-entries');
+  wrap.innerHTML = '';
+  const parsed = parseDtsBlocks(file.content);
+  const original = parseDtsBlocks(file.original);
+
+  parsed.entries.forEach((entry, idx) => {
+    const card = document.createElement('div');
+    card.className = 'combo-card';
+    card.style.gridTemplateColumns = '1fr';
+    const orig = original.entries[idx] || {};
+    if (JSON.stringify(entry) !== JSON.stringify(orig)) card.classList.add('modified');
+
+    const compatible = getProp(entry.props, 'compatible');
+    const bindings = getProp(entry.props, 'bindings');
+    const label = getProp(entry.props, 'label');
+
+    const headerRow = document.createElement('div');
+    headerRow.style.display = 'flex';
+    headerRow.style.gap = '12px';
+    headerRow.style.flexWrap = 'wrap';
+    headerRow.style.alignItems = 'center';
+
+    const nameLbl = makeField('Name', 'text', entry.refName, (v) => {
+      entry.refName = v; entry.label = v;
+      commitDtsChange(path, parsed);
+    });
+    nameLbl.style.flex = '1';
+    headerRow.appendChild(nameLbl);
+
+    if (compatible) {
+      const compEl = document.createElement('div');
+      compEl.style.fontSize = '0.65rem';
+      compEl.style.color = 'var(--accent-violet)';
+      compEl.textContent = compatible.value.replace(/^"zmk,behavior-(.+)"$/, '$1');
+      headerRow.appendChild(compEl);
+    }
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'combo-delete-btn';
+    delBtn.textContent = '✕ 削除';
+    delBtn.onclick = () => {
+      if (!confirm(`マクロ "${entry.refName}" を削除しますか？`)) return;
+      parsed.entries.splice(idx, 1);
+      commitDtsChange(path, parsed);
+      renderMacrosEditor(path, state.files.get(path));
+    };
+    headerRow.appendChild(delBtn);
+    card.appendChild(headerRow);
+
+    // bindings as multiline textarea
+    if (bindings) {
+      const bindLbl = document.createElement('label');
+      bindLbl.style.display = 'block';
+      bindLbl.style.fontSize = '0.65rem';
+      bindLbl.style.color = 'var(--text-secondary)';
+      bindLbl.style.marginTop = '8px';
+      bindLbl.innerHTML = '<span>Bindings (sequence)</span>';
+      const ta = document.createElement('textarea');
+      ta.value = bindings.value;
+      ta.rows = Math.max(2, bindings.value.split(',').length);
+      ta.style.width = '100%';
+      ta.style.background = 'var(--bg-deep)';
+      ta.style.border = '1px solid var(--border-accent)';
+      ta.style.color = 'var(--text-primary)';
+      ta.style.padding = '6px 8px';
+      ta.style.fontFamily = 'inherit';
+      ta.style.fontSize = '0.72rem';
+      ta.style.borderRadius = '2px';
+      ta.style.fontFamily = 'SF Mono, monospace';
+      ta.addEventListener('input', () => {
+        setProp(entry.props, 'bindings', ta.value);
+        commitDtsChange(path, parsed);
+      });
+      bindLbl.appendChild(ta);
+      card.appendChild(bindLbl);
+    }
+
+    wrap.appendChild(card);
+  });
+}
+
+function addNewMacro(path) {
+  const file = state.files.get(path);
+  if (!file) return;
+  const parsed = parseDtsBlocks(file.content);
+  const n = parsed.entries.length + 1;
+  parsed.entries.push({
+    refName: `new_macro_${n}`,
+    label: `new_macro_${n}`,
+    props: [
+      { key: 'compatible', value: '"zmk,behavior-macro"' },
+      { key: 'label', value: `"NEW_MACRO_${n}"` },
+      { key: '#binding-cells', value: '<0>' },
+      { key: 'bindings', value: '<&kp A>' },
+    ],
+  });
+  commitDtsChange(path, parsed);
+  renderMacrosEditor(path, state.files.get(path));
+}
+
+/* ◆ STEP 6: BEHAVIORS EDITOR (30/31/35_*.dtsi) ─── */
+function showBehaviorsEditor(path, file) {
+  hideAllEditors();
+  document.getElementById('behaviors-editor').classList.remove('hidden');
+  updateViewBtns('behaviors');
+  renderBehaviorsEditor(path, file);
+}
+
+function renderBehaviorsEditor(path, file) {
+  const wrap = document.getElementById('behaviors-entries');
+  wrap.innerHTML = '';
+  const parsed = parseDtsBlocks(file.content);
+  const original = parseDtsBlocks(file.original);
+
+  parsed.entries.forEach((entry, idx) => {
+    const card = document.createElement('div');
+    card.className = 'combo-card';
+    card.style.gridTemplateColumns = '1fr';
+    const orig = original.entries[idx] || {};
+    if (JSON.stringify(entry) !== JSON.stringify(orig)) card.classList.add('modified');
+
+    const compatible = getProp(entry.props, 'compatible');
+
+    const headerRow = document.createElement('div');
+    headerRow.style.display = 'flex';
+    headerRow.style.gap = '12px';
+    headerRow.style.flexWrap = 'wrap';
+    headerRow.style.alignItems = 'center';
+    headerRow.style.marginBottom = '8px';
+
+    const nameLbl = makeField('Name', 'text', entry.refName, (v) => {
+      entry.refName = v; entry.label = v;
+      commitDtsChange(path, parsed);
+    });
+    nameLbl.style.flex = '1';
+    headerRow.appendChild(nameLbl);
+
+    if (compatible) {
+      const compEl = document.createElement('div');
+      compEl.style.fontSize = '0.65rem';
+      compEl.style.color = 'var(--accent-violet)';
+      compEl.style.padding = '4px 8px';
+      compEl.style.background = 'var(--bg-deep)';
+      compEl.style.borderRadius = '2px';
+      compEl.textContent = compatible.value.replace(/^"zmk,behavior-(.+)"$/, '$1');
+      headerRow.appendChild(compEl);
+    }
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'combo-delete-btn';
+    delBtn.textContent = '✕ 削除';
+    delBtn.onclick = () => {
+      if (!confirm(`Behavior "${entry.refName}" を削除しますか？`)) return;
+      parsed.entries.splice(idx, 1);
+      commitDtsChange(path, parsed);
+      renderBehaviorsEditor(path, state.files.get(path));
+    };
+    headerRow.appendChild(delBtn);
+    card.appendChild(headerRow);
+
+    // 編集可能な properties をテーブル風に
+    const propsGrid = document.createElement('div');
+    propsGrid.style.display = 'grid';
+    propsGrid.style.gridTemplateColumns = '180px 1fr';
+    propsGrid.style.gap = '4px 12px';
+    propsGrid.style.fontSize = '0.7rem';
+
+    entry.props.forEach((p) => {
+      const keyEl = document.createElement('div');
+      keyEl.style.color = 'var(--accent-cyan)';
+      keyEl.textContent = p.key;
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.value = p.value;
+      inp.style.background = 'var(--bg-deep)';
+      inp.style.border = '1px solid var(--border-accent)';
+      inp.style.color = 'var(--text-primary)';
+      inp.style.padding = '3px 6px';
+      inp.style.fontFamily = 'SF Mono, monospace';
+      inp.style.fontSize = '0.7rem';
+      inp.style.borderRadius = '2px';
+      inp.addEventListener('input', () => {
+        p.value = inp.value;
+        commitDtsChange(path, parsed);
+      });
+      propsGrid.appendChild(keyEl);
+      propsGrid.appendChild(inp);
+    });
+    card.appendChild(propsGrid);
+
+    wrap.appendChild(card);
+  });
+}
+
+function addNewBehavior(path) {
+  const file = state.files.get(path);
+  if (!file) return;
+  const parsed = parseDtsBlocks(file.content);
+  const n = parsed.entries.length + 1;
+  parsed.entries.push({
+    refName: `new_behavior_${n}`,
+    label: `new_behavior_${n}`,
+    props: [
+      { key: 'compatible', value: '"zmk,behavior-hold-tap"' },
+      { key: 'label', value: `"NEW_BEHAVIOR_${n}"` },
+      { key: 'bindings', value: '<&kp>, <&kp>' },
+      { key: '#binding-cells', value: '<2>' },
+      { key: 'flavor', value: '"balanced"' },
+      { key: 'tapping-term-ms', value: '<200>' },
+    ],
+  });
+  commitDtsChange(path, parsed);
+  renderBehaviorsEditor(path, state.files.get(path));
 }
 
 function closeTab(path) {
@@ -1412,6 +1808,38 @@ function init() {
   document.getElementById('combos-add-btn').addEventListener('click', () => {
     if (state.activePath && isCombosFile(state.activePath)) {
       addNewCombo(state.activePath);
+    }
+  });
+
+  document.getElementById('view-gestures').addEventListener('click', () => {
+    state.viewMode = 'gestures';
+    if (state.activePath && isGestureFile(state.activePath)) {
+      const f = state.files.get(state.activePath);
+      showGesturesEditor(state.activePath, f);
+    }
+  });
+  document.getElementById('view-macros').addEventListener('click', () => {
+    state.viewMode = 'macros';
+    if (state.activePath && isMacrosFile(state.activePath)) {
+      const f = state.files.get(state.activePath);
+      showMacrosEditor(state.activePath, f);
+    }
+  });
+  document.getElementById('view-behaviors').addEventListener('click', () => {
+    state.viewMode = 'behaviors';
+    if (state.activePath && isBehaviorFile(state.activePath)) {
+      const f = state.files.get(state.activePath);
+      showBehaviorsEditor(state.activePath, f);
+    }
+  });
+  document.getElementById('macros-add-btn').addEventListener('click', () => {
+    if (state.activePath && isMacrosFile(state.activePath)) {
+      addNewMacro(state.activePath);
+    }
+  });
+  document.getElementById('behaviors-add-btn').addEventListener('click', () => {
+    if (state.activePath && isBehaviorFile(state.activePath)) {
+      addNewBehavior(state.activePath);
     }
   });
 
