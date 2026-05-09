@@ -871,15 +871,91 @@ function showCombosEditor(path, file) {
   renderCombosEditor(path, file);
 }
 
+async function ensureLayoutLoaded() {
+  if (state.layoutData) return;
+  try {
+    if (!state.files.has('config/Release_Recollection.json')) {
+      await fetchFile('config/Release_Recollection.json');
+    }
+    const jf = state.files.get('config/Release_Recollection.json');
+    state.layoutData = JSON.parse(jf.content);
+  } catch (e) {
+    log(`Layout load failed: ${e.message}`, 'warning');
+  }
+}
+
+function renderPhysicalKeySelector(parent, selectedPositions, onChange) {
+  const layout = state.layoutData?.layouts?.default_layout?.layout || [];
+  if (layout.length === 0) {
+    const p = document.createElement('p');
+    p.className = 'hint';
+    p.textContent = 'Physical layout が読み込まれていません（先に keymap.yaml を開くか、再認証してください）。';
+    parent.appendChild(p);
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'combo-key-grid';
+  const unitPx = 30;
+  const gap = 2;
+  const padding = 8;
+  let maxX = 0, maxY = 0;
+  for (const k of layout) {
+    maxX = Math.max(maxX, (k.x ?? 0) + (k.width ?? 1));
+    maxY = Math.max(maxY, (k.y ?? 0) + (k.height ?? 1));
+  }
+  grid.style.cssText =
+    `position: relative; width: ${maxX * unitPx + padding * 2}px; ` +
+    `height: ${maxY * unitPx + padding * 2}px; padding: ${padding}px;`;
+
+  layout.forEach((pos, idx) => {
+    const cell = document.createElement('div');
+    cell.className = 'combo-key-cell';
+    if (selectedPositions.includes(idx)) cell.classList.add('selected');
+    cell.textContent = idx;
+    const w = (pos.width ?? 1) * unitPx - gap;
+    const h = (pos.height ?? 1) * unitPx - gap;
+    cell.style.cssText =
+      `position: absolute; left: ${(pos.x ?? 0) * unitPx + padding + gap / 2}px; ` +
+      `top: ${(pos.y ?? 0) * unitPx + padding + gap / 2}px; ` +
+      `width: ${w}px; height: ${h}px;`;
+    if (pos.r) {
+      const rx = pos.rx ?? pos.x ?? 0;
+      const ry = pos.ry ?? pos.y ?? 0;
+      const ox = (rx - (pos.x ?? 0)) * unitPx;
+      const oy = (ry - (pos.y ?? 0)) * unitPx;
+      cell.style.transformOrigin = `${ox}px ${oy}px`;
+      cell.style.transform = `rotate(${pos.r}deg)`;
+    }
+    cell.onclick = () => {
+      const next = selectedPositions.includes(idx)
+        ? selectedPositions.filter((i) => i !== idx)
+        : [...selectedPositions, idx].sort((a, b) => a - b);
+      onChange(next);
+    };
+    grid.appendChild(cell);
+  });
+  parent.appendChild(grid);
+}
+
 function renderCombosEditor(path, file) {
   const wrap = document.getElementById('combos-entries');
   wrap.innerHTML = '';
   const parsed = parseCombosFile(file.content);
   const original = parseCombosFile(file.original);
 
+  // layout を非同期で取得（未取得なら再描画）
+  if (!state.layoutData) {
+    ensureLayoutLoaded().then(() => {
+      if (state.activePath === path && state.viewMode === 'combos') {
+        renderCombosEditor(path, state.files.get(path));
+      }
+    });
+  }
+
   parsed.entries.forEach((entry, idx) => {
     const card = document.createElement('div');
-    card.className = 'combo-card';
+    card.className = 'combo-card combo-card-with-grid';
     const orig = original.entries[idx] || {};
     const isModified = JSON.stringify(entry) !== JSON.stringify(orig);
     if (isModified) card.classList.add('modified');
@@ -892,12 +968,20 @@ function renderCombosEditor(path, file) {
       entry.bindings = v;
       commitCombosChange(path, parsed);
     });
-    const kpLabel = makeField('Key Positions', 'text', entry.keyPositions || '', (v) => {
-      entry.keyPositions = v;
-      commitCombosChange(path, parsed);
-    });
     bindingsLabel.querySelector('input').placeholder = '例: &kp ESCAPE';
-    kpLabel.querySelector('input').placeholder = '例: 0 1';
+
+    const positions = (entry.keyPositions || '').split(/\s+/).filter((s) => s).map(Number);
+    const kpDisplay = document.createElement('div');
+    kpDisplay.className = 'combo-kp-display';
+    kpDisplay.innerHTML = `<span class="combo-kp-label">Key Positions:</span> <code>${positions.join(' ') || '(none)'}</code>`;
+
+    const gridWrap = document.createElement('div');
+    gridWrap.className = 'combo-grid-wrap';
+    renderPhysicalKeySelector(gridWrap, positions, (next) => {
+      entry.keyPositions = next.join(' ');
+      commitCombosChange(path, parsed);
+      renderCombosEditor(path, state.files.get(path));
+    });
 
     const actions = document.createElement('div');
     actions.className = 'combo-actions';
@@ -914,8 +998,9 @@ function renderCombosEditor(path, file) {
 
     card.appendChild(nameLabel);
     card.appendChild(bindingsLabel);
-    card.appendChild(kpLabel);
+    card.appendChild(kpDisplay);
     card.appendChild(actions);
+    card.appendChild(gridWrap);
     wrap.appendChild(card);
   });
 }
