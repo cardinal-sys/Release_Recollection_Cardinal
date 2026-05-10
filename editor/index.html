@@ -239,6 +239,158 @@
     </aside>
   </main>
 
+  <!-- ◆ Behavior Picker Modal ─────────────── -->
+  <div id="behavior-picker" class="behavior-picker-overlay hidden">
+    <div class="behavior-picker-modal">
+      <div class="bp-header">
+        <h3>◆ Behavior Picker — 神器選択</h3>
+        <button id="bp-close-btn" class="btn-tiny">✕</button>
+      </div>
+      <div class="bp-body">
+        <div class="bp-row">
+          <label>Behavior</label>
+          <select id="bp-behavior" class="bind-input">
+            <option value="&amp;kp">&amp;kp — Key Press</option>
+            <option value="&amp;mt">&amp;mt — Mod-Tap</option>
+            <option value="&amp;lt">&amp;lt — Layer-Tap</option>
+            <option value="&amp;mo">&amp;mo — Momentary Layer</option>
+            <option value="&amp;tog">&amp;tog — Toggle Layer</option>
+            <option value="&amp;to">&amp;to — To Layer</option>
+            <option value="&amp;sk">&amp;sk — Sticky Key</option>
+            <option value="&amp;mkp">&amp;mkp — Mouse Key Press</option>
+            <option value="&amp;smart_num">&amp;smart_num — Smart Num</option>
+            <option value="&amp;smart_snipe">&amp;smart_snipe — Smart Snipe</option>
+            <option value="&amp;trans">&amp;trans — Transparent</option>
+            <option value="&amp;none">&amp;none — None</option>
+            <option value="&amp;bootloader">&amp;bootloader</option>
+            <option value="&amp;sys_reset">&amp;sys_reset — Reset</option>
+            <option value="&amp;studio_unlock">&amp;studio_unlock</option>
+            <option value="&amp;bt">&amp;bt — Bluetooth</option>
+            <option value="&amp;drag_on">&amp;drag_on (custom)</option>
+            <option value="&amp;drag_off">&amp;drag_off (custom)</option>
+            <option value="&amp;rotate">&amp;rotate (custom)</option>
+            <option value="__custom__">— カスタム behavior 入力 —</option>
+          </select>
+        </div>
+        <div class="bp-row" id="bp-custom-row" style="display: none;">
+          <label>Custom</label>
+          <input type="text" id="bp-custom" class="bind-input" placeholder="例: &amp;gE_up">
+        </div>
+
+        <!-- Arg1 セクション -->
+        <div class="bp-row" id="bp-arg1-row">
+          <label id="bp-arg1-label">Argument 1</label>
+          <select id="bp-arg1-category" class="bind-input">
+            <option value="">—</option>
+            <option value="hid">HID キー</option>
+            <option value="modmask">Mod Mask（修飾複合）</option>
+            <option value="layer">レイヤー</option>
+            <option value="mouse">マウスボタン</option>
+            <option value="bt">Bluetooth コマンド</option>
+            <option value="raw">直接入力</option>
+          </select>
+        </div>
+        <div class="bp-row" id="bp-arg1-hid" style="display: none;">
+          <label>カテゴリ</label>
+          <select id="bp-arg1-hid-cat" class="bind-input">
+            <option value="hid-letters">文字 (A-Z)</option>
+            <option value="hid-digits">数字 (0-9)</option>
+            <option value="hid-functions">F1-F24</option>
+            <option value="hid-arrows">矢印</option>
+            <option value="hid-special">特殊キー</option>
+            <option value="hid-symbols">記号</option>
+            <option value="hid-modifiers">修飾キー (LSHIFT 等)</option>
+          </select>
+          <select id="bp-arg1-hid-key" class="bind-input"></select>
+        </div>
+        <div id="bp-arg1-modmask" style="display: none;">
+          <div class="mod-chip-row">
+            <label class="live-mod-chip"><input type="checkbox" data-bp-mask="LCTL"><span>LCtl</span></label>
+            <label class="live-mod-chip"><input type="checkbox" data-bp-mask="LSHIFT"><span>LSft</span></label>
+            <label class="live-mod-chip"><input type="checkbox" data-bp-mask="LALT"><span>LAlt</span></label>
+            <label class="live-mod-chip"><input type="checkbox" data-bp-mask="LGUI"><span>LGui</span></label>
+            <label class="live-mod-chip"><input type="checkbox" data-bp-mask="RCTL"><span>RCtl</span></label>
+            <label class="live-mod-chip"><input type="checkbox" data-bp-mask="RSHIFT"><span>RSft</span></label>
+            <label class="live-mod-chip"><input type="checkbox" data-bp-mask="RALT"><span>RAlt</span></label>
+            <label class="live-mod-chip"><input type="checkbox" data-bp-mask="RGUI"><span>RGui</span></label>
+          </div>
+        </div>
+        <div class="bp-row" id="bp-arg1-layer" style="display: none;">
+          <label>レイヤー</label>
+          <input type="number" id="bp-arg1-layer-num" class="bind-input" min="0" max="31" value="0">
+        </div>
+        <div class="bp-row" id="bp-arg1-mouse" style="display: none;">
+          <label>マウスボタン</label>
+          <select id="bp-arg1-mouse-sel" class="bind-input">
+            <option value="MB1">MB1 (Left)</option>
+            <option value="MB2">MB2 (Right)</option>
+            <option value="MB3">MB3 (Middle)</option>
+            <option value="MB4">MB4 (Back)</option>
+            <option value="MB5">MB5 (Forward)</option>
+          </select>
+        </div>
+        <div class="bp-row" id="bp-arg1-bt" style="display: none;">
+          <label>BT コマンド</label>
+          <select id="bp-arg1-bt-sel" class="bind-input">
+            <option value="BT_CLR">BT_CLR — 現プロファイルクリア</option>
+            <option value="BT_CLR_ALL">BT_CLR_ALL — 全クリア</option>
+            <option value="BT_NXT">BT_NXT — 次</option>
+            <option value="BT_PRV">BT_PRV — 前</option>
+            <option value="BT_SEL 0">BT_SEL 0</option>
+            <option value="BT_SEL 1">BT_SEL 1</option>
+            <option value="BT_SEL 2">BT_SEL 2</option>
+            <option value="BT_SEL 3">BT_SEL 3</option>
+            <option value="BT_SEL 4">BT_SEL 4</option>
+          </select>
+        </div>
+        <div class="bp-row" id="bp-arg1-raw" style="display: none;">
+          <label>Arg1</label>
+          <input type="text" id="bp-arg1-raw-input" class="bind-input" placeholder="任意の引数">
+        </div>
+
+        <!-- Arg2 セクション (Mod-Tap / Layer-Tap で使う) -->
+        <div class="bp-row" id="bp-arg2-row" style="display: none;">
+          <label id="bp-arg2-label">Argument 2 (HID キー)</label>
+          <select id="bp-arg2-hid-cat" class="bind-input">
+            <option value="hid-letters">文字 (A-Z)</option>
+            <option value="hid-digits">数字 (0-9)</option>
+            <option value="hid-functions">F1-F24</option>
+            <option value="hid-arrows">矢印</option>
+            <option value="hid-special">特殊キー</option>
+            <option value="hid-symbols">記号</option>
+          </select>
+          <select id="bp-arg2-hid-key" class="bind-input"></select>
+        </div>
+
+        <!-- Wrapping (LG, LS, LC, LA) -->
+        <div class="bp-row">
+          <label>Wrap (任意)</label>
+          <select id="bp-wrap" class="bind-input">
+            <option value="">— ラップなし —</option>
+            <option value="LG">LG(X) — Cmd / Win</option>
+            <option value="LS">LS(X) — Shift</option>
+            <option value="LC">LC(X) — Ctrl</option>
+            <option value="LA">LA(X) — Alt</option>
+            <option value="LG(LS">LG(LS(X)) — Cmd+Shift</option>
+            <option value="LC(LS">LC(LS(X)) — Ctrl+Shift</option>
+          </select>
+        </div>
+
+        <!-- Preview -->
+        <div class="bp-row bp-preview-row">
+          <label>Preview</label>
+          <code id="bp-preview" class="bp-preview"></code>
+        </div>
+
+        <div class="bp-actions">
+          <button id="bp-insert-btn" class="btn-primary">〈 Insert 〉</button>
+          <button id="bp-replace-btn" class="btn-seal">〈 Replace 〉</button>
+          <button id="bp-cancel-btn" class="btn-ghost">[ Cancel ]</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer class="cardinal-footer">
     <p>&lt;&lt; CARDINAL SYSTEM &gt;&gt; — 記憶書換術式は管理者権限を要する</p>
   </footer>
