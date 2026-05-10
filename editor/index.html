@@ -239,6 +239,27 @@
     </aside>
   </main>
 
+  <!-- ◆ Diff Preview Modal ─────────────── -->
+  <div id="diff-modal" class="behavior-picker-overlay hidden">
+    <div class="behavior-picker-modal diff-modal">
+      <div class="bp-header">
+        <h3>◆ SEALING PREVIEW ── 封印前確認</h3>
+        <button id="diff-close-btn" class="btn-tiny">✕</button>
+      </div>
+      <div class="bp-body">
+        <div class="form-row">
+          <input type="text" id="diff-commit-message" class="bind-input" placeholder="commit message (空欄なら自動生成)">
+        </div>
+        <p class="hint" id="diff-summary"></p>
+        <div id="diff-content" class="diff-content"></div>
+        <div class="bp-actions">
+          <button id="diff-confirm-btn" class="btn-seal">〈 Confirm & Seal 〉</button>
+          <button id="diff-cancel-btn" class="btn-ghost">[ Cancel ]</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ◆ Behavior Picker Modal ─────────────── -->
   <div id="behavior-picker" class="behavior-picker-overlay hidden">
     <div class="behavior-picker-modal">
