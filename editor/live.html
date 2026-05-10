@@ -107,6 +107,31 @@
     }
     .nav-back:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
 
+    /* Runtime Badge (Web / Tauri Native) */
+    .runtime-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      border-radius: 2px;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+    .runtime-badge.runtime-web {
+      background: rgba(126, 207, 255, 0.15);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+    .runtime-badge.runtime-tauri {
+      background: rgba(180, 140, 255, 0.2);
+      border: 1px solid var(--accent-violet);
+      color: var(--accent-violet);
+      box-shadow: 0 0 8px rgba(180, 140, 255, 0.4);
+    }
+    .runtime-badge.runtime-tauri::before {
+      content: '⚡ ';
+    }
+
     /* Memory Matrix（live keymap） */
     .layer-details {
       background: var(--bg-deep);
@@ -492,6 +517,7 @@
       <p class="subtitle">— Cardinal Editor 直接接続術式 / PoC —</p>
     </div>
     <div class="header-right">
+      <span id="runtime-badge" class="runtime-badge runtime-web">Web</span>
       <a href="index.html" class="nav-back">← Cardinal Editor</a>
     </div>
   </header>
