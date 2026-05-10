@@ -1917,6 +1917,132 @@ function bpUpdatePreview() {
   document.getElementById('bp-preview').textContent = bpBuildString();
 }
 
+function parseBindingString(text) {
+  text = (text || '').trim();
+  if (!text) return null;
+  // & で始まる behavior 形式
+  const m = text.match(/^&(\w+)(?:\s+(.+))?$/);
+  if (!m) return null;
+  const beh = '&' + m[1];
+  const argsRaw = (m[2] || '').trim();
+  return { behavior: beh, argsRaw };
+}
+
+function parseHidWithWrap(token) {
+  // LG(LS(X)), LC(LS(X)), LG(X), LS(X), LC(X), LA(X), 単独 X
+  let m;
+  m = token.match(/^LG\(LS\((.+)\)\)$/); if (m) return { wrap: 'LG(LS', key: m[1] };
+  m = token.match(/^LC\(LS\((.+)\)\)$/); if (m) return { wrap: 'LC(LS', key: m[1] };
+  m = token.match(/^LG\((.+)\)$/);       if (m) return { wrap: 'LG', key: m[1] };
+  m = token.match(/^LS\((.+)\)$/);       if (m) return { wrap: 'LS', key: m[1] };
+  m = token.match(/^LC\((.+)\)$/);       if (m) return { wrap: 'LC', key: m[1] };
+  m = token.match(/^LA\((.+)\)$/);       if (m) return { wrap: 'LA', key: m[1] };
+  return { wrap: '', key: token };
+}
+
+function findHidCategory(key) {
+  for (const [cat, items] of Object.entries(BP_HID_TABLES)) {
+    if (items.includes(key)) return cat;
+  }
+  return null;
+}
+
+function bpRestoreFromValue(text) {
+  const parsed = parseBindingString(text);
+  if (!parsed) return false;
+  const beh = parsed.behavior;
+  const behSel = document.getElementById('bp-behavior');
+  // behavior が options にあれば選択、なければ custom
+  const knownBehaviors = Array.from(behSel.options).map((o) => o.value);
+  if (knownBehaviors.includes(beh)) {
+    behSel.value = beh;
+  } else {
+    behSel.value = '__custom__';
+    document.getElementById('bp-custom').value = text;
+    bpUpdateLayout();
+    return true;
+  }
+  bpUpdateLayout();
+
+  // 引数復元
+  const args = parsed.argsRaw;
+  if (!args) return true;
+
+  if (beh === '&kp' || beh === '&sk' || beh === '&key_repeat' || beh === '&key_toggle') {
+    const { wrap, key } = parseHidWithWrap(args);
+    document.getElementById('bp-wrap').value = wrap;
+    document.getElementById('bp-arg1-category').value = 'hid';
+    bpUpdateArg1Visibility();
+    const cat = findHidCategory(key);
+    if (cat) {
+      document.getElementById('bp-arg1-hid-cat').value = cat;
+      bpRefreshHidKeys('bp-arg1-hid-cat', 'bp-arg1-hid-key');
+      document.getElementById('bp-arg1-hid-key').value = key;
+    } else {
+      document.getElementById('bp-arg1-category').value = 'raw';
+      bpUpdateArg1Visibility();
+      document.getElementById('bp-arg1-raw-input').value = args;
+    }
+  } else if (beh === '&mt') {
+    // &mt MOD_LSHIFT KEY  または &mt (MOD_LSHIFT|MOD_LCTRL) KEY
+    const m = args.match(/^(\([^)]+\)|\S+)\s+(.+)$/);
+    if (m) {
+      const masks = m[1].replace(/[()]/g, '').split('|').map((s) => s.trim().replace(/^MOD_/, ''));
+      document.getElementById('bp-arg1-category').value = 'modmask';
+      bpUpdateArg1Visibility();
+      document.querySelectorAll('#bp-arg1-modmask input').forEach((cb) => {
+        cb.checked = masks.includes(cb.dataset.bpMask);
+      });
+      const { wrap, key } = parseHidWithWrap(m[2]);
+      document.getElementById('bp-wrap').value = wrap;
+      const cat2 = findHidCategory(key);
+      if (cat2) {
+        document.getElementById('bp-arg2-hid-cat').value = cat2;
+        bpRefreshHidKeys('bp-arg2-hid-cat', 'bp-arg2-hid-key');
+        document.getElementById('bp-arg2-hid-key').value = key;
+      }
+    }
+  } else if (beh === '&lt') {
+    const m = args.match(/^(\d+)\s+(.+)$/);
+    if (m) {
+      document.getElementById('bp-arg1-category').value = 'layer';
+      bpUpdateArg1Visibility();
+      document.getElementById('bp-arg1-layer-num').value = m[1];
+      const { wrap, key } = parseHidWithWrap(m[2]);
+      document.getElementById('bp-wrap').value = wrap;
+      const cat2 = findHidCategory(key);
+      if (cat2) {
+        document.getElementById('bp-arg2-hid-cat').value = cat2;
+        bpRefreshHidKeys('bp-arg2-hid-cat', 'bp-arg2-hid-key');
+        document.getElementById('bp-arg2-hid-key').value = key;
+      }
+    }
+  } else if (beh === '&mo' || beh === '&tog' || beh === '&to') {
+    document.getElementById('bp-arg1-category').value = 'layer';
+    bpUpdateArg1Visibility();
+    document.getElementById('bp-arg1-layer-num').value = args.trim();
+  } else if (beh === '&mkp') {
+    document.getElementById('bp-arg1-category').value = 'mouse';
+    bpUpdateArg1Visibility();
+    const sel = document.getElementById('bp-arg1-mouse-sel');
+    if (Array.from(sel.options).some((o) => o.value === args.trim())) {
+      sel.value = args.trim();
+    }
+  } else if (beh === '&bt') {
+    document.getElementById('bp-arg1-category').value = 'bt';
+    bpUpdateArg1Visibility();
+    const sel = document.getElementById('bp-arg1-bt-sel');
+    if (Array.from(sel.options).some((o) => o.value === args.trim())) {
+      sel.value = args.trim();
+    }
+  } else {
+    document.getElementById('bp-arg1-category').value = 'raw';
+    bpUpdateArg1Visibility();
+    document.getElementById('bp-arg1-raw-input').value = args;
+  }
+  return true;
+}
+
 function openBehaviorPicker(targetEl, mode = 'insert') {
   bpState.targetEl = targetEl;
   bpState.selectionStart = targetEl.selectionStart;
@@ -1924,7 +2050,26 @@ function openBehaviorPicker(targetEl, mode = 'insert') {
   bpState.insertMode = mode;
 
   document.getElementById('behavior-picker').classList.remove('hidden');
-  bpUpdateLayout();
+
+  // 既存 modifier checkbox / wrap / fields をリセット
+  document.getElementById('bp-wrap').value = '';
+  document.querySelectorAll('#bp-arg1-modmask input').forEach((cb) => { cb.checked = false; });
+  document.getElementById('bp-custom').value = '';
+  document.getElementById('bp-arg1-raw-input').value = '';
+
+  // Replace モードかつ targetEl に値があれば parse して復元
+  if (mode === 'replace' && targetEl.value) {
+    const restored = bpRestoreFromValue(targetEl.value);
+    if (!restored) {
+      // 解析失敗時は custom 入力に
+      document.getElementById('bp-behavior').value = '__custom__';
+      document.getElementById('bp-custom').value = targetEl.value;
+      bpUpdateLayout();
+    }
+  } else {
+    document.getElementById('bp-behavior').value = '&kp';
+    bpUpdateLayout();
+  }
   bpUpdatePreview();
 }
 
@@ -2384,20 +2529,153 @@ async function handleAuth() {
   }
 }
 
+/* ◆ DIFF PREVIEW ────────────────────── */
+function computeLineDiff(originalLines, currentLines) {
+  // シンプルな LCS ベースの diff（メモ化）
+  const m = originalLines.length, n = currentLines.length;
+  // 大きな配列だと O(mn) でメモリ食うので line-by-line の hash で打ち切り
+  if (m * n > 100000) {
+    // 片方が大きい場合は単純な置換 diff にフォールバック
+    const out = [];
+    for (let i = 0; i < Math.max(m, n); i++) {
+      if (i < m && i < n && originalLines[i] === currentLines[i]) {
+        out.push({ type: 'ctx', text: originalLines[i] });
+      } else {
+        if (i < m) out.push({ type: 'del', text: originalLines[i] });
+        if (i < n) out.push({ type: 'add', text: currentLines[i] });
+      }
+    }
+    return out;
+  }
+
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (originalLines[i - 1] === currentLines[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
+      else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
+  const out = [];
+  let i = m, j = n;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && originalLines[i - 1] === currentLines[j - 1]) {
+      out.unshift({ type: 'ctx', text: originalLines[i - 1] });
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      out.unshift({ type: 'add', text: currentLines[j - 1] });
+      j--;
+    } else if (i > 0) {
+      out.unshift({ type: 'del', text: originalLines[i - 1] });
+      i--;
+    }
+  }
+  return out;
+}
+
+function compactDiff(diffLines, contextSize = 2) {
+  // 連続する ctx 行を contextSize に圧縮
+  const result = [];
+  let ctxBuffer = [];
+  let lastWasChange = false;
+  for (let i = 0; i < diffLines.length; i++) {
+    const line = diffLines[i];
+    if (line.type === 'ctx') {
+      ctxBuffer.push(line);
+    } else {
+      // 直前の ctx を末尾 contextSize 件だけ残す
+      if (ctxBuffer.length > contextSize) {
+        if (lastWasChange) {
+          result.push(...ctxBuffer.slice(0, contextSize));
+        }
+        if (i > 0) result.push({ type: 'sep' });
+        if (ctxBuffer.length > contextSize) {
+          result.push(...ctxBuffer.slice(-contextSize));
+        }
+      } else {
+        result.push(...ctxBuffer);
+      }
+      ctxBuffer = [];
+      result.push(line);
+      lastWasChange = true;
+    }
+  }
+  // 末尾の ctx は contextSize 件だけ
+  if (lastWasChange && ctxBuffer.length > 0) {
+    result.push(...ctxBuffer.slice(0, contextSize));
+  }
+  return result;
+}
+
+function renderDiffPreview(modifiedFiles) {
+  const wrap = document.getElementById('diff-content');
+  wrap.innerHTML = '';
+  const summaryEl = document.getElementById('diff-summary');
+  summaryEl.textContent = `${modifiedFiles.length} file(s) を ${state.repo}@${state.branch} にコミットします`;
+
+  for (const [path, file] of modifiedFiles) {
+    const fileEl = document.createElement('div');
+    fileEl.className = 'diff-file';
+    const header = document.createElement('div');
+    header.className = 'diff-file-header';
+    header.textContent = `📄 ${path}`;
+    fileEl.appendChild(header);
+
+    const origLines = (file.original || '').split('\n');
+    const curLines = (file.content || '').split('\n');
+    const diff = compactDiff(computeLineDiff(origLines, curLines));
+
+    if (diff.length === 0) {
+      const e = document.createElement('div');
+      e.className = 'diff-line diff-ctx';
+      e.textContent = '(差分なし)';
+      fileEl.appendChild(e);
+    }
+
+    for (const line of diff) {
+      if (line.type === 'sep') {
+        const sep = document.createElement('div');
+        sep.className = 'diff-hunk-sep';
+        sep.textContent = '⋮';
+        fileEl.appendChild(sep);
+        continue;
+      }
+      const lineEl = document.createElement('div');
+      lineEl.className = `diff-line diff-${line.type}`;
+      const marker = line.type === 'add' ? '+' : line.type === 'del' ? '-' : ' ';
+      lineEl.innerHTML = `<span class="diff-marker">${marker}</span><span>${line.text.replace(/[<>&]/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</span>`;
+      fileEl.appendChild(lineEl);
+    }
+    wrap.appendChild(fileEl);
+  }
+}
+
+function openDiffModal(modifiedFiles, defaultMsg) {
+  const modal = document.getElementById('diff-modal');
+  modal.classList.remove('hidden');
+  document.getElementById('diff-commit-message').value = defaultMsg;
+  renderDiffPreview(modifiedFiles);
+}
+
+function closeDiffModal() {
+  document.getElementById('diff-modal').classList.add('hidden');
+}
+
 async function handleSeal() {
-  const modifiedCount = Array.from(state.files.values()).filter((f) => f.modified).length;
-  if (modifiedCount === 0) return;
+  const modifiedFiles = Array.from(state.files.entries()).filter(([, f]) => f.modified);
+  if (modifiedFiles.length === 0) return;
 
   let msg = els.commitMessage.value.trim();
   if (!msg) {
-    msg = `edit(cardinal): 〈Memory Rewrite〉— ${modifiedCount} file(s) via Cardinal Editor`;
-    els.commitMessage.value = msg;
+    msg = `edit(cardinal): 〈Memory Rewrite〉— ${modifiedFiles.length} file(s) via Cardinal Editor`;
   }
-  if (!confirm(`Seal ${modifiedCount} file(s) to ${state.repo}@${state.branch}?\n\n"${msg}"`)) {
-    log('Sealing cancelled', 'warning');
-    return;
-  }
+  openDiffModal(modifiedFiles, msg);
+}
 
+async function confirmSealing() {
+  const msg = document.getElementById('diff-commit-message').value.trim()
+    || `edit(cardinal): 〈Memory Rewrite〉— ${Array.from(state.files.values()).filter((f) => f.modified).length} file(s) via Cardinal Editor`;
+  closeDiffModal();
+  els.commitMessage.value = msg;
   try {
     await commitAll(msg);
     els.commitMessage.value = '';
@@ -2512,6 +2790,17 @@ function init() {
 
   // Behavior Picker 初期化
   bpInit();
+
+  // Diff Preview Modal イベント
+  document.getElementById('diff-confirm-btn').addEventListener('click', confirmSealing);
+  document.getElementById('diff-cancel-btn').addEventListener('click', () => {
+    closeDiffModal();
+    log('Sealing cancelled', 'warning');
+  });
+  document.getElementById('diff-close-btn').addEventListener('click', closeDiffModal);
+  document.getElementById('diff-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'diff-modal') closeDiffModal();
+  });
 
   setStatus('Awaiting authentication', 'idle');
   log('Cardinal Editor initialized');
