@@ -146,13 +146,15 @@ jobs:
         run: |
           set -e
           TAG="${{ github.ref_name }}"
-          # Release が無ければ作成、あればアップロード
-          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
-            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --draft \
-              --title "《 Cardinal Editor 》$TAG" \
-              --notes "Cardinal Editor デスクトップ版（Phase A-D 完成）"
+          # Release を確実に作成（既存なら何もしない）
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --draft \
+            --title "《 Cardinal Editor 》$TAG" \
+            --notes "Cardinal Editor デスクトップ版（Phase A-D 完成）" \
+            2>/dev/null || true
 
-          for ARTIFACT in $(find src-tauri/target -name "*.dmg" -o -name "*.app.tar.gz"); do
-            echo "Uploading $ARTIFACT"
-            gh release upload "$TAG" "$ARTIFACT" --repo "$GITHUB_REPOSITORY" --clobber
-          done
+          # ファイル名のスペース対応 (find -print0 + read -d '')
+          find src-tauri/target \( -name "*.dmg" -o -name "*.app.tar.gz" \) -print0 | \
+            while IFS= read -r -d '' ARTIFACT; do
+              echo "Uploading $ARTIFACT"
+              gh release upload "$TAG" "$ARTIFACT" --repo "$GITHUB_REPOSITORY" --clobber
+            done
