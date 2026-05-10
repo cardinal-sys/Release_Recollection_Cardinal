@@ -1098,6 +1098,7 @@ function renderCombosEditor(path, file) {
       commitCombosChange(path, parsed);
     });
     bindingsLabel.querySelector('input').placeholder = '例: &kp ESCAPE';
+    attachBehaviorPicker(bindingsLabel, bindingsLabel.querySelector('input'));
 
     const positions = (entry.keyPositions || '').split(/\s+/).filter((s) => s).map(Number);
     const kpDisplay = document.createElement('div');
@@ -1322,6 +1323,8 @@ function renderGesturesEditor(path, file) {
     });
     defaultLabel.querySelector('input').placeholder = '例: &kp LG(C)';
     modLabel.querySelector('input').placeholder = '例: &kp LG(X)';
+    attachBehaviorPicker(defaultLabel, defaultLabel.querySelector('input'));
+    attachBehaviorPicker(modLabel, modLabel.querySelector('input'));
     card.appendChild(defaultLabel);
     card.appendChild(modLabel);
 
@@ -1524,7 +1527,23 @@ function renderMacrosEditor(path, file) {
         setProp(entry.props, 'bindings', ta.value);
         commitDtsChange(path, parsed);
       });
-      bindLbl.appendChild(ta);
+      const taRow = document.createElement('div');
+      taRow.style.display = 'flex';
+      taRow.style.gap = '4px';
+      taRow.style.alignItems = 'flex-start';
+      taRow.appendChild(ta);
+      const pickBtn = document.createElement('button');
+      pickBtn.type = 'button';
+      pickBtn.className = 'bp-pick-btn';
+      pickBtn.textContent = '📝';
+      pickBtn.title = 'Behavior Picker (cursor 位置に挿入)';
+      pickBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openBehaviorPicker(ta, 'insert');
+      });
+      taRow.appendChild(pickBtn);
+      bindLbl.appendChild(taRow);
       card.appendChild(bindLbl);
     }
 
@@ -1632,6 +1651,10 @@ function renderBehaviorsEditor(path, file) {
       const keyEl = document.createElement('div');
       keyEl.style.color = 'var(--accent-cyan)';
       keyEl.textContent = p.key;
+      const valueWrap = document.createElement('div');
+      valueWrap.style.display = 'flex';
+      valueWrap.style.gap = '4px';
+      valueWrap.style.alignItems = 'center';
       const inp = document.createElement('input');
       inp.type = 'text';
       inp.value = p.value;
@@ -1642,12 +1665,29 @@ function renderBehaviorsEditor(path, file) {
       inp.style.fontFamily = 'SF Mono, monospace';
       inp.style.fontSize = '0.7rem';
       inp.style.borderRadius = '2px';
+      inp.style.flex = '1';
+      inp.style.minWidth = '0';
       inp.addEventListener('input', () => {
         p.value = inp.value;
         commitDtsChange(path, parsed);
       });
+      valueWrap.appendChild(inp);
+      // bindings 系の property は behavior picker を付ける
+      if (p.key === 'bindings' || p.key.endsWith('-binding') || p.key === 'sensor-bindings') {
+        const pickBtn = document.createElement('button');
+        pickBtn.type = 'button';
+        pickBtn.className = 'bp-pick-btn';
+        pickBtn.textContent = '📝';
+        pickBtn.title = 'Behavior Picker (cursor 位置に挿入)';
+        pickBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openBehaviorPicker(inp, 'insert');
+        });
+        valueWrap.appendChild(pickBtn);
+      }
       propsGrid.appendChild(keyEl);
-      propsGrid.appendChild(inp);
+      propsGrid.appendChild(valueWrap);
     });
     card.appendChild(propsGrid);
 
@@ -1656,6 +1696,276 @@ function renderBehaviorsEditor(path, file) {
 
     wrap.appendChild(card);
   });
+}
+
+/* ◆ BEHAVIOR PICKER ─────────────────────── */
+const BP_HID_TABLES = {
+  'hid-letters': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+  'hid-digits': '0 1 2 3 4 5 6 7 8 9'.split(' '),
+  'hid-functions': Array.from({ length: 24 }, (_, i) => `F${i + 1}`),
+  'hid-arrows': ['UP', 'DOWN', 'LEFT', 'RIGHT'],
+  'hid-special': ['ESC', 'TAB', 'SPACE', 'ENTER', 'BACKSPACE', 'DELETE', 'CAPS', 'HOME', 'END', 'PAGE_UP', 'PAGE_DOWN', 'INSERT', 'PRINT_SCREEN'],
+  'hid-symbols': ['EXCLAMATION', 'AT', 'HASH', 'DOLLAR', 'PERCENT', 'CARET', 'AMPERSAND', 'ASTERISK', 'LPAR', 'RPAR', 'MINUS', 'EQUAL', 'PLUS', 'LBKT', 'RBKT', 'LBRC', 'RBRC', 'BSLH', 'SEMI', 'COLON', 'SQT', 'DQT', 'GRAVE', 'TILDE', 'COMMA', 'DOT', 'FSLH', 'QMARK', 'LT', 'GT', 'UNDER', 'PIPE'],
+  'hid-modifiers': ['LEFT_SHIFT', 'RIGHT_SHIFT', 'LEFT_CONTROL', 'RIGHT_CONTROL', 'LEFT_ALT', 'RIGHT_ALT', 'LEFT_GUI', 'RIGHT_GUI'],
+};
+
+const bpState = {
+  targetEl: null,           // 操作対象の input/textarea
+  selectionStart: null,
+  selectionEnd: null,
+  insertMode: 'insert',     // 'insert' | 'replace'
+};
+
+function fillSelectFromArray(selectEl, items) {
+  selectEl.innerHTML = '';
+  for (const v of items) {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    selectEl.appendChild(opt);
+  }
+}
+
+function bpRefreshHidKeys(catSelectId, keySelectId) {
+  const cat = document.getElementById(catSelectId).value;
+  fillSelectFromArray(document.getElementById(keySelectId), BP_HID_TABLES[cat] || []);
+}
+
+function bpInit() {
+  // HID キーリスト初期化
+  bpRefreshHidKeys('bp-arg1-hid-cat', 'bp-arg1-hid-key');
+  bpRefreshHidKeys('bp-arg2-hid-cat', 'bp-arg2-hid-key');
+
+  document.getElementById('bp-arg1-hid-cat').addEventListener('change', () => {
+    bpRefreshHidKeys('bp-arg1-hid-cat', 'bp-arg1-hid-key');
+    bpUpdatePreview();
+  });
+  document.getElementById('bp-arg2-hid-cat').addEventListener('change', () => {
+    bpRefreshHidKeys('bp-arg2-hid-cat', 'bp-arg2-hid-key');
+    bpUpdatePreview();
+  });
+
+  // behavior 選択 → arg UI 切替
+  document.getElementById('bp-behavior').addEventListener('change', () => {
+    bpUpdateLayout();
+    bpUpdatePreview();
+  });
+  document.getElementById('bp-arg1-category').addEventListener('change', () => {
+    bpUpdateArg1Visibility();
+    bpUpdatePreview();
+  });
+
+  // すべての input change で preview 更新
+  for (const id of ['bp-custom', 'bp-arg1-hid-cat', 'bp-arg1-hid-key',
+    'bp-arg1-layer-num', 'bp-arg1-mouse-sel', 'bp-arg1-bt-sel',
+    'bp-arg1-raw-input', 'bp-arg2-hid-cat', 'bp-arg2-hid-key', 'bp-wrap']) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', bpUpdatePreview);
+    if (el) el.addEventListener('input', bpUpdatePreview);
+  }
+  document.querySelectorAll('#bp-arg1-modmask input').forEach((cb) => {
+    cb.addEventListener('change', bpUpdatePreview);
+  });
+
+  // Buttons
+  document.getElementById('bp-close-btn').addEventListener('click', closeBehaviorPicker);
+  document.getElementById('bp-cancel-btn').addEventListener('click', closeBehaviorPicker);
+  document.getElementById('bp-insert-btn').addEventListener('click', () => {
+    bpApply('insert');
+  });
+  document.getElementById('bp-replace-btn').addEventListener('click', () => {
+    bpApply('replace');
+  });
+
+  // Overlay クリックで閉じる
+  document.getElementById('behavior-picker').addEventListener('click', (e) => {
+    if (e.target.id === 'behavior-picker') closeBehaviorPicker();
+  });
+}
+
+function bpUpdateLayout() {
+  const beh = document.getElementById('bp-behavior').value;
+  const customRow = document.getElementById('bp-custom-row');
+  const arg1Row = document.getElementById('bp-arg1-row');
+  const arg2Row = document.getElementById('bp-arg2-row');
+
+  customRow.style.display = beh === '__custom__' ? '' : 'none';
+
+  // behavior 種別ごとに arg category を自動設定
+  const arg1CatSel = document.getElementById('bp-arg1-category');
+  const arg2Label = document.getElementById('bp-arg2-label');
+
+  // 引数なし behavior
+  const noArgBehaviors = ['&trans', '&none', '&bootloader', '&sys_reset', '&studio_unlock', '&smart_num', '&smart_snipe', '&drag_on', '&drag_off', '&rotate'];
+  if (noArgBehaviors.includes(beh)) {
+    arg1Row.style.display = 'none';
+    arg2Row.style.display = 'none';
+    bpHideAllArg1();
+    return;
+  }
+  arg1Row.style.display = '';
+
+  // デフォルトカテゴリ
+  if (beh === '&kp' || beh === '&sk') {
+    arg1CatSel.value = 'hid';
+    arg2Row.style.display = 'none';
+  } else if (beh === '&mt') {
+    arg1CatSel.value = 'modmask';
+    arg2Row.style.display = '';
+    arg2Label.textContent = 'Argument 2 (HID キー)';
+  } else if (beh === '&lt') {
+    arg1CatSel.value = 'layer';
+    arg2Row.style.display = '';
+    arg2Label.textContent = 'Argument 2 (HID キー)';
+  } else if (beh === '&mo' || beh === '&tog' || beh === '&to') {
+    arg1CatSel.value = 'layer';
+    arg2Row.style.display = 'none';
+  } else if (beh === '&mkp') {
+    arg1CatSel.value = 'mouse';
+    arg2Row.style.display = 'none';
+  } else if (beh === '&bt') {
+    arg1CatSel.value = 'bt';
+    arg2Row.style.display = 'none';
+  } else if (beh === '__custom__') {
+    arg1CatSel.value = 'raw';
+    arg2Row.style.display = 'none';
+  } else {
+    arg1CatSel.value = 'raw';
+    arg2Row.style.display = 'none';
+  }
+  bpUpdateArg1Visibility();
+}
+
+function bpHideAllArg1() {
+  ['bp-arg1-hid', 'bp-arg1-modmask', 'bp-arg1-layer', 'bp-arg1-mouse', 'bp-arg1-bt', 'bp-arg1-raw'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function bpUpdateArg1Visibility() {
+  bpHideAllArg1();
+  const cat = document.getElementById('bp-arg1-category').value;
+  const map = {
+    hid: 'bp-arg1-hid',
+    modmask: 'bp-arg1-modmask',
+    layer: 'bp-arg1-layer',
+    mouse: 'bp-arg1-mouse',
+    bt: 'bp-arg1-bt',
+    raw: 'bp-arg1-raw',
+  };
+  if (map[cat]) {
+    const el = document.getElementById(map[cat]);
+    if (el) el.style.display = '';
+  }
+}
+
+function bpBuildString() {
+  const beh = document.getElementById('bp-behavior').value;
+  const wrap = document.getElementById('bp-wrap').value;
+
+  if (beh === '__custom__') {
+    return document.getElementById('bp-custom').value.trim();
+  }
+
+  const noArgBehaviors = ['&trans', '&none', '&bootloader', '&sys_reset', '&studio_unlock', '&smart_num', '&smart_snipe', '&drag_on', '&drag_off', '&rotate'];
+  if (noArgBehaviors.includes(beh)) return beh;
+
+  // arg1
+  const arg1Cat = document.getElementById('bp-arg1-category').value;
+  let arg1 = '';
+  if (arg1Cat === 'hid') {
+    arg1 = document.getElementById('bp-arg1-hid-key').value;
+  } else if (arg1Cat === 'modmask') {
+    const masks = [];
+    document.querySelectorAll('#bp-arg1-modmask input:checked').forEach((cb) => {
+      masks.push(`MOD_${cb.dataset.bpMask}`);
+    });
+    arg1 = masks.length > 1 ? `(${masks.join('|')})` : (masks[0] || '');
+  } else if (arg1Cat === 'layer') {
+    arg1 = document.getElementById('bp-arg1-layer-num').value;
+  } else if (arg1Cat === 'mouse') {
+    arg1 = document.getElementById('bp-arg1-mouse-sel').value;
+  } else if (arg1Cat === 'bt') {
+    arg1 = document.getElementById('bp-arg1-bt-sel').value;
+  } else if (arg1Cat === 'raw') {
+    arg1 = document.getElementById('bp-arg1-raw-input').value;
+  }
+
+  // arg2 (HID キー)
+  const arg2Visible = document.getElementById('bp-arg2-row').style.display !== 'none';
+  let arg2 = '';
+  if (arg2Visible) {
+    arg2 = document.getElementById('bp-arg2-hid-key').value;
+  }
+
+  // wrap (LG, LS, etc.)
+  let finalArg = arg1;
+  if (arg2) finalArg = arg2; // arg2 がある時は arg2 がメインキー
+  if (wrap && finalArg && (arg1Cat === 'hid' || arg2Visible)) {
+    const closeParens = (wrap.match(/\(/g) || ['']).length;
+    finalArg = `${wrap}(${finalArg})${')'.repeat(Math.max(0, closeParens - 1))}`;
+  }
+
+  if (arg2Visible) {
+    return `${beh} ${arg1} ${finalArg}`.trim();
+  }
+  return arg1 ? `${beh} ${finalArg || arg1}`.trim() : beh;
+}
+
+function bpUpdatePreview() {
+  document.getElementById('bp-preview').textContent = bpBuildString();
+}
+
+function openBehaviorPicker(targetEl, mode = 'insert') {
+  bpState.targetEl = targetEl;
+  bpState.selectionStart = targetEl.selectionStart;
+  bpState.selectionEnd = targetEl.selectionEnd;
+  bpState.insertMode = mode;
+
+  document.getElementById('behavior-picker').classList.remove('hidden');
+  bpUpdateLayout();
+  bpUpdatePreview();
+}
+
+function closeBehaviorPicker() {
+  document.getElementById('behavior-picker').classList.add('hidden');
+  bpState.targetEl = null;
+}
+
+function bpApply(mode) {
+  const result = bpBuildString();
+  if (!result || !bpState.targetEl) {
+    closeBehaviorPicker();
+    return;
+  }
+  const el = bpState.targetEl;
+  if (mode === 'replace') {
+    el.value = result;
+  } else {
+    // insert: cursor 位置に挿入
+    const start = bpState.selectionStart ?? el.value.length;
+    const end = bpState.selectionEnd ?? el.value.length;
+    el.value = el.value.slice(0, start) + result + el.value.slice(end);
+  }
+  // input イベントを発火して onChange を起こす
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  closeBehaviorPicker();
+  el.focus();
+}
+
+function attachBehaviorPicker(parent, targetEl) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'bp-pick-btn';
+  btn.textContent = '📝';
+  btn.title = 'Behavior Picker を開く';
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openBehaviorPicker(targetEl, 'replace');
+  });
+  parent.appendChild(btn);
 }
 
 function addNewBehavior(path) {
@@ -2199,6 +2509,9 @@ function init() {
       addNewBehavior(state.activePath);
     }
   });
+
+  // Behavior Picker 初期化
+  bpInit();
 
   setStatus('Awaiting authentication', 'idle');
   log('Cardinal Editor initialized');
