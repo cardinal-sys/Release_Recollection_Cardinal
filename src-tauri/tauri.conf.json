@@ -39,7 +39,12 @@
     ],
     "category": "DeveloperTool",
     "shortDescription": "Cardinal Editor — ZMK keymap editor with Live Sync",
-    "longDescription": "Cardinal Editor は Release Recollection キーボードのキーマップを編纂する Web/デスクトップアプリ。git 経由のソース編集 + ZMK Studio 経由のライブ書換を統合。Tauri 版は OS ネイティブ Bluetooth API により macOS HID 接続中でも BLE Live Sync が利用可能。"
+    "longDescription": "Cardinal Editor は Release Recollection キーボードのキーマップを編纂する Web/デスクトップアプリ。git 経由のソース編集 + ZMK Studio 経由のライブ書換を統合。Tauri 版は OS ネイティブ Bluetooth API により macOS HID 接続中でも BLE Live Sync が利用可能。",
+    "macOS": {
+      "minimumSystemVersion": "10.15",
+      "entitlements": null
+    }
   },
+  "$comment": "Bluetooth 権限の Info.plist キーは workflow の post-build ステップで PlistBuddy 経由で .app に追加される（tauri.conf.json の bundle.macOS は infoPlist を直接サポートしないため）。",
   "plugins": {}
 }

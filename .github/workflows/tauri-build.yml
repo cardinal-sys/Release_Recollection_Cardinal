@@ -69,7 +69,57 @@ jobs:
       - name: 〈 Install npm dependencies 〉
         run: npm install
 
-      - name: 〈 Build & Release 〉
+      - name: 〈 Build (no bundle) — generate .app first 〉
+        if: matrix.platform == 'macos-latest'
+        run: npm run tauri build -- --no-bundle ${{ matrix.args }}
+
+      - name: 〈 Patch Info.plist (Bluetooth permission) 〉
+        if: matrix.platform == 'macos-latest'
+        run: |
+          # universal binary 後の app は target/universal-apple-darwin/release/bundle/macos/ には未生成
+          # 代わりに src-tauri/gen 配下のテンプレートに NSBluetooth キーを直接埋め込む
+          # tauri-bundler は Info.plist 生成時に gen/apple/.../Info.plist を参照しないので、
+          # bundle 後の .app に対して PlistBuddy で patch する方式に変更。
+          echo "Will patch after bundle step"
+
+      - name: 〈 Bundle 〉
+        if: matrix.platform == 'macos-latest'
+        run: npm run tauri bundle -- ${{ matrix.args }}
+
+      - name: 〈 Patch built .app Info.plist 〉
+        if: matrix.platform == 'macos-latest'
+        run: |
+          set -e
+          for APP in $(find src-tauri/target -name "*.app" -type d); do
+            PLIST="$APP/Contents/Info.plist"
+            if [ -f "$PLIST" ]; then
+              echo "Patching $PLIST"
+              /usr/libexec/PlistBuddy -c "Add :NSBluetoothAlwaysUsageDescription string 'Cardinal Editor uses Bluetooth to connect to your ZMK keyboard for live keymap sync.'" "$PLIST" 2>/dev/null \
+                || /usr/libexec/PlistBuddy -c "Set :NSBluetoothAlwaysUsageDescription 'Cardinal Editor uses Bluetooth to connect to your ZMK keyboard for live keymap sync.'" "$PLIST"
+              /usr/libexec/PlistBuddy -c "Add :NSBluetoothPeripheralUsageDescription string 'Cardinal Editor uses Bluetooth to connect to your ZMK keyboard for live keymap sync.'" "$PLIST" 2>/dev/null \
+                || /usr/libexec/PlistBuddy -c "Set :NSBluetoothPeripheralUsageDescription 'Cardinal Editor uses Bluetooth to connect to your ZMK keyboard for live keymap sync.'" "$PLIST"
+              echo "Patched OK"
+            fi
+          done
+
+      - name: 〈 Re-create .dmg with patched .app 〉
+        if: matrix.platform == 'macos-latest'
+        run: |
+          set -e
+          # Tauri が生成した .dmg は patch 前の .app を含むので、
+          # patch 済み .app を新しい .dmg として作り直す
+          for DMG in $(find src-tauri/target -name "*.dmg"); do
+            APP_DIR=$(dirname "$DMG")
+            APP=$(find "$APP_DIR" -name "*.app" -type d | head -1)
+            if [ -n "$APP" ] && [ -f "$DMG" ]; then
+              echo "Re-creating $DMG from $APP"
+              rm "$DMG"
+              hdiutil create -srcfolder "$APP" -fs HFS+ -volname "Cardinal Editor" -format UDZO "$DMG"
+            fi
+          done
+
+      - name: 〈 Build & Release (non-macOS) 〉
+        if: matrix.platform != 'macos-latest'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -85,12 +135,24 @@ jobs:
             - macOS: `.dmg` (Universal: Apple Silicon + Intel)
             - Windows: `.msi`
             - Linux: `.deb` / `.AppImage`
-
-            ### 使い方
-            ダウンロード → インストール → 起動 → 〈 Connect via Bluetooth 〉
-            で従来の Web Bluetooth より確実に接続できます。
-
-            🌸 〈Cardinal Editor〉— ZMK keymap editor with Live Sync
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: 〈 Upload macOS artifacts to Release 〉
+        if: matrix.platform == 'macos-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          TAG="${{ github.ref_name }}"
+          # Release が無ければ作成、あればアップロード
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --draft \
+              --title "《 Cardinal Editor 》$TAG" \
+              --notes "Cardinal Editor デスクトップ版（Phase A-D 完成）"
+
+          for ARTIFACT in $(find src-tauri/target -name "*.dmg" -o -name "*.app.tar.gz"); do
+            echo "Uploading $ARTIFACT"
+            gh release upload "$TAG" "$ARTIFACT" --repo "$GITHUB_REPOSITORY" --clobber
+          done
