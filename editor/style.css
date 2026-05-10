@@ -563,6 +563,90 @@ body {
   color: var(--accent-violet);
 }
 
+/* ◆ Gesture Editor 専用スタイル */
+.gesture-card {
+  grid-template-columns: 1fr;
+}
+
+.gesture-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--bg-deep);
+  border-radius: 3px;
+  border-left: 3px solid var(--accent-cyan);
+  margin-bottom: 4px;
+}
+
+.gesture-arrow {
+  font-size: 2.4rem;
+  color: var(--accent-cyan);
+  line-height: 1;
+  width: 48px;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(126, 207, 255, 0.5);
+}
+
+.gesture-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gesture-skill {
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  color: var(--accent-cyan);
+  font-weight: bold;
+}
+
+.gesture-base-key,
+.gesture-name-display {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.gesture-base-key code,
+.gesture-name-display code {
+  background: var(--bg-elevated);
+  padding: 1px 6px;
+  border-radius: 2px;
+  color: var(--accent-gold);
+}
+
+.gesture-mods {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  padding: 4px 8px;
+}
+
+.gesture-mods code {
+  color: var(--accent-violet);
+}
+
+.combo-key-cell.gesture-base-cell {
+  background: rgba(126, 207, 255, 0.25);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(126, 207, 255, 0.6);
+}
+
+.combo-key-cell.gesture-base-cell .combo-key-label,
+.combo-key-cell.gesture-base-cell .combo-key-idx {
+  color: var(--accent-cyan);
+}
+
+.gesture-cell-arrow {
+  position: absolute;
+  font-size: 1.6rem;
+  color: var(--accent-gold);
+  line-height: 1;
+  pointer-events: none;
+  text-shadow: 0 0 6px var(--accent-gold);
+  top: -10px;
+  right: -8px;
+}
+
 .conf-entries {
   display: flex;
   flex-direction: column;

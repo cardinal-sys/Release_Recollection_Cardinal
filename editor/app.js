@@ -1145,6 +1145,25 @@ function showGesturesEditor(path, file) {
   document.getElementById('gestures-editor').classList.remove('hidden');
   updateViewBtns('gestures');
   renderGesturesEditor(path, file);
+  if (!state.layoutData || !state.yamlData) {
+    Promise.all([ensureLayoutLoaded(), ensureKeymapYamlLoaded()]).then(() => {
+      if (state.activePath === path && state.viewMode === 'gestures') {
+        renderGesturesEditor(path, state.files.get(path));
+      }
+    });
+  }
+}
+
+const DIRECTION_ARROWS = { up: '↑', down: '↓', left: '←', right: '→' };
+const SWORD_SKILL_NAMES = {
+  E: 'Sharp Nail',  R: 'Vorpal Strike', S: 'The Eclipse',  B: 'Howling Octave',
+  T: 'Sonic Leap',  A: 'Vertical Square', D: 'Starburst Stream', W: 'Horizontal',
+};
+
+function parseGestureName(refName) {
+  const m = refName.match(/^g([A-Z])_(up|down|left|right)$/);
+  if (m) return { baseKey: m[1], direction: m[2] };
+  return null;
 }
 
 function renderGesturesEditor(path, file) {
@@ -1155,11 +1174,11 @@ function renderGesturesEditor(path, file) {
 
   parsed.entries.forEach((entry, idx) => {
     const card = document.createElement('div');
-    card.className = 'combo-card';
+    card.className = 'combo-card combo-card-with-grid gesture-card';
     const orig = original.entries[idx] || {};
     if (JSON.stringify(entry) !== JSON.stringify(orig)) card.classList.add('modified');
 
-    // mod-morph behavior: bindings = <default>, <mod-pressed>;
+    // mod-morph: bindings = <default>, <mod-pressed>;
     const bindings = getProp(entry.props, 'bindings');
     let defaultBind = '', modBind = '';
     if (bindings) {
@@ -1168,16 +1187,39 @@ function renderGesturesEditor(path, file) {
     }
     const mods = getProp(entry.props, 'mods');
 
-    const nameLabel = makeField('Name', 'text', entry.refName, (v) => {
-      entry.refName = v; entry.label = v;
-      commitDtsChange(path, parsed);
-    });
-    const defaultLabel = makeField('Default', 'text', defaultBind, (v) => {
+    // ヘッダー：方向アイコン + base key + Sword Skill 名
+    const parsedName = parseGestureName(entry.refName);
+    const header = document.createElement('div');
+    header.className = 'gesture-header';
+    if (parsedName) {
+      const arrow = document.createElement('div');
+      arrow.className = 'gesture-arrow';
+      arrow.textContent = DIRECTION_ARROWS[parsedName.direction];
+      header.appendChild(arrow);
+
+      const meta = document.createElement('div');
+      meta.className = 'gesture-meta';
+      meta.innerHTML =
+        `<div class="gesture-skill">${SWORD_SKILL_NAMES[parsedName.baseKey] || '—'}</div>` +
+        `<div class="gesture-base-key"><span>Key:</span> <code>${parsedName.baseKey}</code> &nbsp;` +
+        `<span>Direction:</span> <code>${parsedName.direction}</code></div>` +
+        `<div class="gesture-name-display"><code>${entry.refName}</code></div>`;
+      header.appendChild(meta);
+    } else {
+      const meta = document.createElement('div');
+      meta.className = 'gesture-meta';
+      meta.innerHTML = `<div class="gesture-skill">Custom mod-morph</div><div><code>${entry.refName}</code></div>`;
+      header.appendChild(meta);
+    }
+    card.appendChild(header);
+
+    const defaultLabel = makeField('Default (修飾なし)', 'text', defaultBind, (v) => {
+      defaultBind = v;
       const newBind = modBind ? `<${v}>, <${modBind}>` : `<${v}>`;
       setProp(entry.props, 'bindings', newBind);
       commitDtsChange(path, parsed);
     });
-    const modLabel = makeField('Mod-pressed', 'text', modBind, (v) => {
+    const modLabel = makeField('Mod-pressed (修飾あり)', 'text', modBind, (v) => {
       modBind = v;
       const newBind = v ? `<${defaultBind}>, <${v}>` : `<${defaultBind}>`;
       setProp(entry.props, 'bindings', newBind);
@@ -1185,22 +1227,103 @@ function renderGesturesEditor(path, file) {
     });
     defaultLabel.querySelector('input').placeholder = '例: &kp LG(C)';
     modLabel.querySelector('input').placeholder = '例: &kp LG(X)';
-
-    card.appendChild(nameLabel);
     card.appendChild(defaultLabel);
     card.appendChild(modLabel);
 
     if (mods) {
       const modsLabel = document.createElement('div');
-      modsLabel.style.fontSize = '0.6rem';
-      modsLabel.style.color = 'var(--text-dim)';
-      modsLabel.style.gridColumn = '1 / -1';
-      modsLabel.textContent = `mods: ${mods.value}`;
+      modsLabel.className = 'gesture-mods';
+      modsLabel.innerHTML = `<span>mods:</span> <code>${mods.value}</code>`;
       card.appendChild(modsLabel);
+    }
+
+    // base key を物理レイアウトでハイライト表示
+    if (parsedName) {
+      const gridWrap = document.createElement('div');
+      gridWrap.className = 'combo-grid-wrap';
+      renderGestureBaseKeyView(gridWrap, parsedName.baseKey, parsedName.direction);
+      card.appendChild(gridWrap);
     }
 
     wrap.appendChild(card);
   });
+}
+
+function renderGestureBaseKeyView(parent, baseKey, direction) {
+  const layout = state.layoutData?.layouts?.default_layout?.layout || [];
+  const yamlLayer = state.yamlData?.layers?.default || [];
+  if (layout.length === 0 || yamlLayer.length === 0) {
+    const p = document.createElement('p');
+    p.className = 'hint';
+    p.textContent = 'Physical layout / keymap.yaml を読み込み中...';
+    parent.appendChild(p);
+    return;
+  }
+
+  // base key の position を keymap から探す（tap が baseKey と一致する最初のキー）
+  let basePos = -1;
+  yamlLayer.forEach((entry, idx) => {
+    if (basePos !== -1) return;
+    const t = (entry === null || entry === undefined) ? ''
+      : typeof entry === 'string' ? entry
+      : (entry.t || '');
+    if (t === baseKey) basePos = idx;
+  });
+
+  const grid = document.createElement('div');
+  grid.className = 'combo-key-grid';
+  const unitPx = 56, gap = 4, padding = 12;
+  let maxX = 0, maxY = 0;
+  for (const k of layout) {
+    maxX = Math.max(maxX, (k.x ?? 0) + (k.width ?? 1));
+    maxY = Math.max(maxY, (k.y ?? 0) + (k.height ?? 1));
+  }
+  grid.style.cssText =
+    `position: relative; width: ${maxX * unitPx + padding * 2}px; ` +
+    `height: ${maxY * unitPx + padding * 2}px; padding: ${padding}px;`;
+
+  layout.forEach((pos, idx) => {
+    const cell = document.createElement('div');
+    cell.className = 'combo-key-cell';
+    if (idx === basePos) cell.classList.add('selected', 'gesture-base-cell');
+
+    const t = (yamlLayer[idx] === null || yamlLayer[idx] === undefined) ? ''
+      : typeof yamlLayer[idx] === 'string' ? yamlLayer[idx]
+      : (yamlLayer[idx].t || '');
+    const idxEl = document.createElement('div');
+    idxEl.className = 'combo-key-idx';
+    idxEl.textContent = `[${idx}]`;
+    const labelEl = document.createElement('div');
+    labelEl.className = 'combo-key-label';
+    labelEl.textContent = t || '·';
+    cell.appendChild(idxEl);
+    cell.appendChild(labelEl);
+
+    if (idx === basePos) {
+      const arrowEl = document.createElement('div');
+      arrowEl.className = 'gesture-cell-arrow';
+      arrowEl.textContent = DIRECTION_ARROWS[direction];
+      cell.appendChild(arrowEl);
+    }
+
+    const w = (pos.width ?? 1) * unitPx - gap;
+    const h = (pos.height ?? 1) * unitPx - gap;
+    cell.style.cssText =
+      `position: absolute; left: ${(pos.x ?? 0) * unitPx + padding + gap / 2}px; ` +
+      `top: ${(pos.y ?? 0) * unitPx + padding + gap / 2}px; ` +
+      `width: ${w}px; height: ${h}px;`;
+    if (pos.r) {
+      const rx = pos.rx ?? pos.x ?? 0;
+      const ry = pos.ry ?? pos.y ?? 0;
+      const ox = (rx - (pos.x ?? 0)) * unitPx;
+      const oy = (ry - (pos.y ?? 0)) * unitPx;
+      cell.style.transformOrigin = `${ox}px ${oy}px`;
+      cell.style.transform = `rotate(${pos.r}deg)`;
+    }
+    cell.style.cursor = 'default';
+    grid.appendChild(cell);
+  });
+  parent.appendChild(grid);
 }
 
 function commitDtsChange(path, parsed) {
