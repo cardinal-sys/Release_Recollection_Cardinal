@@ -45,6 +45,5 @@
       "entitlements": null
     }
   },
-  "$comment": "Bluetooth 権限の Info.plist キーは workflow の post-build ステップで PlistBuddy 経由で .app に追加される（tauri.conf.json の bundle.macOS は infoPlist を直接サポートしないため）。",
   "plugins": {}
 }
