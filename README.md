@@ -109,9 +109,20 @@ npm run tauri:build
 
 ビルド成果物は `src-tauri/target/release/bundle/` 配下に生成される。
 
-> **[ SYSTEM ]** Phase A は既存 `editor/` を Tauri ウィンドウに embed するだけ。
-> Phase B 以降で Rust 側に BLE transport を実装し、Web Bluetooth の制約を完全に
-> 突破する予定。
+##### リリース配布
+タグ `v*` を push すると `.github/workflows/tauri-build.yml` が走り、
+macOS (Universal) / Windows / Linux 向け **.dmg / .msi / .deb / .AppImage** が
+自動ビルドされて GitHub Releases にドラフト公開される。
+
+```bash
+# 例: v0.1.0 をリリース
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+> **[ SYSTEM ]** Phase A は editor/ embed のみ、Phase B で Rust BLE transport
+> 実装、Phase C で UI 上の Web/Tauri バッジ表示、Phase D で CI による
+> マルチプラットフォームビルドを完備。Web Bluetooth の制約を完全突破。
 
 ### ◆ 認証関門 ── Authentication Gate
 

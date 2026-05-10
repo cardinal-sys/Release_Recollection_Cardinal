@@ -1155,6 +1155,18 @@ function init() {
   els.probeBtn.addEventListener('click', handleProbe);
   log('Live Sync Conduit initialized');
   log('@zmkfirmware/zmk-studio-ts-client@0.0.18 loaded via esm.sh');
+  // Runtime バッジ更新
+  const badge = document.getElementById('runtime-badge');
+  if (badge) {
+    if (isTauri()) {
+      badge.textContent = 'Tauri Native';
+      badge.classList.remove('runtime-web');
+      badge.classList.add('runtime-tauri');
+      badge.title = 'OS ネイティブ Bluetooth API 利用可能（macOS HID 接続中もOK）';
+    } else {
+      badge.title = 'Web Bluetooth / Web Serial 利用';
+    }
+  }
   if (isTauri()) log('〈Native Embodiment〉Tauri デスクトップ版で起動中 — OS ネイティブ BLE 利用可能', 'success');
   if (!('bluetooth' in navigator) && !isTauri()) log('Web Bluetooth API: 利用不可', 'warning');
   if (!('serial' in navigator))    log('Web Serial API: 利用不可', 'warning');
