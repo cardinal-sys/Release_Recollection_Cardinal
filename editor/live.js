@@ -143,6 +143,97 @@ async function establishConnection(transport, kind) {
 const ZMK_STUDIO_SERVICE_UUID = '00000000-0196-6107-c967-c5cfb1c2482a';
 const ZMK_STUDIO_RPC_CHRC_UUID = '00000001-0196-6107-c967-c5cfb1c2482a';
 
+/* ◆ Tauri Native Bridge ─────────────── */
+// Tauri デスクトップ版で動作しているか検出。
+// Tauri 環境なら window.__TAURI_INTERNALS__ が存在する（v2）
+function isTauri() {
+  return typeof window !== 'undefined' && (window.__TAURI_INTERNALS__ || window.__TAURI__);
+}
+
+async function tauriInvoke(cmd, args) {
+  // Tauri 2 の core API: window.__TAURI__.core.invoke
+  // 古い v1 API: window.__TAURI__.tauri.invoke
+  const t = window.__TAURI_INTERNALS__ || window.__TAURI__;
+  if (t?.invoke) return t.invoke(cmd, args);
+  if (t?.core?.invoke) return t.core.invoke(cmd, args);
+  if (t?.tauri?.invoke) return t.tauri.invoke(cmd, args);
+  throw new Error('Tauri invoke API not available');
+}
+
+async function tauriListen(event, handler) {
+  const t = window.__TAURI_INTERNALS__ || window.__TAURI__;
+  if (t?.event?.listen) return t.event.listen(event, handler);
+  throw new Error('Tauri event API not available');
+}
+
+// Tauri ネイティブ BLE transport（Web Bluetooth と同等のインターフェース）
+async function connectBleTauri() {
+  // 1) 周辺をスキャン
+  log('Tauri Native BLE: scan_devices...');
+  const devices = await tauriInvoke('ble_scan');
+  log(`Found ${devices.length} BLE device(s)`);
+
+  // Elucidator 風の name を優先、無ければ全候補から prompt 選択
+  let target = devices.find((d) => /elucidator/i.test(d.name || ''));
+  if (!target) {
+    const candidates = devices.filter((d) => d.name);
+    if (candidates.length === 0) throw new Error('No named BLE device found');
+    const opts = candidates.map((d, i) => `${i}: ${d.name} (${d.address})`).join('\n');
+    const idxStr = prompt(`接続先を選択（番号入力）:\n${opts}`, '0');
+    const idx = parseInt(idxStr || '', 10);
+    if (Number.isNaN(idx)) throw new Error('Cancelled by user');
+    target = candidates[idx];
+  }
+  log(`Connecting to ${target.name || target.address}...`);
+  const label = await tauriInvoke('ble_connect', { id: target.id });
+
+  // 2) 受信ストリーム（notification → ReadableStream）
+  let pendingChunks = [];
+  let waitingResolve = null;
+  const unlisten = await tauriListen('ble-notification', (event) => {
+    const bytes = new Uint8Array(event.payload);
+    if (waitingResolve) {
+      waitingResolve({ value: bytes, done: false });
+      waitingResolve = null;
+    } else {
+      pendingChunks.push(bytes);
+    }
+  });
+  await tauriInvoke('ble_subscribe');
+
+  const readable = new ReadableStream({
+    pull(controller) {
+      return new Promise((resolve) => {
+        if (pendingChunks.length > 0) {
+          controller.enqueue(pendingChunks.shift());
+          resolve();
+        } else {
+          waitingResolve = (chunk) => {
+            controller.enqueue(chunk.value);
+            resolve();
+          };
+        }
+      });
+    },
+    cancel() { try { unlisten(); } catch (_) {} },
+  });
+
+  // 3) 送信ストリーム
+  const writable = new WritableStream({
+    write(chunk) {
+      return tauriInvoke('ble_write', { data: Array.from(chunk) });
+    },
+  });
+
+  const abortController = new AbortController();
+  abortController.signal.addEventListener('abort', () => {
+    tauriInvoke('ble_disconnect').catch(() => {});
+    try { unlisten(); } catch (_) {}
+  });
+
+  return { label, abortController, readable, writable };
+}
+
 // 共通の GATT transport setup（公式 zmk-studio-ts-client/transport/gatt.ts と同じロジック）
 async function setupGattTransport(dev) {
   if (!dev.gatt) throw new Error('No GATT service on selected device');
@@ -214,6 +305,22 @@ async function tryReconnectKnownDevice() {
 }
 
 async function handleConnectBle() {
+  // Tauri デスクトップ版: OS ネイティブ Bluetooth API を経由
+  if (isTauri()) {
+    try {
+      setConduitState('connecting', 'Tauri Native BLE...', 'OS API 経由でデバイスを検索中');
+      log('〈Native Embodiment〉Tauri ネイティブ BLE で接続');
+      const transport = await connectBleTauri();
+      await establishConnection(transport, 'BLE (Tauri Native)');
+      return;
+    } catch (err) {
+      log(`Tauri Native BLE failed: ${err.message || err}`, 'error');
+      setConduitState('error', 'Tauri Native BLE failed', err.message || String(err));
+      return;
+    }
+  }
+
+  // Web ブラウザ: Web Bluetooth API
   if (!('bluetooth' in navigator)) {
     log('Web Bluetooth が利用できません。Chrome / Edge を使用してください。', 'error');
     setConduitState('error', 'Unsupported', 'Web Bluetooth not available');
@@ -1048,7 +1155,8 @@ function init() {
   els.probeBtn.addEventListener('click', handleProbe);
   log('Live Sync Conduit initialized');
   log('@zmkfirmware/zmk-studio-ts-client@0.0.18 loaded via esm.sh');
-  if (!('bluetooth' in navigator)) log('Web Bluetooth API: 利用不可', 'warning');
+  if (isTauri()) log('〈Native Embodiment〉Tauri デスクトップ版で起動中 — OS ネイティブ BLE 利用可能', 'success');
+  if (!('bluetooth' in navigator) && !isTauri()) log('Web Bluetooth API: 利用不可', 'warning');
   if (!('serial' in navigator))    log('Web Serial API: 利用不可', 'warning');
 
   // Binding editor handlers
