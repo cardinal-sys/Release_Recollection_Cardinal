@@ -884,6 +884,101 @@ async function ensureLayoutLoaded() {
   }
 }
 
+/* ◆ keymap.yaml から behavior の使用箇所を検索 ─── */
+function findBehaviorUsages(behaviorRefName) {
+  const usages = [];
+  if (!state.yamlData?.layers) return usages;
+  // & 付き / 単独 / hold で使われている可能性
+  const searchPatterns = [
+    new RegExp(`(?:^|\\W)&${behaviorRefName}(?:\\W|$)`),  // &gE_up など
+    new RegExp(`(?:^|\\W)${behaviorRefName}(?:\\W|$)`),   // GESTURE_E など hold 名
+  ];
+  for (const [layerName, bindings] of Object.entries(state.yamlData.layers)) {
+    bindings.forEach((b, position) => {
+      const text = b === null || b === undefined ? ''
+        : typeof b === 'string' ? b
+        : [b.t, b.h].filter(Boolean).join(' ');
+      if (searchPatterns.some((re) => re.test(text))) {
+        usages.push({ layerName, position });
+      }
+    });
+  }
+  return usages;
+}
+
+function renderUsageMiniGrid(parent, behaviorRefName) {
+  const layout = state.layoutData?.layouts?.default_layout?.layout || [];
+  const yamlLayer = state.yamlData?.layers?.default || [];
+  if (layout.length === 0 || yamlLayer.length === 0) return;
+
+  const usages = findBehaviorUsages(behaviorRefName);
+  const usagePositions = new Set(usages.map((u) => u.position));
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'usage-wrapper';
+
+  const summary = document.createElement('div');
+  summary.className = 'usage-summary';
+  if (usages.length === 0) {
+    summary.classList.add('usage-none');
+    summary.textContent = `Used in: (どのレイヤーでも未使用)`;
+  } else {
+    const layerLabels = usages.map((u) => `${u.layerName}[${u.position}]`).join(', ');
+    summary.innerHTML = `<span>Used in:</span> <code>${layerLabels}</code>`;
+  }
+  wrapper.appendChild(summary);
+
+  if (usages.length === 0) {
+    parent.appendChild(wrapper);
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'combo-key-grid';
+  const unitPx = 38, gap = 3, padding = 8;
+  let maxX = 0, maxY = 0;
+  for (const k of layout) {
+    maxX = Math.max(maxX, (k.x ?? 0) + (k.width ?? 1));
+    maxY = Math.max(maxY, (k.y ?? 0) + (k.height ?? 1));
+  }
+  grid.style.cssText =
+    `position: relative; width: ${maxX * unitPx + padding * 2}px; ` +
+    `height: ${maxY * unitPx + padding * 2}px; padding: ${padding}px;`;
+
+  layout.forEach((pos, idx) => {
+    const cell = document.createElement('div');
+    cell.className = 'combo-key-cell';
+    if (usagePositions.has(idx)) cell.classList.add('selected', 'usage-cell');
+    const t = yamlLayer[idx] === null || yamlLayer[idx] === undefined ? ''
+      : typeof yamlLayer[idx] === 'string' ? yamlLayer[idx]
+      : (yamlLayer[idx].t || '');
+    const labelEl = document.createElement('div');
+    labelEl.className = 'combo-key-label';
+    labelEl.textContent = t || '·';
+    labelEl.style.fontSize = '0.55rem';
+    cell.appendChild(labelEl);
+
+    const w = (pos.width ?? 1) * unitPx - gap;
+    const h = (pos.height ?? 1) * unitPx - gap;
+    cell.style.cssText =
+      `position: absolute; left: ${(pos.x ?? 0) * unitPx + padding + gap / 2}px; ` +
+      `top: ${(pos.y ?? 0) * unitPx + padding + gap / 2}px; ` +
+      `width: ${w}px; height: ${h}px;`;
+    if (pos.r) {
+      const rx = pos.rx ?? pos.x ?? 0;
+      const ry = pos.ry ?? pos.y ?? 0;
+      const ox = (rx - (pos.x ?? 0)) * unitPx;
+      const oy = (ry - (pos.y ?? 0)) * unitPx;
+      cell.style.transformOrigin = `${ox}px ${oy}px`;
+      cell.style.transform = `rotate(${pos.r}deg)`;
+    }
+    cell.style.cursor = 'default';
+    grid.appendChild(cell);
+  });
+  wrapper.appendChild(grid);
+  parent.appendChild(wrapper);
+}
+
 async function ensureKeymapYamlLoaded() {
   if (state.yamlData) return;
   try {
@@ -1346,6 +1441,13 @@ function showMacrosEditor(path, file) {
   document.getElementById('macros-editor').classList.remove('hidden');
   updateViewBtns('macros');
   renderMacrosEditor(path, file);
+  if (!state.layoutData || !state.yamlData) {
+    Promise.all([ensureLayoutLoaded(), ensureKeymapYamlLoaded()]).then(() => {
+      if (state.activePath === path && state.viewMode === 'macros') {
+        renderMacrosEditor(path, state.files.get(path));
+      }
+    });
+  }
 }
 
 function renderMacrosEditor(path, file) {
@@ -1426,6 +1528,9 @@ function renderMacrosEditor(path, file) {
       card.appendChild(bindLbl);
     }
 
+    // 使用箇所を物理レイアウトで表示
+    renderUsageMiniGrid(card, entry.refName);
+
     wrap.appendChild(card);
   });
 }
@@ -1455,6 +1560,13 @@ function showBehaviorsEditor(path, file) {
   document.getElementById('behaviors-editor').classList.remove('hidden');
   updateViewBtns('behaviors');
   renderBehaviorsEditor(path, file);
+  if (!state.layoutData || !state.yamlData) {
+    Promise.all([ensureLayoutLoaded(), ensureKeymapYamlLoaded()]).then(() => {
+      if (state.activePath === path && state.viewMode === 'behaviors') {
+        renderBehaviorsEditor(path, state.files.get(path));
+      }
+    });
+  }
 }
 
 function renderBehaviorsEditor(path, file) {
@@ -1538,6 +1650,9 @@ function renderBehaviorsEditor(path, file) {
       propsGrid.appendChild(inp);
     });
     card.appendChild(propsGrid);
+
+    // 使用箇所を物理レイアウトで表示
+    renderUsageMiniGrid(card, entry.refName);
 
     wrap.appendChild(card);
   });
