@@ -23,7 +23,22 @@
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 </head>
 <body>
-  <header class="cardinal-header">
+  <!-- HUD Effects -->
+  <div class="sao-hud-overlay">
+    <div class="sao-hud-scanlines"></div>
+    <div class="sao-hud-vignette"></div>
+  </div>
+
+  <!-- Main System Window Wrapper -->
+  <div class="sao-system-wrapper" id="sao-window">
+    <!-- Decorative HUD Texts -->
+    <div class="sao-sys-text top-left">SYSTEM CALL</div>
+    <div class="sao-sys-text top-right">AUTHORITY LEVEL: ADMIN</div>
+    <div class="sao-sys-text bottom-left">GENERATING ELEMENTS...</div>
+    <div class="sao-sys-text bottom-right">ID: CARDINAL_SYSTEM</div>
+
+    <div class="sao-window-inner">
+      <header class="cardinal-header">
     <div class="header-left">
       <h1>《 CARDINAL EDITOR 》</h1>
       <p class="subtitle">— Release Recollection 記憶書換術式 —</p>
@@ -415,6 +430,9 @@
   <footer class="cardinal-footer">
     <p>&lt;&lt; CARDINAL SYSTEM &gt;&gt; — 記憶書換術式は管理者権限を要する</p>
   </footer>
+
+    </div> <!-- /sao-window-inner -->
+  </div> <!-- /sao-system-wrapper -->
 
   <script src="app.js"></script>
 </body>

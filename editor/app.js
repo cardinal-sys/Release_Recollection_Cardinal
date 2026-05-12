@@ -2815,3 +2815,84 @@ function init() {
 }
 
 init();
+
+/* ◆ SAO SYSTEM SOUND ENGINE ──────────────────────── */
+class SystemSoundEngine {
+  constructor() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) {
+      this.enabled = false;
+      return;
+    }
+    this.ctx = new AudioCtx();
+    this.enabled = true;
+    this.masterGain = this.ctx.createGain();
+    this.masterGain.gain.value = 0.1; // 音量控えめ
+    this.masterGain.connect(this.ctx.destination);
+    
+    // Resume on first interaction
+    const resumeAudio = () => {
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      document.removeEventListener('click', resumeAudio);
+    };
+    document.addEventListener('click', resumeAudio);
+  }
+
+  playBeep(freq = 800, type = 'sine', duration = 0.05) {
+    if (!this.enabled || this.ctx.state !== 'running') return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+    
+    gain.gain.setValueAtTime(1, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+    
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    
+    osc.start();
+    osc.stop(this.ctx.currentTime + duration);
+  }
+
+  playHover() { this.playBeep(1200, 'sine', 0.03); }
+  playClick() { this.playBeep(2400, 'square', 0.05); setTimeout(() => this.playBeep(1800, 'sine', 0.08), 20); }
+  playSeal() { 
+    this.playBeep(400, 'sawtooth', 0.1); 
+    setTimeout(() => this.playBeep(600, 'square', 0.2), 50);
+    setTimeout(() => this.playBeep(1200, 'sine', 0.4), 100);
+  }
+}
+
+const sysAudio = new SystemSoundEngine();
+
+function attachSoundEffects() {
+  document.addEventListener('mouseover', (e) => {
+    if (e.target.closest('button, .tab, .tree-file, .tree-folder, .combo-key-cell, select')) {
+      sysAudio.playHover();
+    }
+  });
+
+  document.addEventListener('mousedown', (e) => {
+    if (e.target.closest('button:not(.btn-seal), .tab, .tree-file, .tree-folder, .combo-key-cell')) {
+      sysAudio.playClick();
+    } else if (e.target.closest('.btn-seal')) {
+      sysAudio.playSeal();
+    }
+  });
+}
+
+attachSoundEffects();
+
+// SAO ウィンドウ展開アニメーションのトリガー
+window.addEventListener('load', () => {
+  const windowEl = document.getElementById('sao-window');
+  if (windowEl) {
+    windowEl.style.animation = 'none';
+    setTimeout(() => {
+      windowEl.style.animation = 'window-open 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+      if (sysAudio.enabled) sysAudio.playBeep(1500, 'sine', 0.2); // Boot sound
+    }, 100);
+  }
+});
