@@ -53,7 +53,7 @@ pub async fn scan_devices(state: Arc<BleState>) -> Result<Vec<BleDevice>, String
         .start_scan(ScanFilter::default())
         .await
         .map_err(|e| e.to_string())?;
-    time::sleep(time::Duration::from_secs(3)).await;
+    time::sleep(time::Duration::from_secs(6)).await;
     let peripherals = adapter.peripherals().await.map_err(|e| e.to_string())?;
     adapter.stop_scan().await.ok();
 
