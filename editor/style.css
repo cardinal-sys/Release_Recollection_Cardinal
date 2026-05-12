@@ -89,6 +89,17 @@ body {
   box-shadow: 0 0 8px rgba(180, 140, 255, 0.3);
 }
 
+.tauri-badge {
+  color: var(--accent-success);
+  border: 1px solid var(--accent-success);
+  padding: 4px 10px;
+  border-radius: 2px;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  background: rgba(0, 255, 170, 0.1);
+  box-shadow: 0 0 8px rgba(0, 255, 170, 0.2);
+}
+
 #status-indicator {
   font-weight: bold;
   letter-spacing: 0.1em;
@@ -1387,6 +1398,7 @@ button {
 .sao-hud-scanlines {
   position: absolute;
   inset: 0;
+  pointer-events: none;
   background: linear-gradient(
     to bottom,
     rgba(255,255,255,0),
@@ -1401,6 +1413,7 @@ button {
 .sao-hud-vignette {
   position: absolute;
   inset: 0;
+  pointer-events: none;
   background: radial-gradient(circle, transparent 50%, rgba(5, 8, 20, 0.8) 100%);
 }
 
@@ -1424,12 +1437,7 @@ button {
   box-shadow: 0 0 20px rgba(180, 140, 255, 0.2), inset 0 0 20px rgba(0, 240, 255, 0.05);
   position: relative;
   overflow: hidden;
-  clip-path: polygon(
-    0 10px, 10px 0, 
-    calc(100% - 10px) 0, 100% 10px, 
-    100% calc(100% - 10px), calc(100% - 10px) 100%, 
-    10px 100%, 0 calc(100% - 10px)
-  );
+  border-radius: 10px;
   animation: window-open 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   opacity: 0;
   transform: scale(0.98);

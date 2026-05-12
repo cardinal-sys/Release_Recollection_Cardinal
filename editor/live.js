@@ -166,6 +166,30 @@ async function tauriListen(event, handler) {
   throw new Error('Tauri event API not available');
 }
 
+// HTMLモーダルによるデバイス選択（Tauri の WebView では prompt() が動作しないため）
+function showDevicePicker(candidates) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('ble-picker-modal');
+    const list = document.getElementById('ble-picker-list');
+    const cancelBtn = document.getElementById('ble-picker-cancel');
+    if (!modal || !list) { resolve(null); return; }
+
+    list.innerHTML = '';
+    candidates.forEach((d, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'btn-primary';
+      btn.style.cssText = 'text-align:left;padding:10px 14px;font-size:0.75rem;letter-spacing:0.05em;';
+      btn.innerHTML = `<strong>${d.name}</strong><br><span style="color:var(--text-secondary);font-size:0.65rem;">${d.address} ${d.rssi != null ? `(RSSI: ${d.rssi})` : ''}</span>`;
+      btn.addEventListener('click', () => { cleanup(); resolve(d); });
+      list.appendChild(btn);
+    });
+
+    const cleanup = () => { modal.classList.add('hidden'); };
+    cancelBtn.onclick = () => { cleanup(); resolve(null); };
+    modal.classList.remove('hidden');
+  });
+}
+
 // Tauri ネイティブ BLE transport（Web Bluetooth と同等のインターフェース）
 async function connectBleTauri() {
   // 1) 周辺をスキャン
@@ -173,16 +197,13 @@ async function connectBleTauri() {
   const devices = await tauriInvoke('ble_scan');
   log(`Found ${devices.length} BLE device(s)`);
 
-  // Elucidator 風の name を優先、無ければ全候補から prompt 選択
+  // Elucidator 風の name を優先、無ければモーダルから選択
   let target = devices.find((d) => /elucidator/i.test(d.name || ''));
   if (!target) {
     const candidates = devices.filter((d) => d.name);
     if (candidates.length === 0) throw new Error('No named BLE device found');
-    const opts = candidates.map((d, i) => `${i}: ${d.name} (${d.address})`).join('\n');
-    const idxStr = prompt(`接続先を選択（番号入力）:\n${opts}`, '0');
-    const idx = parseInt(idxStr || '', 10);
-    if (Number.isNaN(idx)) throw new Error('Cancelled by user');
-    target = candidates[idx];
+    target = await showDevicePicker(candidates);
+    if (!target) throw new Error('Cancelled by user');
   }
   log(`Connecting to ${target.name || target.address}...`);
   const label = await tauriInvoke('ble_connect', { id: target.id });
