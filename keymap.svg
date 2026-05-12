@@ -390,7 +390,7 @@ text.combo { font-size: 14px; fill: #a5f3fc; filter: drop-shadow(0 0 5px rgba(16
 <g transform="translate(519, 247) rotate(-10.0)" class="key keypos-41">
 <rect rx="6" ry="6" x="-28" y="-28" width="56" height="56" class="key side"/>
 <rect rx="4" ry="4" x="-22" y="-26" width="44" height="44" class="key"/>
-<text x="0" y="-4" class="key tap">ENTER</text>
+<text x="0" y="-4" class="key tap">Sft+RET</text>
 <a href="#FUNCTION">
 <text x="0" y="26" class="key hold layer-activator"><tspan style="font-size: 88%">FUNCTION</tspan></text>
 </a></g>

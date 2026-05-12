@@ -42,7 +42,7 @@ layers:
   - {t: SPACE, h: NUM}
   - '&mkp MB1'
   - BACKSPACE
-  - {t: ENTER, h: FUNCTION}
+  - {t: Sft+RET, h: FUNCTION}
   - {t: DELETE, h: LEFT ALT}
   FUNCTION:
   - F5
