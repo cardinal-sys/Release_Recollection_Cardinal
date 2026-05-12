@@ -40,9 +40,3 @@
     quick-tap-ms = <0>;
     flavor = "tap-preferred";
 };
-
-// マウスボタン自体のタップ判定を安定化
-&mkp {
-    tapping-term-ms = <150>;
-};
-
