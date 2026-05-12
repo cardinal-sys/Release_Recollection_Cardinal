@@ -47,7 +47,7 @@
         td_enter: tap_dance_enter {
             compatible = "zmk,behavior-tap-dance";
             #binding-cells = <0>;
-            tapping-term-ms = <250>;
+            tapping-term-ms = <300>;
             // 1回目: レイヤータップ (長押し=レイヤー1, タップ=Shift+Enter)
             // 2回目: 通常のエンター
             bindings = <&lt 1 LS(RET)>, <&kp RET>;
