@@ -42,7 +42,7 @@ layers:
   - {t: SPACE, h: NUM}
   - '&mkp MB1'
   - BACKSPACE
-  - {t: Sft+RET, h: FUNCTION}
+  - '&td_enter'
   - {t: DELETE, h: LEFT ALT}
   FUNCTION:
   - F5
@@ -86,7 +86,7 @@ layers:
   - F20
   - Gui+BACKSPACE
   - BACKSPACE
-  - {type: held}
+  - {t: ▽, type: trans}
   - Sft+Gui+4
   SIGN:
   - '%'
