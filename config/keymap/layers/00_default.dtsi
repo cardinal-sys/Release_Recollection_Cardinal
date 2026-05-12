@@ -7,7 +7,7 @@ default_layer {
 &mt LEFT_SHIFT Q     &gesture_mo_kp 14 W  &gesture_mo_kp 7 E   &gesture_mo_kp 8 R   &gesture_mo_kp 11 T                                    &kp Y        &kp U                &gesture_mo_kp 5 I  &kp O               &mt RIGHT_SHIFT P
 &gesture_mo_kp 12 A  &gesture_mo_kp 9 S   &gesture_mo_kp 13 D  &kp F                &lt 6 G              &smart_num 16      &kp AT_SIGN    &kp H        &kp J                &gesture_mo_kp 5 K  &gesture_mo_kp 4 L  &mt LEFT_GUI MINUS
 &kp Z                &kp X                &kp C                &kp V  &gesture_mo_kp 10 B  &ht_snipe 15 TAB            &kp COLON      &kp N        &kp M                &kp COMMA           &kp PERIOD          &mt LEFT_CONTROL PLUS
-&kp LCTRL            &kp LEFT_GUI         &kp LEFT_ALT         &lt 2 ESC            &lt 3 SPACE          &mkp MB1            &kp BACKSPACE  &lt 1 ENTER                                                               &mt LEFT_ALT DELETE
+&kp LCTRL            &kp LEFT_GUI         &kp LEFT_ALT         &lt 2 ESC            &lt 3 SPACE          &mkp MB1            &kp BACKSPACE  &lt 1 LS(RET)                                                               &mt LEFT_ALT DELETE
     >;
 
     sensor-bindings = <&inc_dec_kp DOWN_ARROW UP_ARROW>;
