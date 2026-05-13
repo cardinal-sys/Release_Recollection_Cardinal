@@ -179,7 +179,8 @@ function showDevicePicker(candidates) {
       const btn = document.createElement('button');
       btn.className = 'btn-primary';
       btn.style.cssText = 'text-align:left;padding:10px 14px;font-size:0.75rem;letter-spacing:0.05em;';
-      btn.innerHTML = `<strong>${d.name}</strong><br><span style="color:var(--text-secondary);font-size:0.65rem;">${d.address} ${d.rssi != null ? `(RSSI: ${d.rssi})` : ''}</span>`;
+      const displayName = d.name ? d.name : `Unnamed Device (${d.id.substring(0,8)})`;
+      btn.innerHTML = `<strong>${displayName}</strong><br><span style="color:var(--text-secondary);font-size:0.65rem;">${d.address} ${d.rssi != null ? `(RSSI: ${d.rssi})` : ''}</span>`;
       btn.addEventListener('click', () => { cleanup(); resolve(d); });
       list.appendChild(btn);
     });
@@ -200,8 +201,8 @@ async function connectBleTauri() {
   // Elucidator 風の name を優先、無ければモーダルから選択
   let target = devices.find((d) => /elucidator/i.test(d.name || ''));
   if (!target) {
-    const candidates = devices.filter((d) => d.name);
-    if (candidates.length === 0) throw new Error('No named BLE device found');
+    const candidates = devices; // Filter removed to show unnamed devices
+    if (candidates.length === 0) throw new Error('No BLE device found');
     target = await showDevicePicker(candidates);
     if (!target) throw new Error('Cancelled by user');
   }
@@ -359,13 +360,10 @@ async function handleConnectBle() {
       }
     }
     // ② ダイアログから新規選択
-    setConduitState('connecting', 'Requesting BLE device...', useStrict
-      ? 'Strict (Service UUID Filter)'
-      : 'Accept All — リストから Elucidator を選択');
-    log(`navigator.bluetooth.requestDevice() — ${useStrict ? 'service-filter (strict)' : 'acceptAllDevices'}`);
-    const transport = useStrict
-      ? await connectBleFiltered()
-      : await connectBleAcceptAll();
+    setConduitState('connecting', 'Requesting BLE device...', 'Strict (Service UUID Filter)');
+    log('navigator.bluetooth.requestDevice() — service-filter (strict)');
+    // Macで接続済みHIDデバイスを見つけるためには、UUIDフィルタが必須
+    const transport = await connectBleFiltered();
     await establishConnection(transport, 'BLE');
   } catch (err) {
     log(`BLE Connect failed: ${err.message || err}`, 'error');
