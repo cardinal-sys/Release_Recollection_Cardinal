@@ -987,7 +987,7 @@ function buildHidSelector(parent, paramId, current) {
     </select>
     <label>キー</label>
     <select class="bind-input dyn-val"></select>
-    <div class="dyn-implicit-mods" style="margin-top: 8px;">
+    <div class="dyn-implicit-mods" style="margin-top: 8px; grid-column: 1 / -1;">
       <p class="hint" style="font-size: 0.65rem; margin-bottom: 4px;">修飾キー付与（例: Shift + A）</p>
       <div class="mod-chip-row"></div>
     </div>
