@@ -987,23 +987,53 @@ function buildHidSelector(parent, paramId, current) {
     </select>
     <label>キー</label>
     <select class="bind-input dyn-val"></select>
+    <div class="dyn-implicit-mods" style="margin-top: 8px;">
+      <p class="hint" style="font-size: 0.65rem; margin-bottom: 4px;">修飾キー付与（例: Shift + A）</p>
+      <div class="mod-chip-row"></div>
+    </div>
   `;
   parent.appendChild(row);
 
   const cat = row.querySelector('.dyn-cat');
   const val = row.querySelector('.dyn-val');
 
+  // 現在値から implicit modifiers (Bits 24-31) を抽出
+  const implicitMods = (current >>> 24) & 0xff;
+  const baseUsage = current & 0x00ffffff;
+
   // 現在値が含まれるカテゴリを推測してデフォルト選択
-  cat.value = guessHidCategory(current) || 'hid-letters';
-  refillValueOptions(val, cat.value, current);
+  cat.value = guessHidCategory(baseUsage) || 'hid-letters';
+  refillValueOptions(val, cat.value, baseUsage);
+
+  // 修飾キーUIの構築
+  const modsContainer = row.querySelector('.mod-chip-row');
+  const modItems = [
+    ['LCtl', 0x01], ['LSft', 0x02], ['LAlt', 0x04], ['LGui', 0x08],
+    ['RCtl', 0x10], ['RSft', 0x20], ['RAlt', 0x40], ['RGui', 0x80]
+  ];
+  
+  function updateValue() {
+    if (val.value === '') return;
+    const base = Number(val.value) & 0x00ffffff;
+    let mods = 0;
+    for (const cb of row.querySelectorAll('.dyn-implicit-mods input[type=checkbox]')) {
+      if (cb.checked) mods |= Number(cb.dataset.mask);
+    }
+    const finalValue = (mods << 24) | base;
+    document.getElementById(paramId).value = finalValue;
+    updateResolvedHints();
+  }
+
+  for (const [label, mask] of modItems) {
+    const chip = document.createElement('label');
+    chip.className = 'live-mod-chip';
+    chip.innerHTML = `<input type="checkbox" data-mask="${mask}"${implicitMods & mask ? ' checked' : ''}><span>${label}</span>`;
+    chip.querySelector('input').addEventListener('change', updateValue);
+    modsContainer.appendChild(chip);
+  }
 
   cat.addEventListener('change', () => refillValueOptions(val, cat.value, null));
-  val.addEventListener('change', () => {
-    if (val.value !== '') {
-      document.getElementById(paramId).value = val.value;
-      updateResolvedHints();
-    }
-  });
+  val.addEventListener('change', updateValue);
 }
 
 function refillValueOptions(selectEl, category, currentValue) {
