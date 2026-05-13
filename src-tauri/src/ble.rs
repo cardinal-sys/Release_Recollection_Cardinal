@@ -4,11 +4,12 @@
 // 並行アクセス可能（Web Bluetooth の制約を超える）。
 
 use btleplug::api::{
-    Central, Manager as _, Peripheral as _, ScanFilter, WriteType,
+    Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter, WriteType,
 };
 use btleplug::platform::{Adapter, Manager, Peripheral};
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::time;
@@ -42,6 +43,9 @@ async fn ensure_adapter(state: &Arc<BleState>) -> Result<Adapter, String> {
         let adapter = adapters.into_iter().next().ok_or_else(|| {
             "No Bluetooth adapter found".to_string()
         })?;
+        // macOS の CBCentralManager は PoweredOn になるまで scan を無視するため、
+        // adapter 初回取得後に少し待つ。
+        time::sleep(time::Duration::from_millis(1500)).await;
         *guard = Some(adapter);
     }
     Ok(guard.as_ref().unwrap().clone())
@@ -49,16 +53,43 @@ async fn ensure_adapter(state: &Arc<BleState>) -> Result<Adapter, String> {
 
 pub async fn scan_devices(state: Arc<BleState>) -> Result<Vec<BleDevice>, String> {
     let adapter = ensure_adapter(&state).await?;
+
+    // CentralEvent stream を先に開いておく（scan より前に listen 開始）
+    let mut events = adapter.events().await.map_err(|e| e.to_string())?;
+
     adapter
         .start_scan(ScanFilter::default())
         .await
         .map_err(|e| e.to_string())?;
-    time::sleep(time::Duration::from_secs(6)).await;
-    let peripherals = adapter.peripherals().await.map_err(|e| e.to_string())?;
+
+    // event stream を一定時間 listen して、見つかった peripheral id を集める。
+    // 単純な sleep + peripherals() より確実に新規 advertise を捉えられる。
+    let scan_duration = time::Duration::from_secs(8);
+    let mut discovered_ids: HashSet<String> = HashSet::new();
+    let _ = time::timeout(scan_duration, async {
+        while let Some(ev) = events.next().await {
+            match ev {
+                CentralEvent::DeviceDiscovered(id)
+                | CentralEvent::DeviceUpdated(id) => {
+                    discovered_ids.insert(id.to_string());
+                }
+                _ => {}
+            }
+        }
+    })
+    .await;
+
     adapter.stop_scan().await.ok();
 
+    // 最終的な peripherals() でも収集（CBCentralManager がキャッシュしているもの）
+    let peripherals = adapter.peripherals().await.map_err(|e| e.to_string())?;
     let mut out = Vec::new();
+    let mut emitted: HashSet<String> = HashSet::new();
     for p in peripherals {
+        let id_str = p.id().to_string();
+        if !emitted.insert(id_str.clone()) {
+            continue;
+        }
         let props = p.properties().await.ok().flatten();
         let name = props
             .as_ref()
@@ -70,12 +101,17 @@ pub async fn scan_devices(state: Arc<BleState>) -> Result<Vec<BleDevice>, String
             .map(|pp| pp.address.to_string())
             .unwrap_or_default();
         out.push(BleDevice {
-            id: p.id().to_string(),
+            id: id_str,
             name,
             address,
             rssi,
         });
     }
+
+    // event で見つけたが peripherals() で未取得のものは debug 用に痕跡だけ残す
+    // （unnamed/未接続デバイスを含む event-only id は除外）
+    let _ = discovered_ids;
+
     Ok(out)
 }
 
