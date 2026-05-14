@@ -562,6 +562,25 @@
     <!-- ◆ Keymap View -->
     <section id="keymap-view" class="live-panel hidden">
       <h2>◆ MEMORY MATRIX ── 記憶展開</h2>
+
+      <!-- 〈Studio Unlock Banner〉— RPC で unlock 不能のためバインドキー押下を促す -->
+      <div id="unlock-banner" class="conduit-banner hidden">
+        🔒 <strong>記憶は封印されています</strong> ──
+        キーボード上の <code>&amp;studio_unlock</code> をバインドしたキーを押して解錠してください
+        （本リポジトリでは <strong>Bluetooth レイヤー</strong> 中央のキーが該当）。
+        <span class="hint">※ZMK Studio プロトコルには unlock RPC が存在しないため、物理キー押下が必須です。</span>
+      </div>
+
+      <!-- 〈Memory Synthesis Toolbar〉— レイヤー追加 / 保存 / 破棄 / 工場出荷 -->
+      <div class="live-toolbar">
+        <span id="lock-badge" class="status-badge hidden"></span>
+        <span id="unsaved-badge" class="status-badge badge-warn hidden">✱ UNSAVED</span>
+        <button id="add-layer-btn" class="btn-tiny">＋ Add Layer</button>
+        <button id="save-changes-btn" class="btn-tiny btn-seal hidden">💾 Save</button>
+        <button id="discard-changes-btn" class="btn-tiny btn-ghost hidden">↻ Discard</button>
+        <button id="reset-settings-btn" class="btn-tiny btn-danger">⚠ Factory Reset</button>
+      </div>
+
       <div id="keymap-summary"></div>
       <div id="keymap-layers"></div>
     </section>
