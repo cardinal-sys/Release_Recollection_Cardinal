@@ -538,7 +538,7 @@ async function addLayer() {
   const result = resp?.keymap?.addLayer;
   if (result?.ok) {
     log(`AddLayer ok: index=${result.ok.index} layer.id=${result.ok.layer?.id}`, 'success');
-    await persistAndRefresh();
+    await refreshKeymap();
     return result.ok;
   }
   log(`AddLayer err: ${result?.err ?? 'unknown'}`, 'error');
@@ -552,7 +552,7 @@ async function removeLayer(layerIndex) {
   const result = resp?.keymap?.removeLayer;
   if (result?.ok) {
     log('RemoveLayer ok', 'success');
-    await persistAndRefresh();
+    await refreshKeymap();
     return true;
   }
   log(`RemoveLayer err: ${result?.err ?? 'unknown'}`, 'error');
@@ -581,7 +581,7 @@ async function restoreLayer(layerId, atIndex) {
   const result = resp?.keymap?.restoreLayer;
   if (result?.ok) {
     log('RestoreLayer ok', 'success');
-    await persistAndRefresh();
+    await refreshKeymap();
     return result.ok;
   }
   log(`RestoreLayer err: ${result?.err ?? 'unknown'}`, 'error');
@@ -594,7 +594,7 @@ async function resetSettings() {
   const resp = await rpc({ core: { resetSettings: true } });
   const ok = !!resp?.core?.resetSettings;
   log(`ResetSettings: ${ok ? 'OK' : 'FAILED'}`, ok ? 'success' : 'error');
-  if (ok) await persistAndRefresh();
+  if (ok) await refreshKeymap();
   return ok;
 }
 
@@ -629,9 +629,9 @@ async function saveChanges() {
   return ok;
 }
 
-// 共通: 変更系 RPC の後、キーマップ再取得 + 再描画
-async function persistAndRefresh() {
-  await saveChanges();
+// 〈Memory Sync〉— 変更系 RPC の後、キーマップ再取得 + 再描画のみ。
+// 保存は明示的に Save ボタンで行う（ZMK Studio 公式の staged changes 流儀）。
+async function refreshKeymap() {
   await fetchKeymap();
   renderKeymapView();
 }
@@ -643,7 +643,7 @@ async function setLayerName(layerId, newName) {
   });
   const code = resp?.keymap?.setLayerProps;
   log(`SetLayerProps response: ${code}`, code === 0 ? 'success' : 'error');
-  if (code === 0) await persistAndRefresh();
+  if (code === 0) await refreshKeymap();
   return code === 0;
 }
 
@@ -1368,7 +1368,7 @@ async function applyBindingEdit() {
         code === 0 ? 'success' : 'error');
 
     if (code === 0) {
-      await persistAndRefresh();
+      await refreshKeymap();
       closeBindingEditor();
     }
   } catch (e) {
