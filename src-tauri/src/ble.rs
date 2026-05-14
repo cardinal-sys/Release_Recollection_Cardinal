@@ -40,11 +40,21 @@ async fn ensure_adapter(state: &Arc<BleState>) -> Result<Adapter, String> {
         let adapter = Adapter::default()
             .await
             .ok_or_else(|| "No Bluetooth adapter found".to_string())?;
-        // wait_available は CoreBluetooth の CBCentralManager が PoweredOn になるまで待つ
-        adapter
-            .wait_available()
-            .await
-            .map_err(|e| format!("Bluetooth adapter not available: {e}"))?;
+
+        // wait_available() は PoweredOn になるまで永久に待つ。Bluetooth 権限が
+        // 拒否されているとイベントが来ないため、5 秒で timeout してメッセージを返す。
+        match time::timeout(Duration::from_secs(5), adapter.wait_available()).await {
+            Ok(Ok(_)) => {}
+            Ok(Err(e)) => return Err(format!("Bluetooth adapter not available: {e}")),
+            Err(_) => {
+                return Err(
+                    "Bluetooth adapter ready 待ちで 5 秒タイムアウト。\
+                     macOS の場合: システム設定 → プライバシーとセキュリティ → Bluetooth で \
+                     Cardinal Editor の権限を ON にしてから再起動してください。"
+                        .to_string(),
+                );
+            }
+        }
         *guard = Some(adapter);
     }
     Ok(guard.as_ref().unwrap().clone())
@@ -56,32 +66,48 @@ pub async fn scan_devices(state: Arc<BleState>) -> Result<Vec<BleDevice>, String
 
     // (1) すでに OS と接続済みの peripheral を取得（HID 接続中の ZMK キーボードもここに出る）
     let mut found: HashMap<String, (Device, Option<i16>)> = HashMap::new();
-    if let Ok(connected) = adapter.connected_devices_with_services(&services).await {
-        for d in connected {
-            found.insert(d.id().to_string(), (d, None));
+    match time::timeout(
+        Duration::from_secs(3),
+        adapter.connected_devices_with_services(&services),
+    )
+    .await
+    {
+        Ok(Ok(connected)) => {
+            for d in connected {
+                found.insert(d.id().to_string(), (d, None));
+            }
+        }
+        Ok(Err(e)) => {
+            log::warn!("connected_devices_with_services failed: {e}");
+        }
+        Err(_) => {
+            log::warn!("connected_devices_with_services timed out (3s)");
         }
     }
 
     // (2) advertisement を 6 秒間 listen
-    let stream = adapter
-        .scan(&services)
-        .await
-        .map_err(|e| format!("scan: {e}"))?;
-    let _ = time::timeout(Duration::from_secs(6), async {
-        tokio::pin!(stream);
-        while let Some(adv) = stream.next().await {
-            let id = adv.device.id().to_string();
-            found
-                .entry(id)
-                .and_modify(|entry| {
-                    if let Some(r) = adv.rssi {
-                        entry.1 = Some(r);
-                    }
-                })
-                .or_insert_with(|| (adv.device, adv.rssi));
+    match adapter.scan(&services).await {
+        Ok(stream) => {
+            let _ = time::timeout(Duration::from_secs(6), async {
+                tokio::pin!(stream);
+                while let Some(adv) = stream.next().await {
+                    let id = adv.device.id().to_string();
+                    found
+                        .entry(id)
+                        .and_modify(|entry| {
+                            if let Some(r) = adv.rssi {
+                                entry.1 = Some(r);
+                            }
+                        })
+                        .or_insert_with(|| (adv.device, adv.rssi));
+                }
+            })
+            .await;
         }
-    })
-    .await;
+        Err(e) => {
+            log::warn!("scan() failed (continuing with connected_devices only): {e}");
+        }
+    }
 
     // 後段の connect() で使うため Device を id でキャッシュ
     let mut cache_guard = state.scan_cache.lock().await;
