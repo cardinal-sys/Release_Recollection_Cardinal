@@ -25,8 +25,10 @@ const els = {
 const state = {
   transport: null,
   rpc: null,
+  notificationReader: null,
   deviceInfo: null,
   lockState: null,
+  hasUnsavedChanges: false,
   keymap: null,
   behaviors: {},        // behavior_id -> details
   physicalLayout: null, // active KeyPhysicalAttrs[] (already scaled to unit)
@@ -124,19 +126,65 @@ async function establishConnection(transport, kind) {
   // Auto Memory Recall: 接続後すぐデバイス情報・キーマップを取得
   setTimeout(() => handleProbe(), 200);
 
-  // Notification subscription
+  // 〈Whisper Listening〉— Notification subscription & UI 反映
+  state.notificationReader = rpcConn.notification_readable.getReader();
   (async () => {
-    const reader = rpcConn.notification_readable.getReader();
     try {
       while (true) {
-        const { value, done } = await reader.read();
+        const { value, done } = await state.notificationReader.read();
         if (done) break;
-        log(`[notification] ${JSON.stringify(value).slice(0, 120)}`, 'info');
+        handleNotification(value);
       }
     } catch (e) {
       log(`Notification stream closed: ${e.message || e}`, 'warning');
     }
   })();
+}
+
+function handleNotification(n) {
+  if (!n) return;
+  // n は zmk.studio.Notification（{ core: {...} } または { keymap: {...} }）
+  if (n.core?.lockStateChanged !== undefined) {
+    const lock = n.core.lockStateChanged;
+    state.lockState = lock;
+    log(`[notify] LockStateChanged: ${lock === 1 ? 'UNLOCKED' : 'LOCKED'}`,
+        lock === 1 ? 'success' : 'warning');
+    updateLockBadge();
+    return;
+  }
+  if (n.keymap?.unsavedChangesStatusChanged !== undefined) {
+    const hasUnsaved = !!n.keymap.unsavedChangesStatusChanged;
+    state.hasUnsavedChanges = hasUnsaved;
+    log(`[notify] UnsavedChangesStatusChanged: ${hasUnsaved ? 'DIRTY' : 'CLEAN'}`,
+        hasUnsaved ? 'warning' : 'success');
+    updateUnsavedBadge();
+    return;
+  }
+  log(`[notify] ${JSON.stringify(n).slice(0, 120)}`, 'info');
+}
+
+function updateLockBadge() {
+  const el = document.getElementById('lock-badge');
+  if (!el) return;
+  const locked = state.lockState !== 1;
+  el.textContent = locked ? '🔒 LOCKED' : '🔓 UNLOCKED';
+  el.className = `status-badge ${locked ? 'badge-warn' : 'badge-ok'}`;
+  el.classList.remove('hidden');
+  // ロック解除案内バナー
+  const banner = document.getElementById('unlock-banner');
+  if (banner) banner.classList.toggle('hidden', !locked);
+}
+
+function updateUnsavedBadge() {
+  const el = document.getElementById('unsaved-badge');
+  if (!el) return;
+  el.textContent = state.hasUnsavedChanges ? '✱ UNSAVED' : '';
+  el.classList.toggle('hidden', !state.hasUnsavedChanges);
+  // Save/Discard ボタンを点灯
+  const saveBtn = document.getElementById('save-changes-btn');
+  const discardBtn = document.getElementById('discard-changes-btn');
+  if (saveBtn) saveBtn.classList.toggle('hidden', !state.hasUnsavedChanges);
+  if (discardBtn) discardBtn.classList.toggle('hidden', !state.hasUnsavedChanges);
 }
 
 // ZMK Studio Service UUID（gatt.ts と同じ）
@@ -395,12 +443,18 @@ async function handleConnectSerial() {
 }
 
 function handleDisconnect() {
+  if (state.notificationReader) {
+    try { state.notificationReader.cancel('disconnect'); } catch (_) {}
+    state.notificationReader = null;
+  }
   if (state.transport?.abortController) {
     state.transport.abortController.abort();
     log('Transport aborted', 'warning');
   }
   state.transport = null;
   state.rpc = null;
+  state.lockState = null;
+  state.hasUnsavedChanges = false;
   setConduitState('', 'Disconnected', 'Bluetooth または USB Serial で神器に接続してください');
   els.connectBleBtn.classList.remove('hidden');
   document.getElementById('connect-ble-all-btn').classList.remove('hidden');
@@ -408,6 +462,12 @@ function handleDisconnect() {
   els.disconnectBtn.classList.add('hidden');
   els.probeBtn.classList.add('hidden');
   els.deviceSection.classList.add('hidden');
+  // バッジ/バナーもクリア
+  document.getElementById('lock-badge')?.classList.add('hidden');
+  document.getElementById('unsaved-badge')?.classList.add('hidden');
+  document.getElementById('unlock-banner')?.classList.add('hidden');
+  document.getElementById('save-changes-btn')?.classList.add('hidden');
+  document.getElementById('discard-changes-btn')?.classList.add('hidden');
 }
 
 /* ◆ RPC HELPERS ─────────────────────── */
@@ -471,26 +531,119 @@ async function fetchKeymap() {
   return km;
 }
 
-async function setLayerName(layerId, newName) {
-  log(`SetLayerProps layer=${layerId} name="${newName}"`);
-  const resp = await rpc({
-    keymap: {
-      setLayerProps: {
-        layerId,
-        name: newName,
-      },
-    },
-  });
-  const code = resp?.keymap?.setLayerProps;
-  log(`SetLayerProps response: ${code}`, code === 0 ? 'success' : 'error');
-  if (code === 0) {
-    log('SaveChanges...');
-    const saveResp = await rpc({ keymap: { saveChanges: true } });
-    const ok = saveResp?.keymap?.saveChanges?.ok;
-    log(`SaveChanges ok=${ok}`, ok ? 'success' : 'warning');
+// 〈Layer Synthesis〉— 新規レイヤー降臨
+async function addLayer() {
+  log('AddLayer...');
+  const resp = await rpc({ keymap: { addLayer: true } });
+  const result = resp?.keymap?.addLayer;
+  if (result?.ok) {
+    log(`AddLayer ok: index=${result.ok.index} layer.id=${result.ok.layer?.id}`, 'success');
+    await refreshKeymap();
+    return result.ok;
+  }
+  log(`AddLayer err: ${result?.err ?? 'unknown'}`, 'error');
+  throw new Error(`AddLayer failed (err=${result?.err})`);
+}
+
+// 〈Layer Annihilation〉— 指定 index のレイヤーを消滅させる
+async function removeLayer(layerIndex) {
+  log(`RemoveLayer index=${layerIndex}...`);
+  const resp = await rpc({ keymap: { removeLayer: { layerIndex } } });
+  const result = resp?.keymap?.removeLayer;
+  if (result?.ok) {
+    log('RemoveLayer ok', 'success');
+    await refreshKeymap();
+    return true;
+  }
+  log(`RemoveLayer err: ${result?.err ?? 'unknown'}`, 'error');
+  throw new Error(`RemoveLayer failed (err=${result?.err})`);
+}
+
+// 〈Layer Transposition〉— レイヤーの順番を入れ替える
+async function moveLayer(startIndex, destIndex) {
+  log(`MoveLayer ${startIndex} → ${destIndex}...`);
+  const resp = await rpc({ keymap: { moveLayer: { startIndex, destIndex } } });
+  const result = resp?.keymap?.moveLayer;
+  if (result?.ok) {
+    log('MoveLayer ok', 'success');
+    state.keymap = result.ok;
+    renderKeymapView();
+    return true;
+  }
+  log(`MoveLayer err: ${result?.err ?? 'unknown'}`, 'error');
+  throw new Error(`MoveLayer failed (err=${result?.err})`);
+}
+
+// 〈Memory Restoration〉— 単一レイヤーを純度100%に戻す
+async function restoreLayer(layerId, atIndex) {
+  log(`RestoreLayer layerId=${layerId} atIndex=${atIndex}...`);
+  const resp = await rpc({ keymap: { restoreLayer: { layerId, atIndex } } });
+  const result = resp?.keymap?.restoreLayer;
+  if (result?.ok) {
+    log('RestoreLayer ok', 'success');
+    await refreshKeymap();
+    return result.ok;
+  }
+  log(`RestoreLayer err: ${result?.err ?? 'unknown'}`, 'error');
+  throw new Error(`RestoreLayer failed (err=${result?.err})`);
+}
+
+// 〈Cardinal Memory Reset〉— Studio settings を工場出荷状態に戻す
+async function resetSettings() {
+  log('ResetSettings (factory reset)...');
+  const resp = await rpc({ core: { resetSettings: true } });
+  const ok = !!resp?.core?.resetSettings;
+  log(`ResetSettings: ${ok ? 'OK' : 'FAILED'}`, ok ? 'success' : 'error');
+  if (ok) await refreshKeymap();
+  return ok;
+}
+
+// 〈Memory Discard〉— 未保存の変更を破棄
+async function discardChanges() {
+  log('DiscardChanges...');
+  const resp = await rpc({ keymap: { discardChanges: true } });
+  const ok = !!resp?.keymap?.discardChanges;
+  log(`DiscardChanges: ${ok ? 'OK' : 'FAILED'}`, ok ? 'success' : 'error');
+  if (ok) {
+    state.hasUnsavedChanges = false;
+    updateUnsavedBadge();
     await fetchKeymap();
     renderKeymapView();
   }
+  return ok;
+}
+
+// 〈Eternal Sealing〉— SaveChanges を呼び出し永続化
+async function saveChanges() {
+  log('SaveChanges...');
+  const resp = await rpc({ keymap: { saveChanges: true } });
+  const ok = !!resp?.keymap?.saveChanges?.ok;
+  if (ok) {
+    log('SaveChanges ok', 'success');
+    state.hasUnsavedChanges = false;
+    updateUnsavedBadge();
+  } else {
+    const err = resp?.keymap?.saveChanges?.err;
+    log(`SaveChanges err: ${err ?? 'unknown'}`, 'error');
+  }
+  return ok;
+}
+
+// 〈Memory Sync〉— 変更系 RPC の後、キーマップ再取得 + 再描画のみ。
+// 保存は明示的に Save ボタンで行う（ZMK Studio 公式の staged changes 流儀）。
+async function refreshKeymap() {
+  await fetchKeymap();
+  renderKeymapView();
+}
+
+async function setLayerName(layerId, newName) {
+  log(`SetLayerProps layer=${layerId} name="${newName}"`);
+  const resp = await rpc({
+    keymap: { setLayerProps: { layerId, name: newName } },
+  });
+  const code = resp?.keymap?.setLayerProps;
+  log(`SetLayerProps response: ${code}`, code === 0 ? 'success' : 'error');
+  if (code === 0) await refreshKeymap();
   return code === 0;
 }
 
@@ -625,7 +778,8 @@ function renderKeymapView() {
   // Layers
   const layersEl = document.getElementById('keymap-layers');
   layersEl.innerHTML = '';
-  for (const layer of state.keymap.layers || []) {
+  const totalLayers = (state.keymap.layers || []).length;
+  (state.keymap.layers || []).forEach((layer, layerIndex) => {
     const wrap = document.createElement('details');
     wrap.className = 'layer-details';
     if (layer.id === 0) wrap.open = true;
@@ -633,19 +787,53 @@ function renderKeymapView() {
     const titleSpan = document.createElement('span');
     titleSpan.textContent = `▸ Layer ${layer.id}: ${layer.name || '(unnamed)'} — ${layer.bindings?.length || 0} bindings`;
     sum.appendChild(titleSpan);
-    const renameBtn = document.createElement('button');
-    renameBtn.className = 'btn-tiny layer-rename-btn';
-    renameBtn.textContent = '✏️';
-    renameBtn.title = 'レイヤー名を変更';
-    renameBtn.onclick = async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+
+    const mkBtn = (label, title, handler, disabled = false) => {
+      const b = document.createElement('button');
+      b.className = 'btn-tiny layer-rename-btn';
+      b.textContent = label;
+      b.title = title;
+      if (disabled) b.disabled = true;
+      b.onclick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try { await handler(); }
+        catch (err) { log(`${title} failed: ${err.message || err}`, 'error'); }
+      };
+      return b;
+    };
+
+    // ✏️ Rename
+    sum.appendChild(mkBtn('✏️', 'レイヤー名を変更', async () => {
       const next = prompt(`Layer ${layer.id} の新しい名前:`, layer.name || '');
       if (next === null || next === layer.name) return;
-      try { await setLayerName(layer.id, next); }
-      catch (err) { log(`Rename failed: ${err.message || err}`, 'error'); }
-    };
-    sum.appendChild(renameBtn);
+      await setLayerName(layer.id, next);
+    }));
+    // ↑ Move up
+    sum.appendChild(mkBtn('↑', '一つ上に移動',
+      () => moveLayer(layerIndex, layerIndex - 1),
+      layerIndex === 0));
+    // ↓ Move down
+    sum.appendChild(mkBtn('↓', '一つ下に移動',
+      () => moveLayer(layerIndex, layerIndex + 1),
+      layerIndex === totalLayers - 1));
+    // ↺ Restore
+    sum.appendChild(mkBtn('↺', 'このレイヤーを初期状態に戻す', async () => {
+      if (!confirm(
+        `Layer ${layer.id} "${layer.name || '(unnamed)'}" を初期状態に戻します。\n\n` +
+        `このレイヤー内の binding 変更はすべて失われます。続行しますか？`
+      )) return;
+      await restoreLayer(layer.id, layerIndex);
+    }));
+    // × Remove
+    sum.appendChild(mkBtn('×', 'このレイヤーを削除', async () => {
+      if (!confirm(
+        `Layer ${layer.id} "${layer.name || '(unnamed)'}" を削除します。\n\n` +
+        `これは破壊的操作です。続行しますか？`
+      )) return;
+      await removeLayer(layerIndex);
+    }));
+
     wrap.appendChild(sum);
 
     const useLayout = state.physicalLayout && state.physicalLayout.length === (layer.bindings?.length || 0);
@@ -654,14 +842,14 @@ function renderKeymapView() {
 
     if (useLayout) {
       const unitPx = 80, gap = 6, padding = 24;
-      let maxX = 0, maxY = 0;
-      for (const k of state.physicalLayout) {
-        maxX = Math.max(maxX, k.x + k.width);
-        maxY = Math.max(maxY, k.y + k.height);
-      }
+      // 〈Rotated Envelope〉— 回転キーの 4 隅まで含めた正確な bounding box。
+      // 親が flex column の場合に shrink で潰れないよう min-height + flex-shrink: 0。
+      const bounds = computeLayoutBoundsLive(state.physicalLayout);
+      const gw = bounds.maxX * unitPx + padding * 2;
+      const gh = bounds.maxY * unitPx + padding * 2;
       grid.style.cssText =
-        `position: relative; width: ${maxX * unitPx + padding * 2}px; ` +
-        `height: ${maxY * unitPx + padding * 2}px; ` +
+        `position: relative; width: ${gw}px; ` +
+        `min-height: ${gh}px; height: ${gh}px; flex-shrink: 0; ` +
         `padding: ${padding}px; margin: 0 auto;`;
 
       (layer.bindings || []).forEach((b, i) => {
@@ -688,7 +876,35 @@ function renderKeymapView() {
 
     wrap.appendChild(grid);
     layersEl.appendChild(wrap);
+  });
+}
+
+// 〈Rotated Envelope Calculation〉— 回転後の 4 隅を考慮した layout 全体の bounding box
+function computeLayoutBoundsLive(layout) {
+  let maxX = 0, maxY = 0;
+  for (const k of layout) {
+    const x = k.x ?? 0;
+    const y = k.y ?? 0;
+    const w = k.width ?? 1;
+    const h = k.height ?? 1;
+    if (!k.r) {
+      maxX = Math.max(maxX, x + w);
+      maxY = Math.max(maxY, y + h);
+      continue;
+    }
+    const rx = k.rx ?? x;
+    const ry = k.ry ?? y;
+    const theta = (k.r * Math.PI) / 180;
+    const cos = Math.cos(theta);
+    const sin = Math.sin(theta);
+    for (const [cx, cy] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) {
+      const dx = cx - rx;
+      const dy = cy - ry;
+      maxX = Math.max(maxX, rx + dx * cos - dy * sin);
+      maxY = Math.max(maxY, ry + dx * sin + dy * cos);
+    }
   }
+  return { maxX, maxY };
 }
 
 function createBindingCell(layerId, i, b) {
@@ -1180,15 +1396,7 @@ async function applyBindingEdit() {
         code === 0 ? 'success' : 'error');
 
     if (code === 0) {
-      // Save changes (永続化)
-      log('SaveChanges...');
-      const saveResp = await rpc({ keymap: { saveChanges: true } });
-      const ok = saveResp?.keymap?.saveChanges?.ok;
-      log(`SaveChanges ok=${ok}`, ok ? 'success' : 'warning');
-
-      // Refresh keymap
-      await fetchKeymap();
-      renderKeymapView();
+      await refreshKeymap();
       closeBindingEditor();
     }
   } catch (e) {
@@ -1223,6 +1431,28 @@ function init() {
   // Binding editor handlers
   document.getElementById('bind-apply-btn').addEventListener('click', applyBindingEdit);
   document.getElementById('bind-cancel-btn').addEventListener('click', closeBindingEditor);
+
+  // 〈Step 3 Toolbar〉— Layer CRUD / Save / Discard / Factory Reset
+  const wrap = (fn, fallbackMsg) => async () => {
+    try { await fn(); }
+    catch (e) { log(`${fallbackMsg}: ${e.message || e}`, 'error'); }
+  };
+  document.getElementById('add-layer-btn')?.addEventListener('click', wrap(addLayer, 'Add Layer failed'));
+  document.getElementById('save-changes-btn')?.addEventListener('click', wrap(saveChanges, 'Save failed'));
+  document.getElementById('discard-changes-btn')?.addEventListener('click', wrap(async () => {
+    if (!confirm('未保存の変更をすべて破棄します。本当によろしいですか？')) return;
+    await discardChanges();
+  }, 'Discard failed'));
+  document.getElementById('reset-settings-btn')?.addEventListener('click', wrap(async () => {
+    if (!confirm(
+      '⚠ FACTORY RESET ⚠\n\n' +
+      'キーボードの ZMK Studio 設定を工場出荷状態に戻します。\n' +
+      'これまでの Live Sync 編纂はすべて消失します。\n\n' +
+      '本当に実行しますか？'
+    )) return;
+    if (!confirm('最終確認: 本当に Factory Reset を実行しますか？')) return;
+    await resetSettings();
+  }, 'Reset failed'));
 
   // Behavior 切替時に動的 UI を再構築
   document.getElementById('bind-behavior').addEventListener('change', () => {

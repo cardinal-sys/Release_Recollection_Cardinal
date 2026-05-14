@@ -1325,6 +1325,88 @@ button {
   font-size: 0.8rem;
 }
 .btn-tiny:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+.btn-tiny:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-tiny.btn-seal {
+  color: var(--accent-success, #5fd47e);
+  border-color: var(--accent-success, #5fd47e);
+  /* 親の .btn-seal は width:100% / 大きい padding を持つので、tiny サイズで上書き */
+  width: auto;
+  background: transparent;
+  font-weight: normal;
+  letter-spacing: 0.1em;
+  padding: 2px 8px;
+}
+.btn-tiny.btn-seal:hover {
+  background: rgba(95, 212, 126, 0.12);
+  box-shadow: none;
+}
+
+.btn-tiny.btn-danger {
+  color: var(--accent-crimson, #ff5a5f);
+  border-color: var(--accent-crimson, #ff5a5f);
+}
+.btn-tiny.btn-danger:hover {
+  background: rgba(255, 90, 95, 0.12);
+}
+
+/* ◆ Step 3 — Live Toolbar / Badges / Banner */
+.live-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 14px;
+  padding: 8px 12px;
+  background: var(--bg-elevated, rgba(255,255,255,0.04));
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  border: 1px solid currentColor;
+}
+.status-badge.badge-ok {
+  color: var(--accent-success, #5fd47e);
+}
+.status-badge.badge-warn {
+  color: var(--accent-gold, #f0c674);
+}
+
+.conduit-banner {
+  background: rgba(240, 198, 116, 0.10);
+  border: 1px solid var(--accent-gold, #f0c674);
+  color: var(--accent-gold, #f0c674);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  line-height: 1.5;
+}
+.conduit-banner code {
+  background: rgba(0,0,0,0.3);
+  padding: 1px 6px;
+  border-radius: 2px;
+  color: var(--accent-cyan, #4fd1c5);
+}
+.conduit-banner .hint {
+  display: block;
+  margin-top: 4px;
+  opacity: 0.75;
+  font-size: 0.72rem;
+}
 
 /* ◆ RIGHT BAR ─────────────────────────── */
 .rightbar {
