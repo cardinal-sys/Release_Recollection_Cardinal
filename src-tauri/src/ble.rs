@@ -1,19 +1,16 @@
 // 〈Live Sync Conduit — Native〉
-// btleplug を使った OS ネイティブ Bluetooth transport。
-// macOS / Windows / Linux いずれでも動作し、HID 接続済みデバイスにも
-// 並行アクセス可能（Web Bluetooth の制約を超える）。
+// bluest を使った OS ネイティブ Bluetooth transport。
+// macOS / Windows / Linux いずれでも動作し、HID 接続中の peripheral も
+// connected_devices_with_services 経由で検出可能。
 
-use btleplug::api::{
-    Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter, WriteType,
-};
-use btleplug::platform::{Adapter, Manager, Peripheral};
+use bluest::{Adapter, Characteristic, Device, Uuid};
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::time;
-use uuid::Uuid;
 
 pub const ZMK_STUDIO_SERVICE_UUID: Uuid =
     Uuid::from_u128(0x00000000_0196_6107_c967_c5cfb1c2482a);
@@ -23,7 +20,9 @@ pub const ZMK_STUDIO_RPC_CHRC_UUID: Uuid =
 #[derive(Default)]
 pub struct BleState {
     pub adapter: Mutex<Option<Adapter>>,
-    pub peripheral: Mutex<Option<Peripheral>>,
+    pub device: Mutex<Option<Device>>,
+    pub characteristic: Mutex<Option<Characteristic>>,
+    pub scan_cache: Mutex<HashMap<String, Device>>,
     pub notifications_handle: Mutex<Option<tokio::task::JoinHandle<()>>>,
 }
 
@@ -38,14 +37,14 @@ pub struct BleDevice {
 async fn ensure_adapter(state: &Arc<BleState>) -> Result<Adapter, String> {
     let mut guard = state.adapter.lock().await;
     if guard.is_none() {
-        let manager = Manager::new().await.map_err(|e| e.to_string())?;
-        let adapters = manager.adapters().await.map_err(|e| e.to_string())?;
-        let adapter = adapters.into_iter().next().ok_or_else(|| {
-            "No Bluetooth adapter found".to_string()
-        })?;
-        // macOS の CBCentralManager は PoweredOn になるまで scan を無視するため、
-        // adapter 初回取得後に少し待つ。
-        time::sleep(time::Duration::from_millis(1500)).await;
+        let adapter = Adapter::default()
+            .await
+            .ok_or_else(|| "No Bluetooth adapter found".to_string())?;
+        // wait_available は CoreBluetooth の CBCentralManager が PoweredOn になるまで待つ
+        adapter
+            .wait_available()
+            .await
+            .map_err(|e| format!("Bluetooth adapter not available: {e}"))?;
         *guard = Some(adapter);
     }
     Ok(guard.as_ref().unwrap().clone())
@@ -53,104 +52,98 @@ async fn ensure_adapter(state: &Arc<BleState>) -> Result<Adapter, String> {
 
 pub async fn scan_devices(state: Arc<BleState>) -> Result<Vec<BleDevice>, String> {
     let adapter = ensure_adapter(&state).await?;
+    let services = [ZMK_STUDIO_SERVICE_UUID];
 
-    // CentralEvent stream を先に開いておく（scan より前に listen 開始）
-    let mut events = adapter.events().await.map_err(|e| e.to_string())?;
+    // (1) すでに OS と接続済みの peripheral を取得（HID 接続中の ZMK キーボードもここに出る）
+    let mut found: HashMap<String, (Device, Option<i16>)> = HashMap::new();
+    if let Ok(connected) = adapter.connected_devices_with_services(&services).await {
+        for d in connected {
+            found.insert(d.id().to_string(), (d, None));
+        }
+    }
 
-    adapter
-        .start_scan(ScanFilter::default())
+    // (2) advertisement を 6 秒間 listen
+    let stream = adapter
+        .scan(&services)
         .await
-        .map_err(|e| e.to_string())?;
-
-    // event stream を一定時間 listen して、見つかった peripheral id を集める。
-    // 単純な sleep + peripherals() より確実に新規 advertise を捉えられる。
-    let scan_duration = time::Duration::from_secs(8);
-    let mut discovered_ids: HashSet<String> = HashSet::new();
-    let _ = time::timeout(scan_duration, async {
-        while let Some(ev) = events.next().await {
-            match ev {
-                CentralEvent::DeviceDiscovered(id)
-                | CentralEvent::DeviceUpdated(id) => {
-                    discovered_ids.insert(id.to_string());
-                }
-                _ => {}
-            }
+        .map_err(|e| format!("scan: {e}"))?;
+    let _ = time::timeout(Duration::from_secs(6), async {
+        tokio::pin!(stream);
+        while let Some(adv) = stream.next().await {
+            let id = adv.device.id().to_string();
+            found
+                .entry(id)
+                .and_modify(|entry| {
+                    if let Some(r) = adv.rssi {
+                        entry.1 = Some(r);
+                    }
+                })
+                .or_insert_with(|| (adv.device, adv.rssi));
         }
     })
     .await;
 
-    adapter.stop_scan().await.ok();
+    // 後段の connect() で使うため Device を id でキャッシュ
+    let mut cache_guard = state.scan_cache.lock().await;
+    cache_guard.clear();
+    for (id, (device, _)) in &found {
+        cache_guard.insert(id.clone(), device.clone());
+    }
+    drop(cache_guard);
 
-    // 最終的な peripherals() でも収集（CBCentralManager がキャッシュしているもの）
-    let peripherals = adapter.peripherals().await.map_err(|e| e.to_string())?;
-    let mut out = Vec::new();
-    let mut emitted: HashSet<String> = HashSet::new();
-    for p in peripherals {
-        let id_str = p.id().to_string();
-        if !emitted.insert(id_str.clone()) {
-            continue;
-        }
-        let props = p.properties().await.ok().flatten();
-        let name = props
-            .as_ref()
-            .and_then(|pp| pp.local_name.clone())
-            .unwrap_or_default();
-        let rssi = props.as_ref().and_then(|pp| pp.rssi);
-        let address = props
-            .as_ref()
-            .map(|pp| pp.address.to_string())
-            .unwrap_or_default();
+    let mut out = Vec::with_capacity(found.len());
+    for (id, (device, rssi)) in found {
+        let name = device.name_async().await.unwrap_or_default();
         out.push(BleDevice {
-            id: id_str,
+            id,
             name,
-            address,
+            address: String::new(), // bluest は MAC を直接公開しない
             rssi,
         });
     }
-
-    // event で見つけたが peripherals() で未取得のものは debug 用に痕跡だけ残す
-    // （unnamed/未接続デバイスを含む event-only id は除外）
-    let _ = discovered_ids;
-
     Ok(out)
 }
 
 pub async fn connect(state: Arc<BleState>, id: String) -> Result<String, String> {
     let adapter = ensure_adapter(&state).await?;
-    let peripherals = adapter.peripherals().await.map_err(|e| e.to_string())?;
-    let target = peripherals
-        .into_iter()
-        .find(|p| p.id().to_string() == id)
-        .ok_or_else(|| format!("Peripheral {} not found", id))?;
 
-    if !target.is_connected().await.unwrap_or(false) {
-        target.connect().await.map_err(|e| e.to_string())?;
-    }
-    target.discover_services().await.map_err(|e| e.to_string())?;
+    let device = {
+        let cache = state.scan_cache.lock().await;
+        cache
+            .get(&id)
+            .cloned()
+            .ok_or_else(|| format!("Device {id} not in scan cache"))?
+    };
 
-    // ZMK Studio service / characteristic を探す
-    let services = target.services();
-    let svc = services
-        .iter()
-        .find(|s| s.uuid == ZMK_STUDIO_SERVICE_UUID)
-        .ok_or_else(|| {
-            "Selected device does not expose ZMK Studio service".to_string()
-        })?;
-    let _chrc = svc
-        .characteristics
-        .iter()
-        .find(|c| c.uuid == ZMK_STUDIO_RPC_CHRC_UUID)
-        .ok_or_else(|| "ZMK Studio RPC characteristic not found".to_string())?;
-
-    let label = target
-        .properties()
+    adapter
+        .connect_device(&device)
         .await
-        .ok()
-        .flatten()
-        .and_then(|pp| pp.local_name)
-        .unwrap_or_else(|| "Unknown".to_string());
+        .map_err(|e| format!("connect_device: {e}"))?;
 
-    *state.peripheral.lock().await = Some(target);
+    let services = device
+        .discover_services_with_uuid(ZMK_STUDIO_SERVICE_UUID)
+        .await
+        .map_err(|e| format!("discover_services: {e}"))?;
+    let svc = services
+        .into_iter()
+        .next()
+        .ok_or("Selected device does not expose ZMK Studio service")?;
+    let chars = svc
+        .discover_characteristics_with_uuid(ZMK_STUDIO_RPC_CHRC_UUID)
+        .await
+        .map_err(|e| format!("discover_characteristics: {e}"))?;
+    let chrc = chars
+        .into_iter()
+        .next()
+        .ok_or("ZMK Studio RPC characteristic not found")?;
+
+    let label = device
+        .name_async()
+        .await
+        .unwrap_or_else(|_| "Unknown".to_string());
+
+    *state.device.lock().await = Some(device);
+    *state.characteristic.lock().await = Some(chrc);
     Ok(label)
 }
 
@@ -161,52 +154,52 @@ pub async fn subscribe_notifications<F>(
 where
     F: Fn(Vec<u8>) + Send + Sync + 'static,
 {
-    let guard = state.peripheral.lock().await;
-    let p = guard.as_ref().ok_or("Not connected")?.clone();
-    drop(guard);
+    let chrc = state
+        .characteristic
+        .lock()
+        .await
+        .clone()
+        .ok_or("Not connected")?;
 
-    let chrc = p
-        .characteristics()
-        .into_iter()
-        .find(|c| c.uuid == ZMK_STUDIO_RPC_CHRC_UUID)
-        .ok_or("RPC characteristic not found")?;
-    p.subscribe(&chrc).await.map_err(|e| e.to_string())?;
-    let mut notifications = p.notifications().await.map_err(|e| e.to_string())?;
-
+    // notify() の Stream は &Characteristic を borrow するため、chrc ごと spawn 内に move
     let cb = Arc::new(on_data);
     let handle = tokio::spawn(async move {
-        while let Some(n) = notifications.next().await {
-            if n.uuid == ZMK_STUDIO_RPC_CHRC_UUID {
-                cb(n.value);
+        let stream = match chrc.notify().await {
+            Ok(s) => s,
+            Err(_) => return,
+        };
+        tokio::pin!(stream);
+        while let Some(item) = stream.next().await {
+            if let Ok(bytes) = item {
+                cb(bytes);
             }
         }
     });
-
     *state.notifications_handle.lock().await = Some(handle);
     Ok(())
 }
 
 pub async fn write(state: Arc<BleState>, data: Vec<u8>) -> Result<(), String> {
-    let guard = state.peripheral.lock().await;
-    let p = guard.as_ref().ok_or("Not connected")?.clone();
-    drop(guard);
-    let chrc = p
-        .characteristics()
-        .into_iter()
-        .find(|c| c.uuid == ZMK_STUDIO_RPC_CHRC_UUID)
-        .ok_or("RPC characteristic not found")?;
-    p.write(&chrc, &data, WriteType::WithoutResponse)
+    let chrc = state
+        .characteristic
+        .lock()
         .await
-        .map_err(|e| e.to_string())?;
-    Ok(())
+        .clone()
+        .ok_or("Not connected")?;
+    chrc.write_without_response(&data)
+        .await
+        .map_err(|e| format!("write: {e}"))
 }
 
 pub async fn disconnect(state: Arc<BleState>) -> Result<(), String> {
     if let Some(handle) = state.notifications_handle.lock().await.take() {
         handle.abort();
     }
-    if let Some(p) = state.peripheral.lock().await.take() {
-        p.disconnect().await.ok();
+    let adapter = state.adapter.lock().await.clone();
+    let device = state.device.lock().await.take();
+    if let (Some(a), Some(d)) = (adapter, device) {
+        a.disconnect_device(&d).await.ok();
     }
+    *state.characteristic.lock().await = None;
     Ok(())
 }
