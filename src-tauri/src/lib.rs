@@ -5,7 +5,7 @@
 mod ble;
 
 use std::sync::Arc;
-use tauri::{Emitter, Manager, State};
+use tauri::{Emitter, State};
 
 type BleStateArc = Arc<ble::BleState>;
 
