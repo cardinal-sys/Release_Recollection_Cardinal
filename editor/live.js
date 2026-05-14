@@ -842,14 +842,14 @@ function renderKeymapView() {
 
     if (useLayout) {
       const unitPx = 80, gap = 6, padding = 24;
-      let maxX = 0, maxY = 0;
-      for (const k of state.physicalLayout) {
-        maxX = Math.max(maxX, k.x + k.width);
-        maxY = Math.max(maxY, k.y + k.height);
-      }
+      // 〈Rotated Envelope〉— 回転キーの 4 隅まで含めた正確な bounding box。
+      // 親が flex column の場合に shrink で潰れないよう min-height + flex-shrink: 0。
+      const bounds = computeLayoutBoundsLive(state.physicalLayout);
+      const gw = bounds.maxX * unitPx + padding * 2;
+      const gh = bounds.maxY * unitPx + padding * 2;
       grid.style.cssText =
-        `position: relative; width: ${maxX * unitPx + padding * 2}px; ` +
-        `height: ${maxY * unitPx + padding * 2}px; ` +
+        `position: relative; width: ${gw}px; ` +
+        `min-height: ${gh}px; height: ${gh}px; flex-shrink: 0; ` +
         `padding: ${padding}px; margin: 0 auto;`;
 
       (layer.bindings || []).forEach((b, i) => {
@@ -877,6 +877,34 @@ function renderKeymapView() {
     wrap.appendChild(grid);
     layersEl.appendChild(wrap);
   });
+}
+
+// 〈Rotated Envelope Calculation〉— 回転後の 4 隅を考慮した layout 全体の bounding box
+function computeLayoutBoundsLive(layout) {
+  let maxX = 0, maxY = 0;
+  for (const k of layout) {
+    const x = k.x ?? 0;
+    const y = k.y ?? 0;
+    const w = k.width ?? 1;
+    const h = k.height ?? 1;
+    if (!k.r) {
+      maxX = Math.max(maxX, x + w);
+      maxY = Math.max(maxY, y + h);
+      continue;
+    }
+    const rx = k.rx ?? x;
+    const ry = k.ry ?? y;
+    const theta = (k.r * Math.PI) / 180;
+    const cos = Math.cos(theta);
+    const sin = Math.sin(theta);
+    for (const [cx, cy] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) {
+      const dx = cx - rx;
+      const dy = cy - ry;
+      maxX = Math.max(maxX, rx + dx * cos - dy * sin);
+      maxY = Math.max(maxY, ry + dx * sin + dy * cos);
+    }
+  }
+  return { maxX, maxY };
 }
 
 function createBindingCell(layerId, i, b) {

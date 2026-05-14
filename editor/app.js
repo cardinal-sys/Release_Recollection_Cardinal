@@ -974,14 +974,12 @@ function renderUsageMiniGrid(parent, behaviorRefName) {
   const grid = document.createElement('div');
   grid.className = 'combo-key-grid';
   const unitPx = 38, gap = 3, padding = 8;
-  let maxX = 0, maxY = 0;
-  for (const k of layout) {
-    maxX = Math.max(maxX, (k.x ?? 0) + (k.width ?? 1));
-    maxY = Math.max(maxY, (k.y ?? 0) + (k.height ?? 1));
-  }
+  const bounds = computeLayoutBounds(layout, 'width', 'height');
+  const gw = bounds.maxX * unitPx + padding * 2;
+  const gh = bounds.maxY * unitPx + padding * 2;
   grid.style.cssText =
-    `position: relative; width: ${maxX * unitPx + padding * 2}px; ` +
-    `height: ${maxY * unitPx + padding * 2}px; padding: ${padding}px;`;
+    `position: relative; width: ${gw}px; min-height: ${gh}px; height: ${gh}px; ` +
+    `flex-shrink: 0; padding: ${padding}px;`;
 
   layout.forEach((pos, idx) => {
     const cell = document.createElement('div');
@@ -1055,14 +1053,12 @@ function renderPhysicalKeySelector(parent, selectedPositions, onChange) {
   const unitPx = 56;
   const gap = 4;
   const padding = 12;
-  let maxX = 0, maxY = 0;
-  for (const k of layout) {
-    maxX = Math.max(maxX, (k.x ?? 0) + (k.width ?? 1));
-    maxY = Math.max(maxY, (k.y ?? 0) + (k.height ?? 1));
-  }
+  const bounds = computeLayoutBounds(layout, 'width', 'height');
+  const gw = bounds.maxX * unitPx + padding * 2;
+  const gh = bounds.maxY * unitPx + padding * 2;
   grid.style.cssText =
-    `position: relative; width: ${maxX * unitPx + padding * 2}px; ` +
-    `height: ${maxY * unitPx + padding * 2}px; padding: ${padding}px;`;
+    `position: relative; width: ${gw}px; min-height: ${gh}px; height: ${gh}px; ` +
+    `flex-shrink: 0; padding: ${padding}px;`;
 
   layout.forEach((pos, idx) => {
     const cell = document.createElement('div');
@@ -1491,14 +1487,12 @@ function renderGestureBaseKeyView(parent, baseKey, direction) {
   const grid = document.createElement('div');
   grid.className = 'combo-key-grid';
   const unitPx = 56, gap = 4, padding = 12;
-  let maxX = 0, maxY = 0;
-  for (const k of layout) {
-    maxX = Math.max(maxX, (k.x ?? 0) + (k.width ?? 1));
-    maxY = Math.max(maxY, (k.y ?? 0) + (k.height ?? 1));
-  }
+  const bounds = computeLayoutBounds(layout, 'width', 'height');
+  const gw = bounds.maxX * unitPx + padding * 2;
+  const gh = bounds.maxY * unitPx + padding * 2;
   grid.style.cssText =
-    `position: relative; width: ${maxX * unitPx + padding * 2}px; ` +
-    `height: ${maxY * unitPx + padding * 2}px; padding: ${padding}px;`;
+    `position: relative; width: ${gw}px; min-height: ${gh}px; height: ${gh}px; ` +
+    `flex-shrink: 0; padding: ${padding}px;`;
 
   layout.forEach((pos, idx) => {
     const cell = document.createElement('div');
@@ -2393,23 +2387,54 @@ function renderFlatGrid(layer) {
   });
 }
 
+// 〈Rotated Envelope Calculation〉— 回転後の 4 隅を考慮した layout 全体の bounding box。
+// widthKey / heightKey はオブジェクトのプロパティ名（'w'/'h' or 'width'/'height'）。
+function computeLayoutBounds(layout, widthKey = 'w', heightKey = 'h') {
+  let maxX = 0, maxY = 0;
+  for (const k of layout) {
+    const x = k.x ?? 0;
+    const y = k.y ?? 0;
+    const w = k[widthKey] ?? 1;
+    const h = k[heightKey] ?? 1;
+    if (!k.r) {
+      maxX = Math.max(maxX, x + w);
+      maxY = Math.max(maxY, y + h);
+      continue;
+    }
+    const rx = k.rx ?? x;
+    const ry = k.ry ?? y;
+    const theta = (k.r * Math.PI) / 180;
+    const cos = Math.cos(theta);
+    const sin = Math.sin(theta);
+    // 4 隅 (x,y) (x+w,y) (x,y+h) (x+w,y+h) を (rx,ry) 中心に回転
+    for (const [cx, cy] of [
+      [x, y], [x + w, y], [x, y + h], [x + w, y + h],
+    ]) {
+      const dx = cx - rx;
+      const dy = cy - ry;
+      const nx = rx + dx * cos - dy * sin;
+      const ny = ry + dx * sin + dy * cos;
+      maxX = Math.max(maxX, nx);
+      maxY = Math.max(maxY, ny);
+    }
+  }
+  return { maxX, maxY };
+}
+
 function renderPhysicalLayout(layer, layout) {
   els.keymapGrid.classList.add('physical-layout');
   const unitPx = 56;
   const gap = 4;
 
-  // Compute bounds (account for rotation by checking rx/ry)
-  let maxX = 0, maxY = 0;
-  for (const k of layout) {
-    const w = k.w ?? 1;
-    const h = k.h ?? 1;
-    maxX = Math.max(maxX, (k.x ?? 0) + w);
-    maxY = Math.max(maxY, (k.y ?? 0) + h);
-  }
+  // 〈True Bounding Box〉— 回転キーの 4 隅も加味した正確な envelope。
+  // 親が flex column なので height でなく min-height を使う (flex-shrink 抑制)。
+  const bounds = computeLayoutBounds(layout, 'w', 'h');
   const padding = 12;
+  const gridW = bounds.maxX * unitPx + padding * 2;
+  const gridH = bounds.maxY * unitPx + padding * 2;
   els.keymapGrid.style.cssText =
-    `position: relative; width: ${maxX * unitPx + padding * 2}px; ` +
-    `height: ${maxY * unitPx + padding * 2}px; ` +
+    `position: relative; width: ${gridW}px; ` +
+    `min-height: ${gridH}px; height: ${gridH}px; flex-shrink: 0; ` +
     `padding: ${padding}px; margin: 0 auto;`;
 
   layer.forEach((entry, idx) => {
