@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
   PAT: 'cardinal_editor_pat',
   REPO: 'cardinal_editor_repo',
   BRANCH: 'cardinal_editor_branch',
+  REMEMBER_PAT: 'cardinal_editor_remember_pat',
 };
 
 /* 編集対象ファイルのホワイトリスト */
@@ -231,19 +232,44 @@ function log(msg, kind = 'info') {
 }
 
 /* ◆ STORAGE ────────────────────────────── */
+// 〈Secret Vault Sealing〉— PAT は既定で sessionStorage（タブを閉じれば消える）。
+// ユーザが "Remember PAT" を opt-in した場合のみ localStorage に永続化する。
+function isPatRemembered() {
+  return localStorage.getItem(STORAGE_KEYS.REMEMBER_PAT) === '1';
+}
+
+function clearStoredPat() {
+  sessionStorage.removeItem(STORAGE_KEYS.PAT);
+  localStorage.removeItem(STORAGE_KEYS.PAT);
+}
+
 function saveCredentials() {
-  localStorage.setItem(STORAGE_KEYS.PAT, state.pat);
+  // repo / branch は機密でないので localStorage に常時保存
   localStorage.setItem(STORAGE_KEYS.REPO, state.repo);
   localStorage.setItem(STORAGE_KEYS.BRANCH, state.branch);
+
+  // PAT は opt-in した側にだけ保存（片側は必ず消去）
+  if (isPatRemembered()) {
+    localStorage.setItem(STORAGE_KEYS.PAT, state.pat);
+    sessionStorage.removeItem(STORAGE_KEYS.PAT);
+  } else {
+    sessionStorage.setItem(STORAGE_KEYS.PAT, state.pat);
+    localStorage.removeItem(STORAGE_KEYS.PAT);
+  }
 }
 
 function loadCredentials() {
-  const pat = localStorage.getItem(STORAGE_KEYS.PAT);
+  // sessionStorage 優先、なければ localStorage（旧バージョン互換）
+  const pat = sessionStorage.getItem(STORAGE_KEYS.PAT)
+            || localStorage.getItem(STORAGE_KEYS.PAT);
   const repo = localStorage.getItem(STORAGE_KEYS.REPO);
   const branch = localStorage.getItem(STORAGE_KEYS.BRANCH);
   if (pat) els.patInput.value = pat;
   if (repo) els.repoInput.value = repo;
   if (branch) els.branchInput.value = branch;
+  // checkbox の初期状態を反映
+  const rememberEl = document.getElementById('remember-pat');
+  if (rememberEl) rememberEl.checked = isPatRemembered();
 }
 
 /* ◆ GITHUB API ─────────────────────────── */
@@ -358,15 +384,30 @@ async function commitAll(message) {
     }
   );
 
-  // 6. Update ref
+  // 6. Update ref — 〈Memory Engraving〉
   log('Updating branch ref...');
-  await ghFetch(
-    `/repos/${state.repo}/git/refs/heads/${encodeURIComponent(state.branch)}`,
-    {
-      method: 'PATCH',
-      body: JSON.stringify({ sha: commit.sha, force: false }),
+  try {
+    await ghFetch(
+      `/repos/${state.repo}/git/refs/heads/${encodeURIComponent(state.branch)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ sha: commit.sha, force: false }),
+      }
+    );
+  } catch (err) {
+    // 422 = non-fast-forward (リモートで先行コミットあり)
+    if (/^\[422\]/.test(err.message)) {
+      setStatus('〈Memory Conflict〉— remote ahead', 'error');
+      log('Cardinal の記憶は古くなっています。リモートが先行更新されました。', 'error');
+      log('変更内容は保持されています。ページをリロードして再同期後、再度 Seal してください。', 'warning');
+      throw new Error(
+        '〈Memory Conflict〉Cardinal の記憶は古くなっています。リモートが先行更新されました。\n\n' +
+        'ページをリロードして再同期してから、もう一度 Seal を試してください。\n' +
+        '（変更内容はリロードまで保持されます）'
+      );
     }
-  );
+    throw err;
+  }
 
   log(`Sealed: ${commit.sha.slice(0, 7)} — ${message}`, 'success');
   setStatus(`Sealed ${modified.length} file(s)`, 'success');
@@ -812,31 +853,28 @@ function parseCombosFile(text) {
   if (headerMatch) {
     header = headerMatch[0];
   }
-  const body = text.slice(header.length);
+  const body = stripDtsComments(text.slice(header.length));
 
+  // 〈Parent Realm〉— トップレベルに `combos { ... };` がある場合はその中身を走査範囲に
+  const topBlocks = walkTopLevelDtsBlocks(body);
+  const combosParent = topBlocks.find((b) => b.name === 'combos' && !b.refName);
+  const scope = combosParent ? combosParent.inner : body;
+
+  const children = walkTopLevelDtsBlocks(scope);
   const entries = [];
-  const re = /(\w+)\s*\{([\s\S]*?)\}\s*;/g;
-  let m;
-  while ((m = re.exec(body)) !== null) {
-    const name = m[1];
-    const inner = m[2];
+  for (const { name, inner } of children) {
+    if (!inner) continue;
     const props = {};
-    // bindings = <...>;
     const bindingsM = inner.match(/bindings\s*=\s*<\s*([\s\S]*?)\s*>\s*;/);
     if (bindingsM) props.bindings = bindingsM[1].trim();
-    // key-positions = <...>;
     const kpM = inner.match(/key-positions\s*=\s*<\s*([\s\S]*?)\s*>\s*;/);
     if (kpM) props.keyPositions = kpM[1].trim();
-    // timeout-ms = <N>;
     const timeoutM = inner.match(/timeout-ms\s*=\s*<\s*(\d+)\s*>\s*;/);
     if (timeoutM) props.timeoutMs = Number(timeoutM[1]);
-    // layers = <...>;
     const layersM = inner.match(/layers\s*=\s*<\s*([\s\S]*?)\s*>\s*;/);
     if (layersM) props.layers = layersM[1].trim();
-    // require-prior-idle-ms = <N>;
     const ripM = inner.match(/require-prior-idle-ms\s*=\s*<\s*(\d+)\s*>\s*;/);
     if (ripM) props.requirePriorIdleMs = Number(ripM[1]);
-
     entries.push({ name, ...props });
   }
   return { header, entries };
@@ -1176,24 +1214,106 @@ function addNewCombo(path) {
 }
 
 /* ◆ COMMON DTS BEHAVIOR PARSER ─────────── */
-// `name: label { ... };` または `name { ... };` の構造を抽出
-// 各 property は `key = value;` または `key;` (boolean) として
+
+// 〈Sigil Purify〉— /* ... */ と // ... を取り除いてコメント内のブレースを無効化
+function stripDtsComments(text) {
+  let out = '';
+  let i = 0;
+  const N = text.length;
+  while (i < N) {
+    if (text[i] === '"') {
+      // 文字列リテラルはそのまま温存
+      const end = text.indexOf('"', i + 1);
+      if (end < 0) { out += text.slice(i); break; }
+      out += text.slice(i, end + 1);
+      i = end + 1;
+    } else if (text[i] === '/' && text[i + 1] === '*') {
+      const end = text.indexOf('*/', i + 2);
+      if (end < 0) break;
+      // コメント位置に改行を保ち、行番号 / 差分のズレを防ぐ
+      out += text.slice(i, end + 2).replace(/[^\n]/g, ' ');
+      i = end + 2;
+    } else if (text[i] === '/' && text[i + 1] === '/') {
+      const end = text.indexOf('\n', i);
+      const stop = end < 0 ? N : end;
+      out += ' '.repeat(stop - i);
+      i = stop;
+    } else {
+      out += text[i++];
+    }
+  }
+  return out;
+}
+
+// 〈Tree Walk〉— ブレースバランスで top-level ブロックを抽出。
+// プロパティ (`key = value;` / `key;`) はスキップ、ネスト `{ ... }` 内をスキャンしない。
+// 文字列リテラル "..." 内のブレースは無視。
+function walkTopLevelDtsBlocks(body) {
+  const out = [];
+  let i = 0;
+  const N = body.length;
+  const skipString = (start) => {
+    let j = start + 1;
+    while (j < N) {
+      if (body[j] === '\\' && j + 1 < N) { j += 2; continue; }
+      if (body[j] === '"') return j + 1;
+      j++;
+    }
+    return N;
+  };
+  while (i < N) {
+    while (i < N && /\s/.test(body[i])) i++;
+    if (i >= N) break;
+    const tail = body.slice(i);
+    // ブロック: `refName: label {` または `name {`
+    const blockM = tail.match(/^([#a-zA-Z][\w-]*)(?:\s*:\s*([#a-zA-Z][\w-]*))?\s*\{/);
+    if (blockM) {
+      const refName = blockM[2] ? blockM[1] : null;
+      const label = blockM[2] || blockM[1];
+      const openAt = i + blockM[0].length - 1;
+      let depth = 1;
+      let j = openAt + 1;
+      while (j < N && depth > 0) {
+        const c = body[j];
+        if (c === '"') { j = skipString(j); continue; }
+        if (c === '{') depth++;
+        else if (c === '}') depth--;
+        j++;
+      }
+      if (depth !== 0) break; // 閉じカッコ不足 → 途中で打ち切り
+      const inner = body.slice(openAt + 1, j - 1);
+      let k = j;
+      while (k < N && /\s/.test(body[k])) k++;
+      const semi = body[k] === ';';
+      out.push({ refName, label, name: refName || label, inner });
+      i = semi ? k + 1 : j;
+      continue;
+    }
+    // プロパティ: `key = ... ;` または boolean `key;`
+    const propM = tail.match(/^[#a-zA-Z][\w-]*\s*(?:=[\s\S]*?)?;/);
+    if (propM) {
+      i += propM[0].length;
+      continue;
+    }
+    // 不明トークン → 1 char 進める
+    i++;
+  }
+  return out;
+}
+
+// `name: label { ... };` 構造を抽出（ネスト / コメント対応）
 function parseDtsBlocks(text) {
   let header = '';
   const headerMatch = text.match(/^\s*\/\*[\s\S]*?\*\/\s*/);
   if (headerMatch) header = headerMatch[0];
-  const body = text.slice(header.length);
-
-  const entries = [];
-  // name: label { ... };
-  const re = /(\w+)\s*:\s*(\w+)\s*\{([\s\S]*?)\}\s*;/g;
-  let m;
-  while ((m = re.exec(body)) !== null) {
-    const refName = m[1];
-    const label = m[2];
-    const inner = m[3];
-    entries.push({ refName, label, props: parseDtsProps(inner) });
-  }
+  const body = stripDtsComments(text.slice(header.length));
+  const entries = walkTopLevelDtsBlocks(body)
+    .filter((b) => b.refName) // ラベル付き (`name: label {`) のみ採用
+    .map(({ refName, label, inner }) => ({
+      refName,
+      label,
+      props: parseDtsProps(inner),
+    }));
   return { header, entries };
 }
 
@@ -2524,17 +2644,27 @@ async function handleAuth() {
       await openFile(requestedFile);
     }
   } catch (err) {
-    setStatus('Authentication failed', 'error');
+    // 〈Conscription Failure Cleansing〉— 誤った PAT を抱え込まないよう消去
+    clearStoredPat();
+    state.pat = '';
+    els.patInput.value = '';
+    setStatus('Authentication failed — PAT cleared', 'error');
     log(err.message, 'error');
+    log('保存された PAT を破棄しました。再入力してください。', 'warning');
   }
 }
 
 /* ◆ DIFF PREVIEW ────────────────────── */
+// 〈Diff Fallback Flag〉— 直近の computeLineDiff が fallback を踏んだか
+let __lastDiffFallback = false;
+
 function computeLineDiff(originalLines, currentLines) {
+  __lastDiffFallback = false;
   // シンプルな LCS ベースの diff（メモ化）
   const m = originalLines.length, n = currentLines.length;
-  // 大きな配列だと O(mn) でメモリ食うので line-by-line の hash で打ち切り
-  if (m * n > 100000) {
+  // O(mn) DP のメモリ上限を 1M cell（≒2MB）に引き上げ。これを超える場合のみ fallback。
+  if (m * n > 1_000_000) {
+    __lastDiffFallback = true;
     // 片方が大きい場合は単純な置換 diff にフォールバック
     const out = [];
     for (let i = 0; i < Math.max(m, n); i++) {
@@ -2548,7 +2678,8 @@ function computeLineDiff(originalLines, currentLines) {
     return out;
   }
 
-  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  // Int16Array で DP テーブル — メモリ削減
+  const dp = Array.from({ length: m + 1 }, () => new Int16Array(n + 1));
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
       if (originalLines[i - 1] === currentLines[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
@@ -2622,7 +2753,15 @@ function renderDiffPreview(modifiedFiles) {
 
     const origLines = (file.original || '').split('\n');
     const curLines = (file.content || '').split('\n');
-    const diff = compactDiff(computeLineDiff(origLines, curLines));
+    const rawDiff = computeLineDiff(origLines, curLines);
+    if (__lastDiffFallback) {
+      const warn = document.createElement('div');
+      warn.className = 'diff-fallback-warning';
+      warn.textContent =
+        '⚠ このファイルは大きすぎるため近似 diff を表示しています。実際の差分はコミット後に GitHub 側で確認してください。';
+      fileEl.appendChild(warn);
+    }
+    const diff = compactDiff(rawDiff);
 
     if (diff.length === 0) {
       const e = document.createElement('div');
@@ -2704,6 +2843,18 @@ function init() {
   els.patInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleAuth();
   });
+  const rememberEl = document.getElementById('remember-pat');
+  if (rememberEl) {
+    rememberEl.addEventListener('change', () => {
+      if (rememberEl.checked) {
+        localStorage.setItem(STORAGE_KEYS.REMEMBER_PAT, '1');
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.REMEMBER_PAT);
+      }
+      // チェック変更直後、既存の PAT があれば適切な側に移動
+      if (state.pat) saveCredentials();
+    });
+  }
   els.reloadTreeBtn.addEventListener('click', renderFileTree);
   els.sealBtn.addEventListener('click', handleSeal);
   els.applyEditBtn.addEventListener('click', applyVisualEdit);

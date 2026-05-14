@@ -142,6 +142,27 @@ body {
   color: var(--accent-gold);
 }
 
+.auth-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  user-select: none;
+}
+
+.auth-remember input[type="checkbox"] {
+  flex: none;
+  min-width: 0;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+}
+
 /* ◆ MAIN SHELL ────────────────────────── */
 .editor-shell {
   flex: 1;
@@ -909,6 +930,16 @@ body {
   padding: 2px 6px;
   border-top: 1px dashed var(--border-soft);
   margin-top: 4px;
+}
+
+.diff-fallback-warning {
+  background: rgba(255, 200, 90, 0.10);
+  border-left: 3px solid var(--accent-gold, #f0c674);
+  color: var(--accent-gold, #f0c674);
+  padding: 6px 10px;
+  margin: 4px 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
 }
 
 .conf-entries {

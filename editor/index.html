@@ -54,13 +54,18 @@
   <!-- ◆ AUTHENTICATION GATE ─ 認証関門 -->
   <section id="auth-section" class="auth-bar">
     <div class="auth-form">
-      <input type="password" id="pat-input" placeholder="GitHub PAT (ghp_xxx, repo scope)">
+      <input type="password" id="pat-input" placeholder="GitHub PAT (ghp_xxx, repo scope)" autocomplete="off">
       <input type="text" id="repo-input" value="cardinal-sys/Release_Recollection" placeholder="owner/repo">
       <input type="text" id="branch-input" value="main" placeholder="branch">
       <button id="auth-btn" class="btn-primary">〈 Authenticate 〉</button>
     </div>
+    <label class="auth-remember">
+      <input type="checkbox" id="remember-pat">
+      <span>[ Persist PAT across sessions ]</span>
+    </label>
     <p class="auth-hint">
-      PAT は localStorage に保存されます。<code>repo</code> スコープが必要です。
+      既定では <strong>sessionStorage</strong> に一時保存（タブを閉じると破棄）。
+      上のチェックを入れると localStorage に永続化。<code>repo</code> スコープが必要です。
     </p>
   </section>
 
