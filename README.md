@@ -435,7 +435,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 | NFCT_PINS_AS_GPIOS | 有効 | R・L両側 | NFC無線とBLEの干渉防止（安定版2つともあり） |
 | BT_GAP_AUTO_UPDATE_CONN_PARAMS | 有効 | R・L両側 | 接続後に自動パラメータ再交渉（kabutokoma準拠） |
 | BT_CONN_PARAM_UPDATE_TIMEOUT | 1000ms | R・L両側 | 接続から1秒後にパラメータ更新要求 |
-| BT_PERIPHERAL_PREF_TIMEOUT | 600 (6秒) | R・L両側 | ホスト向け接続タイムアウト |
+| BT_PERIPHERAL_PREF_TIMEOUT | 1000 (10秒) | R・L両側 | ホスト向け接続タイムアウト（左右完全一致） |
 | TX Power | +8dBm | R・L両側 | 最大送信出力 |
 | Split BLE Latency | 0 | R側（Central） | デフォルト 30 から 0 へ変更（Left 側キー入力の遅延パケット許容をゼロに） |
 | Split BLE Timeout | 1000 | R・L両側 | スプリット接続タイムアウト（両側共通） |
@@ -486,6 +486,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-21 | 〈Bilateral Sync Restoration〉— Dark_Repulser.conf の `CONFIG_BT_PERIPHERAL_PREF_TIMEOUT` を 600 → 1000 に修正し、Elucidator 側（1000ms）と完全同期させた。2026-05-01 の〈Timeout Re-extend〉で右半身のみ 1000ms へ再延長されており、左半身が 600ms に取り残されていた構造的取りこぼしを封印。両ファイルとも「左右で完全一致させる」と明記されたペリフェラル接続パラメータの非対称が解消され、スプリット間およびホスト復帰時の挙動が左右で揃う。 |
 | 2026-05-19 | 〈Deep Sleep Wake-up Optimization for ZMK Studio〉— Issue #3195 根本対策：USB CDC ACM を無効化して BLE Live Sync に統一。Elucidator.conf に `CONFIG_USB_CDC_ACM=n` を追加。ZMK Studio 有効時の USB CDC が Power Management をブロックする構造的問題を、USB シリアルコンソール削除で回避。BLE（Web Bluetooth 経由 Live Sync Conduit）での直接接続を唯一の Live Sync パスとする。Zephyr 4.1 PM API リグレッション原因の USB CDC ACM デバイス管理を完全排除することで、スリープ復帰を実現。実デバイス動作検証推奨。 |
 | 2026-05-14 | 〈Step 3 Full Parity〉— Cardinal Editor Live Sync Conduit を ZMK Studio 公式パリティへ昇華。`zmk-studio-messages` の proto を直接走査して未実装 RPC を 6 件特定し、`keymap.addLayer` / `removeLayer` / `moveLayer` / `restoreLayer` / `core.resetSettings` / `keymap.discardChanges` を全実装。Notification 購読 (`core.lockStateChanged` / `keymap.unsavedChangesStatusChanged`) を読み取り、🔒 LOCKED / ✱ UNSAVED バッジを UI に常時反映。各レイヤー summary に `↑ ↓ ↺ ×` ボタン (移動・初期化・削除) を追加、MEMORY MATRIX 上部に `+ Add Layer / 💾 Save / ↻ Discard / ⚠ Factory Reset` ツールバーを設置。`core.unlock` RPC は ZMK Studio プロトコルに存在しないため、Locked 時は専用バナーで `&studio_unlock` バインドキー押下を促す。disconnect 時に notification reader を `cancel()` し reader 浮遊リーク (中度監査項目 #6) も同時に封印。 |
 | 2026-05-14 | 〈Keymap Yaml Restoration〉— `keymap.yaml` を 779 行版（commit `229120b^`）に復元。Colab 経由の編纂で 778 行 → 5 行に縮退していたものを、神器の全 16 階層分の物理キー定義を取り戻して再封印。Visual Editor が「キー 1 個しか表示しない」状態の根本原因。 |
