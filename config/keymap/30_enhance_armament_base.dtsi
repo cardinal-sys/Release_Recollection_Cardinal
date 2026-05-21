@@ -13,7 +13,7 @@ gesture_mo_kp: gesture_mo_kp {
 
     #binding-cells = <2>;
     flavor = "tap-preferred";
-    tapping-term-ms = <180>;
+    tapping-term-ms = <100>;
     quick-tap-ms = <100>;
     require-prior-idle-ms = <100>;
 };
