@@ -138,6 +138,18 @@
         scroll-accel;
         scroll-accel-max-mult = <0>;
         scroll-accel-threshold = <0>;
+
+        /* 〈Noise Cancellation〉— IIR フィルタによる精度向上 */
+        iir-filter-alpha = <614>;  /* 0.6 固定点（*1024）— 低レイテンシ */
+
+        /* 〈Adaptive Precision〉— 速度ベース CPI 動的調整 */
+        speed-based-cpi;
+        speed-cpi-low-threshold = <5>;      /* 微動での精密操作 */
+        speed-cpi-high-threshold = <30>;    /* 高速移動での追従 */
+        speed-cpi-low = <1200>;             /* 精密モード CPI */
+        speed-cpi-medium = <2200>;          /* 通常モード CPI */
+        speed-cpi-high = <3200>;            /* 高速モード CPI */
+
         evt-type = <INPUT_EV_REL>;
         x-input-code = <INPUT_REL_X>;
         y-input-code = <INPUT_REL_Y>;

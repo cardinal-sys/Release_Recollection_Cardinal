@@ -458,6 +458,10 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 | PMW3610 4ms モード | **無効**（削除済み） | BLE 7.5ms インターバルとのミスマッチによるポインタジャンプを防止 |
 | PMW3610 CPI | 2200 | 通常カーソル CPI（`pointer_accel.sensor-dpi` も同値）。SNIPE 中はドライバが自動低減 |
 | PMW3610 cpi-layers | `<4 3200>` | L4 MOUSE アクティブ時はセンサー CPI を 3200 に動的切替（〈Resolution Shift〉) |
+| IIR フィルタ係数 | 614 (0.6) | 〈Noise Cancellation〉— ジッターを除去して動きを滑らかにする固定点フィルタ（*1024） |
+| 速度ベース CPI | 有効 | 〈Adaptive Precision〉— 移動速度に応じて CPI を自動調整。微動=1200、通常=2200、高速=3200 |
+| 速度 CPI 低下点 | 5 pixel/sample | 速度がこの値未満で低 CPI（1200）に切り替え |
+| 速度 CPI 高速点 | 30 pixel/sample | 速度がこの値以上で高 CPI（3200）に切り替え |
 | arrows-alt L15 tick | 80ms | K ホールドスクロールの精密度。値が大きいほど 1 ノッチが大きい動きを要求 |
 | L5 SCROLL スケーラー | `1/2`（半速） | `zip_xy_to_scroll_mapper` 後段にスケーラーを噛ませ、ホイール出力を 1/2 倍に絞り精密スクロール化 |
 
@@ -486,6 +490,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-21 | 〈Noise Cancellation & Adaptive Precision〉— PMW3610 トラックボールドライバに IIR フィルタと速度ベース CPI 動的調整を統合。IIR フィルタ（固定点係数 α=614 ≈ 0.6, *1024）を 2-sample 蓄積直後に適用し、モーションノイズを除去して追従性を維持。速度ベース CPI は移動速度（|dx|+|dy|）に応じて 3 階級に自動切替：微動 5px/sample 未満→低 CPI 1200、高速 30px/sample 以上→高 CPI 3200、その間→標準 CPI 2200。既存 cpi-layers 機構と共存し、両手段で精密～高速移動の全域に対応。Elucidator.overlay に `iir-filter-alpha`, `speed-based-cpi`, `speed-cpi-low-threshold`, `speed-cpi-high-threshold`, `speed-cpi-low/medium/high` を追加定義。README `CHARACTER PARAMETERS` に新パラメータ 4 行を記載。実装により cursor ジッター軽減と速度適応追従が同時実現される。 |
 | 2026-05-21 | 〈Hold-Tap Latency Acceleration〉— mod_tap_func と lt_to_layer_0 の tapping-term-ms を 180 → 100 に短縮し、ZMK 標準値へ統一。gesture_mo_kp / lt_mkp / mod_mkp / dragkey も tapping-term-ms を 180 → 100 に統一し、ホールド判定の遅延を 80ms 削減。標準より長い判定時間が「ホールドしづらさ」の根本原因であったため、ZMK デフォルト timing への復帰によってホールド応答性が大幅改善される。 |
 | 2026-05-21 | 〈Bilateral Sync Restoration〉— Dark_Repulser.conf の `CONFIG_BT_PERIPHERAL_PREF_TIMEOUT` を 600 → 1000 に修正し、Elucidator 側（1000ms）と完全同期させた。2026-05-01 の〈Timeout Re-extend〉で右半身のみ 1000ms へ再延長されており、左半身が 600ms に取り残されていた構造的取りこぼしを封印。両ファイルとも「左右で完全一致させる」と明記されたペリフェラル接続パラメータの非対称が解消され、スプリット間およびホスト復帰時の挙動が左右で揃う。 |
 | 2026-05-19 | 〈Deep Sleep Wake-up Optimization for ZMK Studio〉— Issue #3195 根本対策：USB CDC ACM を無効化して BLE Live Sync に統一。Elucidator.conf に `CONFIG_USB_CDC_ACM=n` を追加。ZMK Studio 有効時の USB CDC が Power Management をブロックする構造的問題を、USB シリアルコンソール削除で回避。BLE（Web Bluetooth 経由 Live Sync Conduit）での直接接続を唯一の Live Sync パスとする。Zephyr 4.1 PM API リグレッション原因の USB CDC ACM デバイス管理を完全排除することで、スリープ復帰を実現。実デバイス動作検証推奨。 |
