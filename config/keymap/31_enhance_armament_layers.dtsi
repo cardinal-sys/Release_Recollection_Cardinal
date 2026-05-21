@@ -13,6 +13,17 @@ smart_snipe: smart_snipe {
     ignore-modifiers;
 };
 
+mod_tap_func: mod_tap_func {
+    compatible = "zmk,behavior-hold-tap";
+    label = "MOD_TAP_FUNC";
+    #binding-cells = <2>;
+    flavor = "tap-preferred";
+    tapping-term-ms = <180>;
+    quick-tap-ms = <100>;
+    require-prior-idle-ms = <100>;
+    bindings = <&kp>, <&kp>;
+};
+
 ht_snipe: ht_snipe {
     compatible = "zmk,behavior-hold-tap";
     #binding-cells = <2>;
@@ -29,9 +40,9 @@ lt_to_layer_0: lt_to_layer_0 {
 
     #binding-cells = <2>;
     flavor = "tap-preferred";
-    tapping-term-ms = <210>;
-    quick-tap-ms = <150>;
-    require-prior-idle-ms = <350>;
+    tapping-term-ms = <180>;
+    quick-tap-ms = <100>;
+    require-prior-idle-ms = <100>;
 };
 
 ht_arrows_alt: ht_arrows_alt {

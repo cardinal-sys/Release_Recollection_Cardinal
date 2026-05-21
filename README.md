@@ -513,6 +513,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 | 2026-05-01 | 〈Scroll Refine〉— トラックボール L5 SCROLL レイヤーのゆっくり回転反応改善。scroll-accel-threshold を <30> → <0> に変更し、速度による足切りを廃止。ゆっくりしたスクロール入力でも確実に反応するよう調整。 |
 | 2026-05-01 | 〈Handling Refine〉— hold-tap behavior チューニング：lt_mkp/mod_mkp に balanced + require-prior-idle を追加。home-row mod（hm_l/hm_r）実装、デフォルトレイヤーの &mt を置き換え。BLE接続タイムアウト延長（600 → 1000ms）。 |
 | 2026-05-01 | コンボ再構築：scrl_up/scrl_down → window_close/window_min、新規 app_quit（P+マイナス）追加 |
+| 2026-05-21 | 〈Hold-Tap Tuning Refine〉— ホールドタップの判定緩和。`gesture_mo_kp` の `require-prior-idle-ms` を 450 → 100 に短縮（連続入力時の足かせを解除）、`tapping-term-ms` を 210 → 180、`quick-tap-ms` を 150 → 100 に削減。`lt_mkp` / `mod_mkp` は flavor を balanced → tap-preferred に変更してタップを優先判定、`tapping-term-ms` 200 → 180、`quick-tap-ms` 150 → 100、`require-prior-idle-ms` 150 → 100。`dragkey` も `tapping-term-ms` 200 → 180、`require-prior-idle-ms` 150 → 100、`quick-tap-ms` 100 → 80 で高速判定化。新規カスタム behavior `mod_tap_func`（tapping-term 180ms / quick-tap 100ms / require-prior-idle 100ms / tap-preferred）を定義し、全キーマップの `&mt` 13 箇所（[ Synthesis 00 ] 5 + [ Synthesis 02 ] 1 + [ Synthesis 04 ] 1 + [ Synthesis 15 ] 5 + [ Synthesis 16 ] 1）を統一。`lt_to_layer_0` も同基準に調整（require-prior-idle 350 → 100）し、全ホールドタップの判定条件を完全統一化。 |
 
 
 Edited by Google Colab AI

@@ -13,9 +13,9 @@ gesture_mo_kp: gesture_mo_kp {
 
     #binding-cells = <2>;
     flavor = "tap-preferred";
-    tapping-term-ms = <210>;
-    quick-tap-ms = <150>;
-    require-prior-idle-ms = <450>;
+    tapping-term-ms = <180>;
+    quick-tap-ms = <100>;
+    require-prior-idle-ms = <100>;
 };
 
 rotate: rotate {
@@ -33,10 +33,10 @@ lt_mkp: lt_mkp {
     bindings = <&mo>, <&mkp>;
 
     #binding-cells = <2>;
-    flavor = "balanced";
-    tapping-term-ms = <200>;
-    quick-tap-ms = <150>;
-    require-prior-idle-ms = <150>;
+    flavor = "tap-preferred";
+    tapping-term-ms = <180>;
+    quick-tap-ms = <100>;
+    require-prior-idle-ms = <100>;
 };
 
 mod_mkp: mod_mkp {
@@ -45,10 +45,10 @@ mod_mkp: mod_mkp {
     bindings = <&kp>, <&mkp>;
 
     #binding-cells = <2>;
-    flavor = "balanced";
-    tapping-term-ms = <200>;
-    quick-tap-ms = <150>;
-    require-prior-idle-ms = <150>;
+    flavor = "tap-preferred";
+    tapping-term-ms = <180>;
+    quick-tap-ms = <100>;
+    require-prior-idle-ms = <100>;
 };
 
 dragkey: dragkey {
@@ -57,10 +57,10 @@ dragkey: dragkey {
     bindings = <&drag_on>, <&mkp>;
 
     #binding-cells = <2>;
-    tapping-term-ms = <200>;
-    require-prior-idle-ms = <150>;
+    tapping-term-ms = <180>;
+    require-prior-idle-ms = <100>;
     flavor = "tap-preferred";
-    quick-tap-ms = <100>;
+    quick-tap-ms = <80>;
 };
 
 g_shft: g_shft {
