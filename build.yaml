@@ -1,6 +1,6 @@
 ---
 include:
-  - board: xiao_ble/nrf52840
+  - board: xiao_ble/nrf52840/zmk
     shield: Elucidator rgbled_adapter
     # snippet: studio-rpc-usb-uart # Zephyr 4.1 互換性のため一時無効化
   - board: xiao_ble/nrf52840/zmk
