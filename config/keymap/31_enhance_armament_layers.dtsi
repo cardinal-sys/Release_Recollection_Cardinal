@@ -18,7 +18,7 @@ mod_tap_func: mod_tap_func {
     label = "MOD_TAP_FUNC";
     #binding-cells = <2>;
     flavor = "tap-preferred";
-    tapping-term-ms = <180>;
+    tapping-term-ms = <100>;
     quick-tap-ms = <100>;
     require-prior-idle-ms = <100>;
     bindings = <&kp>, <&kp>;
@@ -40,7 +40,7 @@ lt_to_layer_0: lt_to_layer_0 {
 
     #binding-cells = <2>;
     flavor = "tap-preferred";
-    tapping-term-ms = <180>;
+    tapping-term-ms = <100>;
     quick-tap-ms = <100>;
     require-prior-idle-ms = <100>;
 };

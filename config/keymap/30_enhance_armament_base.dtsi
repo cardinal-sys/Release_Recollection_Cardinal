@@ -13,7 +13,7 @@ gesture_mo_kp: gesture_mo_kp {
 
     #binding-cells = <2>;
     flavor = "tap-preferred";
-    tapping-term-ms = <180>;
+    tapping-term-ms = <100>;
     quick-tap-ms = <100>;
     require-prior-idle-ms = <100>;
 };
@@ -34,7 +34,7 @@ lt_mkp: lt_mkp {
 
     #binding-cells = <2>;
     flavor = "tap-preferred";
-    tapping-term-ms = <180>;
+    tapping-term-ms = <100>;
     quick-tap-ms = <100>;
     require-prior-idle-ms = <100>;
 };
@@ -46,7 +46,7 @@ mod_mkp: mod_mkp {
 
     #binding-cells = <2>;
     flavor = "tap-preferred";
-    tapping-term-ms = <180>;
+    tapping-term-ms = <100>;
     quick-tap-ms = <100>;
     require-prior-idle-ms = <100>;
 };
@@ -57,7 +57,7 @@ dragkey: dragkey {
     bindings = <&drag_on>, <&mkp>;
 
     #binding-cells = <2>;
-    tapping-term-ms = <180>;
+    tapping-term-ms = <100>;
     require-prior-idle-ms = <100>;
     flavor = "tap-preferred";
     quick-tap-ms = <80>;
