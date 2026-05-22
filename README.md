@@ -35,7 +35,7 @@
 |---|---|
 | Step 1: ZMK Studio 有効化（`CONFIG_ZMK_STUDIO=y`） | ✅ |
 | Step 2: PoC（Web Bluetooth 接続 + Transport 確立） | ✅ |
-| Step 3: RPC キーマップ取得・書換 + Visual Editor 同期 | 未着手 |
+| Step 3: RPC キーマップ取得・書換 + Visual Editor 同期 | ✅ |
 
 > **[ SYSTEM ]** Live Sync Conduit を使うには Elucidator (central) に ZMK Studio 有効化版ファームウェアが書き込まれている必要がある。Chrome / Edge など Web Bluetooth API 対応ブラウザ必須。
 
@@ -408,9 +408,9 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 | MODULE | REPOSITORY | DESCRIPTION |
 |---|---|---|
 | zmk | zmkfirmware/zmk | ZMK 本体 |
-| zmk-pmw3610-driver | eincode0/zmk-pmw3610-driver | PMW3610 トラックボールドライバー |
+| zmk-pmw3610-driver | cardinal-sys/zmk-pmw3610-driver | PMW3610 トラックボールドライバー |
 | zmk-listeners | ssbb/zmk-listeners | レイヤーリスナー |
-| zmk-mouse-gesture | kot149/zmk-mouse-gesture | マウスジェスチャー認識 |
+| zmk-mouse-gesture | cardinal-sys/zmk-mouse-gesture | マウスジェスチャー認識 |
 | zmk-scroll-snap | kot149/zmk-scroll-snap | スクロール軸スナップ（X/Y軸整列） |
 | zmk-rgbled-widget | caksoylar/zmk-rgbled-widget | RGB LED インジケーター |
 | zmk-pointing-acceleration-alpha | nuovotaka/zmk-pointing-acceleration-alpha | ポインタ加速度 |
@@ -459,7 +459,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 | PMW3610 CPI | 2200 | 通常カーソル CPI（`pointer_accel.sensor-dpi` も同値）。SNIPE 中はドライバが自動低減 |
 | PMW3610 cpi-layers | `<4 3200>` | L4 MOUSE アクティブ時はセンサー CPI を 3200 に動的切替（〈Resolution Shift〉) |
 | arrows-alt L15 tick | 80ms | K ホールドスクロールの精密度。値が大きいほど 1 ノッチが大きい動きを要求 |
-| L5 SCROLL スケーラー | `1/2`（半速） | `zip_xy_to_scroll_mapper` 後段にスケーラーを噛ませ、ホイール出力を 1/2 倍に絞り精密スクロール化 |
+| L5 SCROLL スケーラー | `1/1`（1x = 等速） | `zip_xy_to_scroll_mapper` 後段に `zip_snipe_scroll_scaler 1 1` を噛ませる現状は等速。`<1 2>` に変更すれば半速精密化に再昇華可能 |
 
 ### THREAD STACK ── スレッドスタック（クラッシュ対策）
 
@@ -486,6 +486,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-22 | 〈Sigil Realignment〉— origin 移管（eincode0 → cardinal-sys）の残響を一掃。`Release_Recollection.zmk.yml` の URL、`Elucidator.conf` の "eincode0 alt driver" コメント、README `EQUIPPED MODULES` の `zmk-pmw3610-driver` / `zmk-mouse-gesture` モジュール名を cardinal-sys へ更新。Live Sync Conduit ステータス表の Step 3 を「未着手」→ ✅ に整合（SYSTEM LOG 既存記録と同期）。L5 SCROLL スケーラー表記 `1/2（半速）` → `1/1（1x = 等速）` に実態反映し、半速化したい場合の改修指針を併記。CLAUDE.md 末尾の重複 `## [ SYSTEM LOG ]` エントリ 1 件を整理、ビルド確認コマンドの origin も `eincode0` → `cardinal-sys` へ修正。 |
 | 2026-05-22 | 〈Bilateral Sync Restoration II〉— `Dark_Repulser.conf` の `CONFIG_BT_PERIPHERAL_PREF_TIMEOUT` を 600 → 1000ms に同期。Elucidator (1000) と完全一致させ、左右非対称による再接続不安定を再封印。`CHARACTER PARAMETERS` テーブルも 600 → 1000 へ更新。〈Cardinal System Audit〉により Run #25889602860 ロールバック後の残存不整合として検出された案件への対応。 |
 | 2026-05-14 | 〈Step 3 Full Parity〉— Cardinal Editor Live Sync Conduit を ZMK Studio 公式パリティへ昇華。`zmk-studio-messages` の proto を直接走査して未実装 RPC を 6 件特定し、`keymap.addLayer` / `removeLayer` / `moveLayer` / `restoreLayer` / `core.resetSettings` / `keymap.discardChanges` を全実装。Notification 購読 (`core.lockStateChanged` / `keymap.unsavedChangesStatusChanged`) を読み取り、🔒 LOCKED / ✱ UNSAVED バッジを UI に常時反映。各レイヤー summary に `↑ ↓ ↺ ×` ボタン (移動・初期化・削除) を追加、MEMORY MATRIX 上部に `+ Add Layer / 💾 Save / ↻ Discard / ⚠ Factory Reset` ツールバーを設置。`core.unlock` RPC は ZMK Studio プロトコルに存在しないため、Locked 時は専用バナーで `&studio_unlock` バインドキー押下を促す。disconnect 時に notification reader を `cancel()` し reader 浮遊リーク (中度監査項目 #6) も同時に封印。 |
 | 2026-05-14 | 〈Keymap Yaml Restoration〉— `keymap.yaml` を 779 行版（commit `229120b^`）に復元。Colab 経由の編纂で 778 行 → 5 行に縮退していたものを、神器の全 16 階層分の物理キー定義を取り戻して再封印。Visual Editor が「キー 1 個しか表示しない」状態の根本原因。 |
