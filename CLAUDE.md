@@ -31,7 +31,7 @@
 ### 2リポジトリ構成
 
 - **このリポジトリ** (`Release_Recollection`): キーマップ・設定値
-- **ドライバリポジトリ** (`eincode0/zmk-pmw3610-driver`): PMW3610トラックボールドライバ本体
+- **ドライバリポジトリ** (`cardinal-sys/zmk-pmw3610-driver`): PMW3610トラックボールドライバ本体
 
 ドライバを修正した場合、**必ず `config/west.yml` の revision をマージ後のコミットハッシュに更新する**こと。
 
@@ -91,7 +91,7 @@ Claude Code の `git commit` はセッション署名サーバー（`/tmp/code-s
 
 ### git push について
 
-- `git push` もプロキシ経由で動作する（`http://local_proxy@127.0.0.1:44719/git/eincode0/Release_Recollection`）
+- `git push` もプロキシ経由で動作する（`http://local_proxy@127.0.0.1:44719/git/cardinal-sys/Release_Recollection`）
 - ローカルプロキシが使えない場合は MCP ツール `mcp__github__push_files` で GitHub に直接プッシュする
 
 ## よくある作業フロー
@@ -107,7 +107,7 @@ Claude Code の `git commit` はセッション署名サーバー（`/tmp/code-s
 3. PR → マージ → **ブランチ削除** → ビルド確認
 
 ### ドライバ改修
-1. `eincode0/zmk-pmw3610-driver` を修正・マージ
+1. `cardinal-sys/zmk-pmw3610-driver` を修正・マージ
 2. このリポジトリの `config/west.yml` の revision をマージ後ハッシュに更新
 3. ユーザーに確認 → main へ直接プッシュ
 
