@@ -1433,6 +1433,11 @@ button {
   border-bottom: 1px dashed var(--border-soft);
 }
 
+/* 〈 Sealing Breath 〉— input と SEAL & COMMIT button は同系 violet で密着して見えるため、専用に呼吸を広げる */
+.seal-panel .form-row {
+  margin-bottom: 14px;
+}
+
 .log-panel {
   flex: 1;
   padding: 14px;
