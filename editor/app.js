@@ -510,10 +510,14 @@ function renderModifiedList() {
 /* ◆ TABS ───────────────────────────────── */
 function renderTabBar() {
   els.tabBar.innerHTML = '';
+  let activeEl = null;
   for (const path of state.openTabs) {
     const tab = document.createElement('div');
     tab.className = 'tab';
-    if (path === state.activePath) tab.classList.add('active');
+    if (path === state.activePath) {
+      tab.classList.add('active');
+      activeEl = tab;
+    }
     const f = state.files.get(path);
     if (f && f.modified) tab.classList.add('modified');
 
@@ -533,6 +537,12 @@ function renderTabBar() {
     tab.appendChild(close);
 
     els.tabBar.appendChild(tab);
+  }
+  // 〈 Cardinal Sight 〉— アクティブタブを必ず可視範囲へ封入する
+  if (activeEl) {
+    requestAnimationFrame(() => {
+      activeEl.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
   }
 }
 
