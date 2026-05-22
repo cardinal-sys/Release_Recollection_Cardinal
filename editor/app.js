@@ -49,7 +49,6 @@ const EDITABLE_PATHS = [
   'config/keymap/layers/14_gesture_w.dtsi',
   'config/keymap/layers/15_snipe.dtsi',
   'config/keymap/layers/16_num_smart.dtsi',
-  'config/keymap/layers/17_snipe_scroll.dtsi',
   'config/boards/shields/Release_Recollection/Dark_Repulser.conf',
   'config/boards/shields/Release_Recollection/Dark_Repulser.overlay',
   'config/boards/shields/Release_Recollection/Elucidator.conf',
