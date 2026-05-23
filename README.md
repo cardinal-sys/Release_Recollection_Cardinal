@@ -49,8 +49,8 @@
 
 | 入口 | URL |
 |---|---|
-| Cardinal Editor (git 編纂) | `https://administ-rator.github.io/Release_Recollection/index.html` |
-| Live Sync Conduit (実機接続) | `https://administ-rator.github.io/Release_Recollection/live.html` |
+| Cardinal Editor (git 編纂) | `https://administ-rator.github.io/Release_Recollection_Cardinal/index.html` |
+| Live Sync Conduit (実機接続) | `https://administ-rator.github.io/Release_Recollection_Cardinal/live.html` |
 
 > **[ SYSTEM ]** 初回利用時は GitHub の Settings → Pages で Source を
 > "GitHub Actions" に設定する必要がある。

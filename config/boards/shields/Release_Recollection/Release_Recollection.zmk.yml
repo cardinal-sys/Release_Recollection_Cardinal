@@ -2,7 +2,7 @@ file_format: "1"
 id: Release_Recollection
 name: Release_Recollection
 type: shield
-url: https://github.com/administ-rator/Release_Recollection.git
+url: https://github.com/administ-rator/Release_Recollection_Cardinal.git
 requires: [xiao_ble/nrf52840/zmk]
 features:
   - keys

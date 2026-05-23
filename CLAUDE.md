@@ -30,7 +30,7 @@
 
 ### 2リポジトリ構成
 
-- **このリポジトリ** (`Release_Recollection`): キーマップ・設定値
+- **このリポジトリ** (`Release_Recollection_Cardinal`): キーマップ・設定値（42キー版・原初の Cardinal System）
 - **ドライバリポジトリ** (`administ-rator/zmk-pmw3610-driver`): PMW3610トラックボールドライバ本体
 
 ドライバを修正した場合、**必ず `config/west.yml` の revision をマージ後のコミットハッシュに更新する**こと。
@@ -91,7 +91,7 @@ Claude Code の `git commit` はセッション署名サーバー（`/tmp/code-s
 
 ### git push について
 
-- `git push` もプロキシ経由で動作する（`http://local_proxy@127.0.0.1:44719/git/administ-rator/Release_Recollection`）
+- `git push` もプロキシ経由で動作する（`http://local_proxy@127.0.0.1:44719/git/administ-rator/Release_Recollection_Cardinal`）
 - ローカルプロキシが使えない場合は MCP ツール `mcp__github__push_files` で GitHub に直接プッシュする
 
 ## よくある作業フロー
@@ -113,8 +113,8 @@ Claude Code の `git commit` はセッション署名サーバー（`/tmp/code-s
 
 ### ビルド確認
 ```bash
-gh run list --repo administ-rator/Release_Recollection --limit 5
-gh run view <run_id> --repo administ-rator/Release_Recollection
+gh run list --repo administ-rator/Release_Recollection_Cardinal --limit 5
+gh run view <run_id> --repo administ-rator/Release_Recollection_Cardinal
 ```
 
 
