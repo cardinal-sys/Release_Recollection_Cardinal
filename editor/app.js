@@ -151,7 +151,7 @@ function modeForPath(path) {
 /* ◆ STATE ──────────────────────────────── */
 const state = {
   pat: '',
-  repo: 'cardinal-sys/Release_Recollection',
+  repo: 'administ-rator/Release_Recollection',
   branch: 'main',
   files: new Map(),       // path -> { sha, original, content, modified }
   openTabs: [],           // [path, ...]

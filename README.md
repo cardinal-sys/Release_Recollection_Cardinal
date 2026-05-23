@@ -49,8 +49,8 @@
 
 | 入口 | URL |
 |---|---|
-| Cardinal Editor (git 編纂) | `https://cardinal-sys.github.io/Release_Recollection/index.html` |
-| Live Sync Conduit (実機接続) | `https://cardinal-sys.github.io/Release_Recollection/live.html` |
+| Cardinal Editor (git 編纂) | `https://administ-rator.github.io/Release_Recollection/index.html` |
+| Live Sync Conduit (実機接続) | `https://administ-rator.github.io/Release_Recollection/live.html` |
 
 > **[ SYSTEM ]** 初回利用時は GitHub の Settings → Pages で Source を
 > "GitHub Actions" に設定する必要がある。
@@ -408,9 +408,9 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 | MODULE | REPOSITORY | DESCRIPTION |
 |---|---|---|
 | zmk | zmkfirmware/zmk | ZMK 本体 |
-| zmk-pmw3610-driver | cardinal-sys/zmk-pmw3610-driver | PMW3610 トラックボールドライバー |
+| zmk-pmw3610-driver | administ-rator/zmk-pmw3610-driver | PMW3610 トラックボールドライバー |
 | zmk-listeners | ssbb/zmk-listeners | レイヤーリスナー |
-| zmk-mouse-gesture | cardinal-sys/zmk-mouse-gesture | マウスジェスチャー認識 |
+| zmk-mouse-gesture | administ-rator/zmk-mouse-gesture | マウスジェスチャー認識 |
 | zmk-scroll-snap | kot149/zmk-scroll-snap | スクロール軸スナップ（X/Y軸整列） |
 | zmk-rgbled-widget | caksoylar/zmk-rgbled-widget | RGB LED インジケーター |
 | zmk-pointing-acceleration-alpha | nuovotaka/zmk-pointing-acceleration-alpha | ポインタ加速度 |
@@ -486,6 +486,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-23 | 〈Eincode Resurrection → Administrator Awakening〉— 凍結されていた旧アカウント `eincode0` が本日帰還し、即日 `administ-rator`（SAO 最高司祭 Quinella の称号「Administrator」をハイフン sigil で封印した真名）へ改名した二段儀式の記録。代替として運用していた `cardinal-sys` 配下 3 リポジトリ（`Release_Recollection` / `zmk-pmw3610-driver` / `zmk-mouse-gesture`）を GitHub Repository Transfer により eincode0 へ帰還させ、続いて GitHub username rename で `eincode0 → administ-rator` に改名。受け側 eincode0 の旧版 3 リポジトリは `*_legacy` に rename して ★/Issue/Fork を完全保全（rename 追従により現在は `administ-rator/*_legacy`）。redirect は `cardinal-sys → eincode0 → administ-rator` の二段重ねを GitHub が自動処理。`config/west.yml`（remote 名と 2 project の remote）/ `Release_Recollection.zmk.yml`（URL）/ `Elucidator.conf`（コメント）/ `CLAUDE.md`（4 箇所）/ `.claude/settings.json`（Stop hook）/ `editor/index.html` `editor/app.js`（default repo input）/ `src-tauri/tauri.conf.json` `src-tauri/Cargo.toml`（identifier と authors）/ `scripts/install_launchd.sh` `uninstall_launchd.sh`（PLIST_NAME）/ `Colab_へようこそ.ipynb`（Colab badge URL）の参照は `cardinal-sys → eincode0 → administ-rator` の二段書換を経て最終 `administ-rator` に統一。Tauri identifier (`com.cardinal-sys.cardinal-editor` → `com.administ-rator.cardinal-editor`) と launchd PLIST_NAME も同期更新したため、既存インストール済みアプリは新 identifier 扱いとなり旧 launchd service は孤児化する点に留意（必要なら旧 service の手動 unload 推奨）。過去 SYSTEM LOG 〈Eincode Residue Purge〉〈Sigil Realignment〉は当時の判断を記録した歴史としてそのまま温存。 |
 | 2026-05-22 | 〈Sealing Breath〉— Cardinal Editor の SEALING パネル内で commit-message input（violet border）と SEAL & COMMIT button（violet gradient）が同系色＋ 8px の狭ギャップで密着して見える「被ってる」状態を封印。`editor/style.css` に `.seal-panel .form-row { margin-bottom: 14px; }` を surgical 追加し、SEALING パネル限定で呼吸を 8px → 14px へ拡張。他フォーム（auth-bar / key-edit-form 等）の `.form-row` には影響なし。1600×1000 viewport で `inputBottomToButtonTop: 14` を実機検証済み。 |
 | 2026-05-22 | 〈Cardinal Sight Restoration〉— Cardinal Editor のタブバーで、アクティブタブが画面右の SEALING パネル境界に潜り込んで「被ってる」状態（タブ名 `00_default.dtsi` が `00_de…` で切れ、`×` 閉じボタン不可視）を封印。`editor/app.js::renderTabBar()` 末尾でアクティブタブ要素を保持し、`requestAnimationFrame` 内で `scrollIntoView({ block: 'nearest', inline: 'nearest' })` を発火、`overflow-x: auto` の tab-bar が必ずアクティブを可視範囲に巻き戻すよう整流。1400×900 viewport で `tabFullyContained: true` / `noOverlapWithRightbar: true` を実機検証済み。 |
 | 2026-05-22 | 〈Phantom Synthesis Sealing〉— 孤児レイヤー `config/keymap/layers/17_snipe_scroll.dtsi`（〔Synthesis 17〕SNIPE_SCROLL）を完全撤去。`5b725cf`（2026-04-26）で「L17 を include すると BT 不接続が 5 回連続再現」を理由に意図的に neutralize されていた残骸で、`c0099ab` 以降は `&ht_arrows_alt 15 K` 経路により L17 不要の安定構成が確立されていた。今回の〈Cardinal System Audit II〉で `editor/app.js` の EDITABLE_PATHS にだけ残っていた参照も同時駆除。ドライバ側のスクロール emit 経路（コード 2000-2003）はそのまま温存され、将来別レイヤー番号で再挑戦する余地は引き続き保持。復活が必要なら `git show 5b725cf^:config/keymap/layers/17_snipe_scroll.dtsi` から取り出せる。 |
