@@ -18,10 +18,10 @@
 
 | ファイル | 役割 |
 |---|---|
-| `config/Release_Recollection.keymap` | キーマップ定義（レイヤー・バインド） — 〈Release Recollection〉記憶解放術の entry point |
-| `config/boards/shields/Release_Recollection/Elucidator.overlay` | 右手側設定（トラックボール・arrows profiles等） |
-| `config/boards/shields/Release_Recollection/Elucidator.conf` | 右手側Kconfig（PMW3610パラメータ等） |
-| `config/boards/shields/Release_Recollection/Dark_Repulser.overlay` | 左手側設定 |
+| `config/Cardinal.keymap` | キーマップ定義（レイヤー・バインド） — 〈Release Recollection〉記憶解放術の entry point |
+| `config/boards/shields/Cardinal/Elucidator.overlay` | 右手側設定（トラックボール・arrows profiles等） |
+| `config/boards/shields/Cardinal/Elucidator.conf` | 右手側Kconfig（PMW3610パラメータ等） |
+| `config/boards/shields/Cardinal/Dark_Repulser.overlay` | 左手側設定 |
 | `config/keymap/30_enhance_armament_base.dtsi` | 〈Enhance Armament〉武装完全支配術：基礎behavior |
 | `config/keymap/31_enhance_armament_layers.dtsi` | 〈Enhance Armament〉武装完全支配術：階層behavior |
 | `config/keymap/35_enhance_armament.dtsi` | 〈Enhance Armament〉武装完全支配術：拡張behavior依代 |
@@ -97,7 +97,7 @@ Claude Code の `git commit` はセッション署名サーバー（`/tmp/code-s
 ## よくある作業フロー
 
 ### キーマップ変更（小さな調整）
-1. `config/Release_Recollection.keymap` を編集
+1. `config/Cardinal.keymap` を編集
 2. README.md を更新（SYSTEM LOGを含む）
 3. ユーザーに確認 → main へ直接プッシュ → ビルド確認
 

@@ -1,5 +1,5 @@
 /* ===============================
- * Release_Recollection.keymap — 〈Release Recollection〉記憶解放術 entry point
+ * Cardinal.keymap — 〈Release Recollection〉記憶解放術 entry point
  *
  * 神器の真名を解き放つ最上位術式。
  * 実装は config/keymap/ 以下に責務分割されています。

@@ -15,8 +15,8 @@ const STORAGE_KEYS = {
 const EDITABLE_PATHS = [
   'keymap.yaml',
   'keymap_drawer.yaml',
-  'config/Release_Recollection.keymap',
-  'config/Release_Recollection.json',
+  'config/Cardinal.keymap',
+  'config/Cardinal.json',
   'config/west.yml',
   'config/keymap/00_prelude.dtsi',
   'config/keymap/10_combos.dtsi',
@@ -49,12 +49,12 @@ const EDITABLE_PATHS = [
   'config/keymap/layers/14_gesture_w.dtsi',
   'config/keymap/layers/15_snipe.dtsi',
   'config/keymap/layers/16_num_smart.dtsi',
-  'config/boards/shields/Release_Recollection/Dark_Repulser.conf',
-  'config/boards/shields/Release_Recollection/Dark_Repulser.overlay',
-  'config/boards/shields/Release_Recollection/Elucidator.conf',
-  'config/boards/shields/Release_Recollection/Elucidator.overlay',
-  'config/boards/shields/Release_Recollection/Release_Recollection.dtsi',
-  'config/boards/shields/Release_Recollection/Release_Recollection.zmk.yml',
+  'config/boards/shields/Cardinal/Dark_Repulser.conf',
+  'config/boards/shields/Cardinal/Dark_Repulser.overlay',
+  'config/boards/shields/Cardinal/Elucidator.conf',
+  'config/boards/shields/Cardinal/Elucidator.overlay',
+  'config/boards/shields/Cardinal/Cardinal.dtsi',
+  'config/boards/shields/Cardinal/Cardinal.zmk.yml',
   'config/boards/xiao_ble.overlay',
   'config/dts/mouse-gesture.local.dtsi',
 ];
@@ -159,7 +159,7 @@ const state = {
   // Visual editor state (keymap.yaml only)
   yamlData: null,
   originalYamlData: null,
-  layoutData: null,       // QMK info JSON (config/Release_Recollection.json)
+  layoutData: null,       // QMK info JSON (config/Cardinal.json)
   currentLayer: 'default',
   selectedIndex: null,
   modifiedKeys: new Set(),
@@ -921,10 +921,10 @@ function showCombosEditor(path, file) {
 async function ensureLayoutLoaded() {
   if (state.layoutData) return;
   try {
-    if (!state.files.has('config/Release_Recollection.json')) {
-      await fetchFile('config/Release_Recollection.json');
+    if (!state.files.has('config/Cardinal.json')) {
+      await fetchFile('config/Cardinal.json');
     }
-    const jf = state.files.get('config/Release_Recollection.json');
+    const jf = state.files.get('config/Cardinal.json');
     state.layoutData = JSON.parse(jf.content);
   } catch (e) {
     log(`Layout load failed: ${e.message}`, 'warning');
@@ -2340,10 +2340,10 @@ async function reloadVisualEditor() {
   // Load physical layout JSON if not already loaded
   if (!state.layoutData) {
     try {
-      if (!state.files.has('config/Release_Recollection.json')) {
-        await fetchFile('config/Release_Recollection.json');
+      if (!state.files.has('config/Cardinal.json')) {
+        await fetchFile('config/Cardinal.json');
       }
-      const jf = state.files.get('config/Release_Recollection.json');
+      const jf = state.files.get('config/Cardinal.json');
       state.layoutData = JSON.parse(jf.content);
       log('Physical layout loaded', 'success');
     } catch (e) {
