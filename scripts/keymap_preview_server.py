@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Keymap preview server with auto-refresh.
 
-Watches config/Release_Recollection.keymap and keymap_drawer.yaml for changes,
+Watches config/Cardinal.keymap and keymap_drawer.yaml for changes,
 regenerates keymap.svg via keymap-drawer, and serves an HTML preview
 page at http://localhost:3000.
 """
@@ -15,7 +15,7 @@ import time
 
 PORT = 3000
 WATCH_FILES = [
-    "config/Release_Recollection.keymap",
+    "config/Cardinal.keymap",
     "keymap_drawer.yaml",
 ]
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -56,7 +56,7 @@ def regenerate():
     try:
         result = subprocess.run(
             ["keymap", "-c", "keymap_drawer.yaml", "parse",
-             "-z", "config/Release_Recollection.keymap"],
+             "-z", "config/Cardinal.keymap"],
             capture_output=True, text=True, cwd=ROOT
         )
         if result.returncode != 0:
@@ -74,7 +74,7 @@ def regenerate():
 
         result2 = subprocess.run(
             ["keymap", "-c", "keymap_drawer.yaml", "draw", "keymap.yaml",
-             "--qmk-info-json", "config/Release_Recollection.json",
+             "--qmk-info-json", "config/Cardinal.json",
              "--layout-name", "default_layout"],
             capture_output=True, text=True, cwd=ROOT
         )

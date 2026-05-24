@@ -1,4 +1,4 @@
-#include "Release_Recollection.dtsi"
+#include "Cardinal.dtsi"
 
 &kscan0 {
     wakeup-source;

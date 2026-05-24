@@ -1,4 +1,4 @@
-name: Release_Recollection
+name: Cardinal
 build:
   settings:
     board_root: config

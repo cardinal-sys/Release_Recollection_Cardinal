@@ -2,7 +2,7 @@
  * Elucidator.overlay
  * =============================== */
 
-#include "Release_Recollection.dtsi"
+#include "Cardinal.dtsi"
 
 #include <input/processors.dtsi>
 #include <mouse-gesture.dtsi>
