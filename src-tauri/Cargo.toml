@@ -2,7 +2,7 @@
 name = "cardinal-editor"
 version = "0.1.0"
 description = "Cardinal Editor — Release Recollection 記憶書換術式 (Tauri デスクトップ版)"
-authors = ["administ-rator"]
+authors = ["cardinal-sys"]
 license = "MIT"
 edition = "2021"
 rust-version = "1.70"

@@ -2,8 +2,8 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
-    - name: administ-rator
-      url-base: https://github.com/administ-rator
+    - name: cardinal-sys
+      url-base: https://github.com/cardinal-sys
     - name: ssbb
       url-base: https://github.com/ssbb
     - name: kot149
@@ -25,7 +25,7 @@ manifest:
       import: app/west.yml
 
     - name: zmk-pmw3610-driver
-      remote: administ-rator
+      remote: cardinal-sys
       revision: 60a0782
       path: modules/zmk-pmw3610-driver
 
@@ -35,7 +35,7 @@ manifest:
       path: modules/zmk-listeners
 
     - name: zmk-mouse-gesture
-      remote: administ-rator
+      remote: cardinal-sys
       revision: efc89e1c3d758fd782c7bbea429161f0d1fddad3
       path: modules/zmk-mouse-gesture
 

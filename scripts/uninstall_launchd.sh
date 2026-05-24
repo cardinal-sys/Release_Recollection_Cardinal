@@ -4,7 +4,7 @@
 
 set -e
 
-PLIST_NAME="com.administ-rator.cardinal-editor"
+PLIST_NAME="com.cardinal-sys.cardinal-editor"
 PLIST_PATH="$HOME/Library/LaunchAgents/${PLIST_NAME}.plist"
 
 if [ ! -f "$PLIST_PATH" ]; then

@@ -49,8 +49,8 @@
 
 | 入口 | URL |
 |---|---|
-| Cardinal Editor (git 編纂) | `https://administ-rator.github.io/Release_Recollection_Cardinal/index.html` |
-| Live Sync Conduit (実機接続) | `https://administ-rator.github.io/Release_Recollection_Cardinal/live.html` |
+| Cardinal Editor (git 編纂) | `https://cardinal-sys.github.io/Release_Recollection_Cardinal/index.html` |
+| Live Sync Conduit (実機接続) | `https://cardinal-sys.github.io/Release_Recollection_Cardinal/live.html` |
 
 > **[ SYSTEM ]** 初回利用時は GitHub の Settings → Pages で Source を
 > "GitHub Actions" に設定する必要がある。
@@ -408,9 +408,9 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 | MODULE | REPOSITORY | DESCRIPTION |
 |---|---|---|
 | zmk | zmkfirmware/zmk | ZMK 本体 |
-| zmk-pmw3610-driver | administ-rator/zmk-pmw3610-driver | PMW3610 トラックボールドライバー |
+| zmk-pmw3610-driver | cardinal-sys/zmk-pmw3610-driver | PMW3610 トラックボールドライバー |
 | zmk-listeners | ssbb/zmk-listeners | レイヤーリスナー |
-| zmk-mouse-gesture | administ-rator/zmk-mouse-gesture | マウスジェスチャー認識 |
+| zmk-mouse-gesture | cardinal-sys/zmk-mouse-gesture | マウスジェスチャー認識 |
 | zmk-scroll-snap | kot149/zmk-scroll-snap | スクロール軸スナップ（X/Y軸整列） |
 | zmk-rgbled-widget | caksoylar/zmk-rgbled-widget | RGB LED インジケーター |
 | zmk-pointing-acceleration-alpha | nuovotaka/zmk-pointing-acceleration-alpha | ポインタ加速度 |
@@ -486,6 +486,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-25 | 〈Cardinal System Reawakening〉— `administ-rator`（最高司祭 Quinella の称号「Administrator」を hyphen sigil で封印した真名）を退け、Underworld 原典管理 AI〈Cardinal System〉の略号 `cardinal-sys` に GitHub username を再封名した儀式の記録。50キー版〈Administrator〉と並走する 42キー版 Cardinal を統括する account 名が Administrator 色を帯びていた「気持ち悪さ」を解消し、「Cardinal が原典・Administrator がその系列下の簒奪派閥」という Alicization 編本来の上下構造を account 階層にも反映。手順は (a) 〈Eincode Resurrection〉時の代替 account として温存されていた抜け殻 `cardinal-sys`（User ID 281190648、0 repos）を別名へ退避して name 枠を解放 → (b) `administ-rator` → `cardinal-sys` rename → (c) GitHub 自動 redirect (`administ-rator → cardinal-sys`) で旧 URL を保全。`config/west.yml`（remote 名と 2 project の remote）/ `Release_Recollection.zmk.yml`（URL）/ `Elucidator.conf`（コメント）/ `CLAUDE.md`（ドライバ repo パス + proxy URL 例 + ビルド確認コマンド 計 5 箇所）/ `.claude/settings.json`（Stop hook）/ `editor/index.html` `editor/app.js`（default repo input）/ `src-tauri/tauri.conf.json` `src-tauri/Cargo.toml`（identifier と authors）/ `scripts/install_launchd.sh` `uninstall_launchd.sh`（PLIST_NAME）/ `Colab_へようこそ.ipynb`（Colab badge URL）/ README `EQUIPPED MODULES` 表・GitHub Pages URL を新名へ追従、git remote URL も `cardinal-sys/Release_Recollection_Cardinal` に更新。Tauri identifier (`com.administ-rator.cardinal-editor` → `com.cardinal-sys.cardinal-editor`) と launchd PLIST_NAME も同期更新したため、既存インストール済みアプリは新 identifier 扱いとなり旧 launchd service は孤児化する点に留意（必要なら旧 service の手動 unload 推奨）。`.claude/settings.local.json` の jq gsub 履歴 allowlist は過去操作の承認記録として温存。account 名遍歴は eincode0 → cardinal-sys → eincode0 → administ-rator → **cardinal-sys (再)** で 5代目に到達、Quinella を打ち倒した Cardinal Cardina の再覚醒に擬えて〈Cardinal〉が真の管理者として帰還した。 |
 | 2026-05-24 | 〈Cardinal Renaming〉— 50キー版〈Administrator〉新リポ建立に向けた前奏として、原典42キー版を `administ-rator/Release_Recollection` → `administ-rator/Release_Recollection_Cardinal` へ改名。自己参照 6 ファイル 10 行（CLAUDE.md / README.md / `.claude/settings.json` / `editor/app.js` / `editor/index.html` / `Release_Recollection.zmk.yml`）を新名へ追従。GitHub 自動リダイレクト・GHA build・GitHub Pages の整合確認済み。ZMK モジュール名・シールド名・本体名は内部識別子として保持。〈Administrator〉と〈Cardinal〉の名で 42キー版（原典）と 50キー版（進化形・簒奪者）の物語的対比構造を成立させる第一歩。 |
 | 2026-05-23 | 〈Eincode Resurrection → Administrator Awakening〉— 凍結されていた旧アカウント `eincode0` が本日帰還し、即日 `administ-rator`（SAO 最高司祭 Quinella の称号「Administrator」をハイフン sigil で封印した真名）へ改名した二段儀式の記録。代替として運用していた `cardinal-sys` 配下 3 リポジトリ（`Release_Recollection` / `zmk-pmw3610-driver` / `zmk-mouse-gesture`）を GitHub Repository Transfer により eincode0 へ帰還させ、続いて GitHub username rename で `eincode0 → administ-rator` に改名。受け側 eincode0 の旧版 3 リポジトリは `*_legacy` に rename して ★/Issue/Fork を完全保全（rename 追従により現在は `administ-rator/*_legacy`）。redirect は `cardinal-sys → eincode0 → administ-rator` の二段重ねを GitHub が自動処理。`config/west.yml`（remote 名と 2 project の remote）/ `Release_Recollection.zmk.yml`（URL）/ `Elucidator.conf`（コメント）/ `CLAUDE.md`（4 箇所）/ `.claude/settings.json`（Stop hook）/ `editor/index.html` `editor/app.js`（default repo input）/ `src-tauri/tauri.conf.json` `src-tauri/Cargo.toml`（identifier と authors）/ `scripts/install_launchd.sh` `uninstall_launchd.sh`（PLIST_NAME）/ `Colab_へようこそ.ipynb`（Colab badge URL）の参照は `cardinal-sys → eincode0 → administ-rator` の二段書換を経て最終 `administ-rator` に統一。Tauri identifier (`com.cardinal-sys.cardinal-editor` → `com.administ-rator.cardinal-editor`) と launchd PLIST_NAME も同期更新したため、既存インストール済みアプリは新 identifier 扱いとなり旧 launchd service は孤児化する点に留意（必要なら旧 service の手動 unload 推奨）。過去 SYSTEM LOG 〈Eincode Residue Purge〉〈Sigil Realignment〉は当時の判断を記録した歴史としてそのまま温存。 |
 | 2026-05-22 | 〈Sealing Breath〉— Cardinal Editor の SEALING パネル内で commit-message input（violet border）と SEAL & COMMIT button（violet gradient）が同系色＋ 8px の狭ギャップで密着して見える「被ってる」状態を封印。`editor/style.css` に `.seal-panel .form-row { margin-bottom: 14px; }` を surgical 追加し、SEALING パネル限定で呼吸を 8px → 14px へ拡張。他フォーム（auth-bar / key-edit-form 等）の `.form-row` には影響なし。1600×1000 viewport で `inputBottomToButtonTop: 14` を実機検証済み。 |

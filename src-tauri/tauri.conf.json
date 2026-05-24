@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Cardinal Editor",
   "version": "0.1.0",
-  "identifier": "com.administ-rator.cardinal-editor",
+  "identifier": "com.cardinal-sys.cardinal-editor",
   "build": {
     "frontendDist": "../editor",
     "devUrl": "http://localhost:3001",

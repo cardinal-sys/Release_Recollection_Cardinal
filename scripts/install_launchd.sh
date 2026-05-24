@@ -8,7 +8,7 @@
 set -e
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PLIST_NAME="com.administ-rator.cardinal-editor"
+PLIST_NAME="com.cardinal-sys.cardinal-editor"
 PLIST_DIR="$HOME/Library/LaunchAgents"
 PLIST_PATH="$PLIST_DIR/${PLIST_NAME}.plist"
 LOG_DIR="$HOME/Library/Logs/cardinal-editor"
