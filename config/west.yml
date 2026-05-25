@@ -26,7 +26,7 @@ manifest:
 
     - name: zmk-pmw3610-driver
       remote: cardinal-sys
-      revision: 60a0782
+      revision: 35f2c40
       path: modules/zmk-pmw3610-driver
 
     - name: zmk-listeners
