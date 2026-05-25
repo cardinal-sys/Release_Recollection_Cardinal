@@ -4,10 +4,23 @@
  * Tree API による一括コミット
  * =============================== */
 
+/* 〈Sigil Vault Partition〉— 42キー版 Cardinal と 50キー版 Administrator で
+ * localStorage を分離する識別子。両エディタを行き来しても repo 名が干渉しない。 */
+const EDITOR_ID = 'cardinal_42';
+
 const STORAGE_KEYS = {
-  PAT: 'cardinal_editor_pat',
-  REPO: 'cardinal_editor_repo',
-  BRANCH: 'cardinal_editor_branch',
+  PAT:          `cardinal_editor_pat__${EDITOR_ID}`,
+  REPO:         `cardinal_editor_repo__${EDITOR_ID}`,
+  BRANCH:       `cardinal_editor_branch__${EDITOR_ID}`,
+  REMEMBER_PAT: `cardinal_editor_remember_pat__${EDITOR_ID}`,
+};
+
+/* 旧 STORAGE_KEYS（パーティション無し）から一度だけ値を吸い上げて、
+ * 既存ユーザのセッションを失わず新キー側へ昇華する。 */
+const LEGACY_STORAGE_KEYS = {
+  PAT:          'cardinal_editor_pat',
+  REPO:         'cardinal_editor_repo',
+  BRANCH:       'cardinal_editor_branch',
   REMEMBER_PAT: 'cardinal_editor_remember_pat',
 };
 
@@ -257,7 +270,28 @@ function saveCredentials() {
   }
 }
 
+function migrateLegacyCredentials() {
+  // 〈Sigil Vault Partition · Migration〉— 旧キーから PAT / Remember 設定だけを引き継ぐ。
+  // repo / branch は引き継がない（混線の原因なので、各エディタで再確認させる）。
+  const newPat = sessionStorage.getItem(STORAGE_KEYS.PAT)
+              || localStorage.getItem(STORAGE_KEYS.PAT);
+  if (!newPat) {
+    const legacyPat = sessionStorage.getItem(LEGACY_STORAGE_KEYS.PAT)
+                   || localStorage.getItem(LEGACY_STORAGE_KEYS.PAT);
+    const legacyRemember = localStorage.getItem(LEGACY_STORAGE_KEYS.REMEMBER_PAT);
+    if (legacyPat) {
+      if (legacyRemember === '1') {
+        localStorage.setItem(STORAGE_KEYS.PAT, legacyPat);
+        localStorage.setItem(STORAGE_KEYS.REMEMBER_PAT, '1');
+      } else {
+        sessionStorage.setItem(STORAGE_KEYS.PAT, legacyPat);
+      }
+    }
+  }
+}
+
 function loadCredentials() {
+  migrateLegacyCredentials();
   // sessionStorage 優先、なければ localStorage（旧バージョン互換）
   const pat = sessionStorage.getItem(STORAGE_KEYS.PAT)
             || localStorage.getItem(STORAGE_KEYS.PAT);
