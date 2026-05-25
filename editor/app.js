@@ -161,10 +161,38 @@ function modeForPath(path) {
   return 'text/x-csrc'; // dtsi / overlay / conf / keymap
 }
 
+/* ◆ PATHNAME SOVEREIGNTY ────────────────── */
+// 〈Pathname Sovereignty〉— GitHub Pages 上で動作している場合、URL pathname から
+// 期待される repo を一意導出する。ブラウザの form autofill / localStorage 残骸 /
+// 旧バージョンの設定値 など、ありとあらゆる「漏れ込み」を URL の支配で断つ。
+// ローカル開発 (localhost / file://) では従来通り input の値を尊重する。
+const DEFAULT_REPO = 'cardinal-sys/Release_Recollection_Cardinal';
+
+function deriveRepoFromUrl() {
+  try {
+    const host = window.location.hostname;
+    if (!host.endsWith('.github.io')) return null;
+    const owner = host.split('.')[0];
+    const seg = window.location.pathname.split('/').filter(Boolean)[0];
+    if (!owner || !seg) return null;
+    return `${owner}/${seg}`;
+  } catch (e) {
+    return null;
+  }
+}
+
+function expectedRepo() {
+  return deriveRepoFromUrl() || DEFAULT_REPO;
+}
+
+function isRepoSovereign() {
+  return deriveRepoFromUrl() !== null;
+}
+
 /* ◆ STATE ──────────────────────────────── */
 const state = {
   pat: '',
-  repo: 'cardinal-sys/Release_Recollection_Cardinal',
+  repo: expectedRepo(),
   branch: 'main',
   files: new Map(),       // path -> { sha, original, content, modified }
   openTabs: [],           // [path, ...]
@@ -298,11 +326,25 @@ function loadCredentials() {
   const repo = localStorage.getItem(STORAGE_KEYS.REPO);
   const branch = localStorage.getItem(STORAGE_KEYS.BRANCH);
   if (pat) els.patInput.value = pat;
-  if (repo) els.repoInput.value = repo;
   if (branch) els.branchInput.value = branch;
   // checkbox の初期状態を反映
   const rememberEl = document.getElementById('remember-pat');
   if (rememberEl) rememberEl.checked = isPatRemembered();
+
+  // 〈Pathname Sovereignty〉— GitHub Pages 上では URL から導出した repo を強制し、
+  // localStorage 値や form autofill による「漏れ込み」を完全に断つ。
+  if (isRepoSovereign()) {
+    const sovereignRepo = expectedRepo();
+    els.repoInput.value = sovereignRepo;
+    els.repoInput.readOnly = true;
+    els.repoInput.title = `〈Pathname Sovereignty〉 URL によりこの値に固定されています: ${sovereignRepo}`;
+    // localStorage に汚染された repo が残っていたら掃除
+    if (repo && repo !== sovereignRepo) {
+      localStorage.removeItem(STORAGE_KEYS.REPO);
+    }
+  } else if (repo) {
+    els.repoInput.value = repo;
+  }
 }
 
 /* ◆ GITHUB API ─────────────────────────── */
@@ -2681,7 +2723,8 @@ function cancelVisualEdit() {
 /* ◆ ACTIONS ────────────────────────────── */
 async function handleAuth() {
   state.pat = els.patInput.value.trim();
-  state.repo = els.repoInput.value.trim();
+  // 〈Pathname Sovereignty〉— GitHub Pages 上では URL 由来 repo を強制採用する。
+  state.repo = isRepoSovereign() ? expectedRepo() : els.repoInput.value.trim();
   state.branch = els.branchInput.value.trim();
 
   if (!state.pat) {
