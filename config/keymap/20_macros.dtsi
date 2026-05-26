@@ -56,3 +56,70 @@ lm: lm {
         <&macro_release>,
         <&mo MACRO_PLACEHOLDER>;
 };
+
+/* ============================================================
+ * 〈Phantom Connection Banishment〉— BT Solo Sigils
+ *
+ * BT_SEL でアクティブ profile を選択した直後に、他 4 profile への
+ * 接続を BT_DISC で能動的に切断する。ZMK 既定では非アクティブ profile
+ * とも BLE 接続が維持されるため、複数ホスト同時接続時に BLE 帯域が
+ * 奪い合いとなりカーソル遅延（特にトラックボール）が発生する。
+ * 各ホスト側は paired 状態が残っているため、後で BT_SEL すれば自動
+ * 再接続される。
+ * BT_MAX_CONN=5 (プロファイル数+スプリット相方 1) は維持。
+ * ============================================================ */
+
+bt_solo_0: bt_solo_0 {
+    compatible = "zmk,behavior-macro";
+    label = "BT_SOLO_0";
+    #binding-cells = <0>;
+    bindings = <&bt BT_SEL 0>,
+               <&bt BT_DISC 1>,
+               <&bt BT_DISC 2>,
+               <&bt BT_DISC 3>,
+               <&bt BT_DISC 4>;
+};
+
+bt_solo_1: bt_solo_1 {
+    compatible = "zmk,behavior-macro";
+    label = "BT_SOLO_1";
+    #binding-cells = <0>;
+    bindings = <&bt BT_SEL 1>,
+               <&bt BT_DISC 0>,
+               <&bt BT_DISC 2>,
+               <&bt BT_DISC 3>,
+               <&bt BT_DISC 4>;
+};
+
+bt_solo_2: bt_solo_2 {
+    compatible = "zmk,behavior-macro";
+    label = "BT_SOLO_2";
+    #binding-cells = <0>;
+    bindings = <&bt BT_SEL 2>,
+               <&bt BT_DISC 0>,
+               <&bt BT_DISC 1>,
+               <&bt BT_DISC 3>,
+               <&bt BT_DISC 4>;
+};
+
+bt_solo_3: bt_solo_3 {
+    compatible = "zmk,behavior-macro";
+    label = "BT_SOLO_3";
+    #binding-cells = <0>;
+    bindings = <&bt BT_SEL 3>,
+               <&bt BT_DISC 0>,
+               <&bt BT_DISC 1>,
+               <&bt BT_DISC 2>,
+               <&bt BT_DISC 4>;
+};
+
+bt_solo_4: bt_solo_4 {
+    compatible = "zmk,behavior-macro";
+    label = "BT_SOLO_4";
+    #binding-cells = <0>;
+    bindings = <&bt BT_SEL 4>,
+               <&bt BT_DISC 0>,
+               <&bt BT_DISC 1>,
+               <&bt BT_DISC 2>,
+               <&bt BT_DISC 3>;
+};
