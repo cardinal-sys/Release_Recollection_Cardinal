@@ -78,52 +78,6 @@ python3 scripts/cardinal_editor_server.py
 python3 -m http.server 3001 --directory editor
 ```
 
-#### 〈ネイティブ〉Tauri デスクトップ版（実験段階）
-
-Web Bluetooth は macOS の HID 接続済みデバイスを再選択できない仕様の制約があり、
-Live Sync の BLE 接続が安定しない。Tauri デスクトップ版は **OS ネイティブ Bluetooth API** を
-直接叩くため、HID 接続中でも BLE 接続が可能（公式 ZMK Studio Tauri 版と同等）。
-
-##### 必要環境
-- Rust toolchain（`rustup` 経由）
-- Node.js 20+ + npm
-- macOS の場合: Xcode Command Line Tools
-
-##### セットアップ
-```bash
-# Rust 未インストールなら
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Tauri CLI
-npm install
-```
-
-##### 起動
-```bash
-# 開発モード（Cardinal Editor サーバ自動起動）
-npm run tauri:dev
-
-# リリースビルド（.dmg / .app を生成）
-npm run tauri:build
-```
-
-ビルド成果物は `src-tauri/target/release/bundle/` 配下に生成される。
-
-##### リリース配布
-タグ `v*` を push すると `.github/workflows/tauri-build.yml` が走り、
-macOS (Universal) / Windows / Linux 向け **.dmg / .msi / .deb / .AppImage** が
-自動ビルドされて GitHub Releases にドラフト公開される。
-
-```bash
-# 例: v0.1.0 をリリース
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-> **[ SYSTEM ]** Phase A は editor/ embed のみ、Phase B で Rust BLE transport
-> 実装、Phase C で UI 上の Web/Tauri バッジ表示、Phase D で CI による
-> マルチプラットフォームビルドを完備。Web Bluetooth の制約を完全突破。
-
 ### ◆ 認証関門 ── Authentication Gate
 
 GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入力。トークンは localStorage にのみ保存され、GitHub API の Bearer 認証に使用される。
@@ -483,6 +437,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-26 | 〈Native Embodiment Dissolution〉— 実運用に至らなかった Tauri デスクトップ版〈Native Embodiment〉(Phase A〜D, 2026-05-10 初期化) を完全解体した儀式の記録。`src-tauri/` 全体（Cargo / Rust crate / Tauri 2.x config / icons / capabilities / gen / target 計 2.5GB）と `.github/workflows/tauri-build.yml`（macOS Universal / Windows / Linux 向け .dmg / .msi / .deb / .AppImage 自動ビルド CI）、`package.json` / `package-lock.json` / `node_modules/`（Tauri CLI 専用、editor 本体は esm.sh で CDN ロードのため依存ゼロ）を消去。`editor/live.js` から〈Tauri Native Bridge〉(`isTauri` / `tauriInvoke` / `tauriListen` / `showDevicePicker` / `connectBleTauri` 計 112 行)、`handleConnectBle` の Tauri 分岐 (L378-391)、init 内 runtime バッジ更新 (L1416-1428) を剪定。`editor/app.js` の `isTauri()` / `tauri-badge` 表示ロジック、`editor/index.html` の `[ Native Embodiment Active ]` バッジ span、`editor/live.html` の `runtime-badge` (web/tauri 二系統)・BLE Device Picker Modal、`editor/style.css` の `.tauri-badge` 全消去。`.gitignore` の Tauri / Node セクションも追従削除。Live Sync は **Web Bluetooth (Chrome/Edge) + Web Serial (USB-CDC ACM)** の二経路へ再収束。macOS で HID 接続中の Cardinal を Web Bluetooth で再選択できない既知制約は表面化するが、①OS Bluetooth 設定で一時切断 → Web Bluetooth、②USB ケーブル + Web Serial、のいずれでも編纂可能。Tauri 識別子 `com.cardinal-sys.cardinal-editor` および launchd PLIST_NAME は今回の解体に無関係（launchd は editor/ サーバ常駐用で独立）。〈Native Embodiment〉に関する歴史記録（2026-05-05 PoC / 2026-05-10 Phase A / 2026-05-14 Conduit Re-Forging / Eternal Wait Sealing）は本 SYSTEM LOG にそのまま温存し、術式の遍歴を証跡として残す。 |
 | 2026-05-26 | 〈Noise Cancellation Re-Awakening〉— PMW3610 ドライバ pin を `60a0782` (cpi-layers のみ) → `35f2c40` (〈Noise Cancellation & Adaptive Precision〉実装 + device tree bindings) へ前進させ、IIR フィルタ (alpha=614 ≈ 0.6, *1024) を driver default 値で自動有効化し、トラックボール出力のジッターを除去する濾波器を蘇らせる。〈Adaptive Precision〉(speed-based-cpi) は driver default false により **意図的に無効** とし、過去 Run #25889602860 で BT 接続崩壊の主犯候補だった SPI レジスタ書換連発を回避。`60a0782..e2ef34c` の diff (`src/pmw3610.c` +52 / `src/pixart.h` +18 行) を読了し、IIR 部分は乗算 2 + 加算 2 + 除算 2 ≈ 6 命令の純粋な数学的後処理で BLE HID report のタイミングに影響しないと判定。`9491028` (2026-05-21) で投入し 34 分後に `f16c25f` の Zephyr 4.1 ボード検証エラー切り分け debug で消失したまま復元されていなかった〈Noise Cancellation〉のみを、副犯候補 speed-based-cpi を抜きにした安全構成で蘇らせる。`feature/iir-restoration` ブランチで PR 化、GHA build 通過確認後に実機 BT 安定検証を経て main マージ予定。50キー Administrator 側は本ブランチ動作確認後に同期申請（双子は同一ドライバ pin を共有するため非対称運用は禁忌）。 |
 | 2026-05-26 | 〈Phantom Sigil Pruning II〉— 〈Phantom Sigil Pruning〉(2026-05-25) で README 表からは剪定したものの取り残されていた `keymap_drawer.yaml` の `raw_binding_map` から、`lt_to_layer_0` / `lt_mkp` / `mod_mkp` / `dragkey` / `g_shft` / `lm` の 6 エイリアスを剪定。これら dead code は `keymap.yaml` (draw-keymap.yml で自動再生成) で 0 回参照のため描画への実害はゼロ、純粋な残骸ラベルの除去。双子リポ（42キー Cardinal・50キー Administrator）で同時剪定。dead code 本体 (`config/keymap/30_enhance_armament_base.dtsi` の behavior 定義) は依代として温存。〈Phantom Sigil Pruning〉と合わせ、ドキュメント・描画ラベル両系統から幻影印璽が消滅した。 |
 | 2026-05-25 | 〈Phantom Sigil Pruning〉— Hold-Tap Behavior Matrix から実装で完全に 0 usage となっていた `lt_mkp` / `mod_mkp` / `dragkey` の 3 行を剪定し、現役 `gesture_mo_kp` の 1 行に絞った。〈Handling Refine〉(2026-05-01) で導入された hold-tap チューニングが〈Handling Stabilize〉(2026-05-01) の home-row mod (`hm_l`/`hm_r`) 廃止後も「保持」のまま README 表に残留し、双子リポ（42キー Cardinal・50キー Administrator）共通の幻影印璽として漂っていた。dead code 本体 (`config/keymap/30_enhance_armament_base.dtsi` の behavior 定義) は将来再昇華に備えた依代として温存。剣士が手にする現役神器のみが矩形（マトリクス）に映る世界像へ復帰した。 |

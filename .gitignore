@@ -1,13 +1,2 @@
 .DS_Store
 .claude/worktrees/
-
-# Tauri / Rust
-src-tauri/target/
-src-tauri/Cargo.lock
-src-tauri/gen/
-
-# Node
-node_modules/
-package-lock.json
-yarn.lock
-pnpm-lock.yaml

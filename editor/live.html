@@ -111,31 +111,6 @@
     }
     .nav-back:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
 
-    /* Runtime Badge (Web / Tauri Native) */
-    .runtime-badge {
-      display: inline-block;
-      padding: 3px 10px;
-      font-size: 0.65rem;
-      letter-spacing: 0.15em;
-      border-radius: 2px;
-      font-weight: bold;
-      margin-right: 8px;
-    }
-    .runtime-badge.runtime-web {
-      background: rgba(126, 207, 255, 0.15);
-      border: 1px solid var(--accent-cyan);
-      color: var(--accent-cyan);
-    }
-    .runtime-badge.runtime-tauri {
-      background: rgba(180, 140, 255, 0.2);
-      border: 1px solid var(--accent-violet);
-      color: var(--accent-violet);
-      box-shadow: 0 0 8px rgba(180, 140, 255, 0.4);
-    }
-    .runtime-badge.runtime-tauri::before {
-      content: '⚡ ';
-    }
-
     /* Memory Matrix（live keymap） */
     .layer-details {
       background: var(--bg-deep);
@@ -521,7 +496,6 @@
       <p class="subtitle">— Cardinal Editor 直接接続術式 / PoC —</p>
     </div>
     <div class="header-right">
-      <span id="runtime-badge" class="runtime-badge runtime-web">Web</span>
       <a href="index.html" class="nav-back">← Cardinal Editor</a>
     </div>
   </header>
@@ -736,15 +710,6 @@
   <footer class="cardinal-footer">
     <p>&lt;&lt; LIVE SYNC CONDUIT 〉〉— PoC / Phase 2 / Step 2</p>
   </footer>
-  <!-- ◆ BLE Device Picker Modal (Tauri用) -->
-  <div id="ble-picker-modal" class="hidden" style="position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:rgba(5,8,20,0.85);backdrop-filter:blur(8px);">
-    <div style="background:var(--bg-panel);border:1px solid var(--accent-cyan);border-radius:6px;padding:24px;width:420px;max-width:90vw;max-height:70vh;display:flex;flex-direction:column;">
-      <h3 style="color:var(--accent-cyan);letter-spacing:0.15em;font-size:0.85rem;margin-bottom:12px;">◆ BLE DEVICE SELECTION ── 接続先選択</h3>
-      <p style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:12px;">接続するデバイスをクリックしてください。</p>
-      <div id="ble-picker-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px;"></div>
-      <button id="ble-picker-cancel" class="btn-ghost" style="margin-top:12px;">[ Cancel ]</button>
-    </div>
-  </div>
 
   <script type="module" src="live.js"></script>
 </body>

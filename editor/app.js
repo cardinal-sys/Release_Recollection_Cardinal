@@ -2939,16 +2939,7 @@ async function confirmSealing() {
 }
 
 /* ◆ INIT ───────────────────────────────── */
-function isTauri() {
-  return typeof window !== 'undefined' && (window.__TAURI_INTERNALS__ || window.__TAURI__);
-}
-
-/* ◆ INIT ───────────────────────────────── */
 function init() {
-  if (isTauri()) {
-    const badge = document.getElementById('tauri-badge');
-    if (badge) badge.classList.remove('hidden');
-  }
   loadCredentials();
   els.authBtn.addEventListener('click', handleAuth);
   els.patInput.addEventListener('keydown', (e) => {

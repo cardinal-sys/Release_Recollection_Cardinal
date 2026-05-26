@@ -89,17 +89,6 @@ body {
   box-shadow: 0 0 8px rgba(180, 140, 255, 0.3);
 }
 
-.tauri-badge {
-  color: var(--accent-success);
-  border: 1px solid var(--accent-success);
-  padding: 4px 10px;
-  border-radius: 2px;
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  background: rgba(0, 255, 170, 0.1);
-  box-shadow: 0 0 8px rgba(0, 255, 170, 0.2);
-}
-
 #status-indicator {
   font-weight: bold;
   letter-spacing: 0.1em;
