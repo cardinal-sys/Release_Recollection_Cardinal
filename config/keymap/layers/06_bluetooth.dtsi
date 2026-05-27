@@ -5,7 +5,7 @@
 Bluetooth {
     bindings = <
 &trans  &trans  &trans  &trans  &trans                                              &bt_solo_0    &bt_solo_1    &bt_solo_2    &bt_solo_3    &bt_solo_4
-&trans  &trans  &trans  &trans  &trans           &trans             &studio_unlock  &trans        &trans        &trans        &trans        &trans
+&trans  &trans  &trans  &trans  &trans           &trans             &studio_unlock  &bt_pair_0    &bt_pair_1    &bt_pair_2    &bt_pair_3    &bt_pair_4
 &trans  &trans  &trans  &trans  &kp LG(LA(ESC))  &kp LC(LG(Q))      &bootloader     &trans        &trans        &trans        &trans        &bt BT_CLR
 &trans  &trans  &trans  &trans  &trans           &trans             &trans          &trans                                                  &bt BT_CLR_ALL
     >;

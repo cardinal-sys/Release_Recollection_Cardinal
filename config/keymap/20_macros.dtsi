@@ -123,3 +123,51 @@ bt_solo_4: bt_solo_4 {
                <&bt BT_DISC 2>,
                <&bt BT_DISC 3>;
 };
+
+/* ============================================================
+ * 〈Pure Pairing Sigils〉— BT Pair Sigils
+ *
+ * 純粋な `&bt BT_SEL N` のみを発火するペアリング専用 sigil。
+ * `bt_solo_N` (〈Phantom Connection Banishment〉) は BT_SEL 直後に
+ * 他 4 profile への BT_DISC を連射するため、未paired profile への
+ * 新規ペアリング進行中に Pairing/Bonding シーケンスを破壊し
+ * 「1台目は pair できるが 2台目以降不可」の症状を引き起こす。
+ *
+ * 本マクロ群は新規 host との bond 確立を最優先する局面で使用し、
+ * pair 完了後は通常の `bt_solo_N` で日常切替を行う運用とする。
+ * ============================================================ */
+
+bt_pair_0: bt_pair_0 {
+    compatible = "zmk,behavior-macro";
+    label = "BT_PAIR_0";
+    #binding-cells = <0>;
+    bindings = <&bt BT_SEL 0>;
+};
+
+bt_pair_1: bt_pair_1 {
+    compatible = "zmk,behavior-macro";
+    label = "BT_PAIR_1";
+    #binding-cells = <0>;
+    bindings = <&bt BT_SEL 1>;
+};
+
+bt_pair_2: bt_pair_2 {
+    compatible = "zmk,behavior-macro";
+    label = "BT_PAIR_2";
+    #binding-cells = <0>;
+    bindings = <&bt BT_SEL 2>;
+};
+
+bt_pair_3: bt_pair_3 {
+    compatible = "zmk,behavior-macro";
+    label = "BT_PAIR_3";
+    #binding-cells = <0>;
+    bindings = <&bt BT_SEL 3>;
+};
+
+bt_pair_4: bt_pair_4 {
+    compatible = "zmk,behavior-macro";
+    label = "BT_PAIR_4";
+    #binding-cells = <0>;
+    bindings = <&bt BT_SEL 4>;
+};
