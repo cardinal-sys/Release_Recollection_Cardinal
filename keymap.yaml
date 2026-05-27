@@ -282,11 +282,11 @@ layers:
   - {type: held}
   - {t: ▽, type: trans}
   - '&studio_unlock'
-  - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
+  - '&bt_pair_0'
+  - '&bt_pair_1'
+  - '&bt_pair_2'
+  - '&bt_pair_3'
+  - '&bt_pair_4'
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
