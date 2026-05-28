@@ -10,7 +10,7 @@
     {
       "name": "cardinal-editor",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "3001", "--directory", "/Users/maedaakio/Documents/GitHub/Release_Recollection/editor"],
+      "runtimeArgs": ["-m", "http.server", "3001", "--directory", "editor"],
       "port": 3001
     }
   ]

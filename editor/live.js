@@ -838,6 +838,8 @@ function openBindingEditor(layerId, position, currentBinding, cellEl) {
 
   // 動的選択 UI を behavior に応じて構築
   renderDynamicSlots(behaviorName(currentBinding.behaviorId), currentBinding);
+  // 〈Memory Anchor〉— behavior 切替時に旧 spec を参照できるよう開始時の behavior を記録
+  state._editorPrevBehaviorId = currentBinding.behaviorId;
 
   updateResolvedHints();
 
@@ -1031,20 +1033,48 @@ function renderDynamicSlots(behaviorName, currentBinding) {
   renderSlot(2, spec.p2, currentBinding.param2 ?? 0);
 }
 
+// 〈Param Reincarnation〉— 旧 behavior の param を「型」で照合し、新 behavior の対応 slot に再配置する。
+// 例: Mod-Tap (modmask, hid) → Key Press (hid) では旧 p2(=タップキー) が新 p1 として転生する。
+function adaptParamsForNewBehavior(oldName, newName, oldP1, oldP2) {
+  const oldSpec = specForBehavior(oldName);
+  const newSpec = specForBehavior(newName);
+  const pool = [
+    { type: oldSpec.p1.type, value: oldP1 },
+    { type: oldSpec.p2.type, value: oldP2 },
+  ];
+  const take = (targetType) => {
+    if (targetType === 'none') return 0;
+    for (let i = 0; i < pool.length; i++) {
+      if (pool[i].type === targetType) {
+        const v = pool[i].value;
+        pool.splice(i, 1);
+        return v;
+      }
+    }
+    return 0;
+  };
+  return {
+    param1: take(newSpec.p1.type),
+    param2: take(newSpec.p2.type),
+  };
+}
+
 function renderSlot(slotNum, slotSpec, currentValue) {
   const slot = document.getElementById(`dyn-slot-${slotNum}`);
   const labelEl = document.getElementById(`dyn-slot-${slotNum}-label`);
   const body = document.getElementById(`dyn-slot-${slotNum}-body`);
   body.innerHTML = '';
 
+  const paramId = slotNum === 1 ? 'bind-param1' : 'bind-param2';
+
   if (slotSpec.type === 'none') {
     slot.classList.add('hidden');
+    // 〈Slot Purge〉— 不要 slot の残響を浄化（旧 behavior の param が混入するのを防ぐ）
+    document.getElementById(paramId).value = 0;
     return;
   }
   slot.classList.remove('hidden');
   labelEl.textContent = `◆ ${slotSpec.label || `Slot ${slotNum}`}`;
-
-  const paramId = slotNum === 1 ? 'bind-param1' : 'bind-param2';
 
   switch (slotSpec.type) {
     case 'hid':       buildHidSelector(body, paramId, currentValue); break;
@@ -1314,14 +1344,19 @@ function init() {
 
   // Behavior 切替時に動的 UI を再構築
   document.getElementById('bind-behavior').addEventListener('change', () => {
-    const behaviorId = Number(document.getElementById('bind-behavior').value);
-    const fullName = behaviorName(behaviorId);
-    // 既存 param 値を継承して再描画
-    renderDynamicSlots(fullName, {
-      param1: Number(document.getElementById('bind-param1').value) || 0,
-      param2: Number(document.getElementById('bind-param2').value) || 0,
-    });
+    const newBehaviorId = Number(document.getElementById('bind-behavior').value);
+    const oldBehaviorId = Number(state._editorPrevBehaviorId ?? newBehaviorId);
+    const newName = behaviorName(newBehaviorId);
+    const oldName = behaviorName(oldBehaviorId);
+    const oldP1 = Number(document.getElementById('bind-param1').value) || 0;
+    const oldP2 = Number(document.getElementById('bind-param2').value) || 0;
+    // 〈Type-Matched Inheritance〉— 旧 behavior の各 slot を新 behavior の同型 slot へ転生させる
+    const adapted = adaptParamsForNewBehavior(oldName, newName, oldP1, oldP2);
+    document.getElementById('bind-param1').value = adapted.param1;
+    document.getElementById('bind-param2').value = adapted.param2;
+    renderDynamicSlots(newName, adapted);
     updateResolvedHints();
+    state._editorPrevBehaviorId = newBehaviorId;
   });
   document.getElementById('bind-param1').addEventListener('input', updateResolvedHints);
   document.getElementById('bind-param2').addEventListener('input', updateResolvedHints);
