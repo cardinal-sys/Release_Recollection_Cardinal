@@ -384,6 +384,83 @@
       margin-bottom: 6px;
     }
 
+    /* ◆ GitHub Sync Panel ───────────────────── */
+    .github-sync-panel {
+      background: var(--bg-deep);
+      border: 1px solid var(--border-soft);
+      border-left: 3px solid var(--accent-gold);
+      border-radius: 3px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .github-sync-panel h3 {
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
+      color: var(--accent-gold);
+      margin-bottom: 10px;
+    }
+    .github-sync-fields {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .github-sync-fields label {
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+    .github-sync-fields input {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-accent);
+      color: var(--text-primary);
+      padding: 5px 8px;
+      font-family: monospace;
+      font-size: 0.78rem;
+      border-radius: 2px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .github-sync-fields input:focus {
+      outline: none;
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 6px rgba(255, 200, 80, 0.25);
+    }
+    .github-sync-status {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      padding: 5px 8px;
+      border-radius: 2px;
+      margin-top: 8px;
+    }
+    .sync-ok    { color: var(--accent-success); background: rgba(80,200,120,0.08); }
+    .sync-error { color: var(--accent-crimson); background: rgba(220,60,60,0.08); }
+    .sync-syncing { color: var(--accent-gold); background: rgba(255,200,80,0.08); animation: pulse 1s infinite; }
+    .btn-github-sync {
+      background: linear-gradient(135deg, rgba(255,200,80,0.15), rgba(255,200,80,0.05));
+      border: 1px solid var(--accent-gold);
+      color: var(--accent-gold);
+      padding: 6px 14px;
+      font-family: inherit;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+    .btn-github-sync:hover {
+      background: rgba(255, 200, 80, 0.25);
+      box-shadow: 0 0 10px rgba(255, 200, 80, 0.3);
+    }
+    .github-pat-hint {
+      font-size: 0.62rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
     /* ◆ Beyond Live Sync grid ─────────────── */
     .beyond-grid {
       display: grid;
@@ -521,7 +598,7 @@
       <p class="hint" style="margin-top: 8px;">
         ZMK ファームウェアは BLE の advertising data に Studio service UUID を含めないため、
         〈 Connect via Bluetooth 〉は **全デバイス表示モード**で動作します。リストから
-        <strong>Elucidator</strong> を選択してください。
+        <strong>Night_Sky_Sword</strong> を選択してください。
       </p>
     </section>
 
@@ -553,6 +630,36 @@
         <button id="save-changes-btn" class="btn-tiny btn-seal hidden">💾 Save</button>
         <button id="discard-changes-btn" class="btn-tiny btn-ghost hidden">↻ Discard</button>
         <button id="reset-settings-btn" class="btn-tiny btn-danger">⚠ Factory Reset</button>
+      </div>
+
+      <!-- ◆ GitHub Sync Panel -->
+      <div id="github-sync-panel" class="github-sync-panel">
+        <h3>◆ GITHUB SYNC ── 記憶の刻印</h3>
+        <p class="hint" style="margin-bottom: 10px;">
+          Live Sync Conduit で読み取ったキーマップを GitHub リポジトリへ直接コミットします。<br>
+          ブラウザから GitHub API を呼び出すため、ローカルサーバ等の追加ツールは不要です。
+        </p>
+        <div class="github-sync-fields">
+          <label>GitHub PAT</label>
+          <div>
+            <input type="password" id="github-pat-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+            <p class="github-pat-hint">
+              Settings → Developer settings → Personal access tokens → Fine-grained tokens<br>
+              必要な権限: <code>contents: read/write</code>（対象リポジトリのみ）
+            </p>
+          </div>
+          <label>Branch</label>
+          <input type="text" id="github-branch-input" value="main" placeholder="main">
+          <label>Commit メッセージ</label>
+          <input type="text" id="github-commit-msg"
+            placeholder="feat(live-sync): 〈Memory Inscription〉— キーマップ同期（空欄で自動生成）">
+        </div>
+        <div class="live-actions">
+          <button id="github-sync-btn" class="btn-github-sync">
+            〈 GitHub へ同期 〉
+          </button>
+        </div>
+        <div id="github-sync-status" class="github-sync-status hidden"></div>
       </div>
 
       <div id="keymap-summary"></div>
@@ -680,15 +787,15 @@
           <p>物理レイアウトでキーマップを編纂（描画用 yaml）</p>
           <code>keymap.yaml</code>
         </a>
-        <a href="index.html?file=config%2Fboards%2Fshields%2FCardinal%2FElucidator.conf" class="beyond-card">
-          <h3>◆ Shield 設定 — Elucidator</h3>
+        <a href="index.html?file=config%2Fboards%2Fshields%2FAdministrator%2FNight_Sky_Sword.conf" class="beyond-card">
+          <h3>◆ 神器 — 夜空の剣</h3>
           <p>右手 / central / トラックボール / Bluetooth / ZMK Studio</p>
-          <code>Elucidator.conf</code>
+          <code>Night_Sky_Sword.conf</code>
         </a>
-        <a href="index.html?file=config%2Fboards%2Fshields%2FCardinal%2FDark_Repulser.conf" class="beyond-card">
-          <h3>◆ Shield 設定 — Dark Repulser</h3>
-          <p>左手 / peripheral</p>
-          <code>Dark_Repulser.conf</code>
+        <a href="index.html?file=config%2Fboards%2Fshields%2FAdministrator%2FBlue_Rose_Sword.conf" class="beyond-card">
+          <h3>◆ 神器 — 青薔薇の剣</h3>
+          <p>左手 / peripheral / EC11 エンコーダー</p>
+          <code>Blue_Rose_Sword.conf</code>
         </a>
       </div>
     </section>
@@ -701,7 +808,7 @@
         次段階で RPC リクエストを発行し、キーマップの取得・書換を実装する。
       </p>
       <p class="hint" style="margin-top: 8px;">
-        前提条件: Elucidator 側で <code>CONFIG_ZMK_STUDIO=y</code> が有効化された
+        前提条件: Night_Sky_Sword 側で <code>CONFIG_ZMK_STUDIO=y</code> が有効化された
         ファームウェアが書き込まれていること。
       </p>
     </section>
@@ -711,6 +818,6 @@
     <p>&lt;&lt; LIVE SYNC CONDUIT 〉〉— PoC / Phase 2 / Step 2</p>
   </footer>
 
-  <script type="module" src="live.js"></script>
+  <script type="module" src="live.js?v=20260528-2"></script>
 </body>
 </html>

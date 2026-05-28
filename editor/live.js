@@ -250,7 +250,7 @@ async function tryReconnectKnownDevice() {
     const known = await navigator.bluetooth.getDevices();
     log(`getDevices() returned ${known.length} known device(s)`);
     if (known.length === 0) return null;
-    // 名前が Elucidator っぽい / もしくは前回接続したものを優先
+    // 名前が Night_Sky_Sword っぽい / もしくは前回接続したものを優先
     const target = known.find((d) => /elucidator/i.test(d.name || ''))
                 || known[0];
     log(`Reusing known device: ${target.name || '(no name)'}`);
@@ -1361,12 +1361,459 @@ function init() {
   document.getElementById('bind-param1').addEventListener('input', updateResolvedHints);
   document.getElementById('bind-param2').addEventListener('input', updateResolvedHints);
 
+  // ◆ GitHub Sync ─────────────────────────────
+  document.getElementById('github-sync-btn')?.addEventListener('click', handleGithubSync);
+  // PAT を localStorage に永続化（入力欄 ↔ storage の双方向バインド）
+  const patInput = document.getElementById('github-pat-input');
+  if (patInput) {
+    const saved = localStorage.getItem('cardinal_github_pat');
+    if (saved) patInput.value = saved;
+    patInput.addEventListener('change', () => {
+      localStorage.setItem('cardinal_github_pat', patInput.value);
+    });
+  }
+
   // Debug bridge: 開発時のみ window 経由で state にアクセスできるように
   window.__cardinal_live = {
     state, renderKeymapView, behaviorName, handleProbe,
     openBindingEditor, applyBindingEdit, closeBindingEditor,
     renderDynamicSlots, updateResolvedHints,
+    handleGithubSync,
   };
+}
+
+/* ◆ GITHUB SYNC ─────────────────────────── */
+// ブラウザから GitHub Contents API を直接呼び出す。
+// localhost サーバ不要 — GitHub Pages 上でそのまま動作する。
+
+const GITHUB_REPO = 'cardinal-sys/Release_Recollection_Cardinal';
+const GITHUB_API  = 'https://api.github.com';
+
+// レイヤーファイルのマッピング（index → ファイル名 & DTSi変数名）
+const LAYER_FILES = [
+  ['00_default.dtsi',    'default_layer'],
+  ['01_function.dtsi',   'FUNCTION'],
+  ['02_sign.dtsi',       'SIGN'],
+  ['03_num.dtsi',        'NUM'],
+  ['04_mouse.dtsi',      'MOUSE'],
+  ['05_scroll.dtsi',     'SCROLL'],
+  ['06_bluetooth.dtsi',  'Bluetooth'],
+  ['07_gesture_e.dtsi',  'GESTURE_E'],
+  ['08_gesture_r.dtsi',  'GESTURE_R'],
+  ['09_gesture_s.dtsi',  'GESTURE_S'],
+  ['10_gesture_b.dtsi',  'GESTURE_B'],
+  ['11_gesture_t.dtsi',  'GESTURE_T'],
+  ['12_gesture_a.dtsi',  'GESTURE_A'],
+  ['13_gesture_d.dtsi',  'GESTURE_D'],
+  ['14_gesture_w.dtsi',  'GESTURE_W'],
+  ['15_snipe.dtsi',      'SNIPE'],
+  ['16_num_smart.dtsi',  'NUM_SMART'],
+];
+
+/* ── HID Usage → ZMK keycode ── */
+const KBD_MAP = {
+  4:'A',5:'B',6:'C',7:'D',8:'E',9:'F',10:'G',11:'H',12:'I',13:'J',
+  14:'K',15:'L',16:'M',17:'N',18:'O',19:'P',20:'Q',21:'R',22:'S',
+  23:'T',24:'U',25:'V',26:'W',27:'X',28:'Y',29:'Z',
+  30:'NUMBER_1',31:'NUMBER_2',32:'NUMBER_3',33:'NUMBER_4',34:'NUMBER_5',
+  35:'NUMBER_6',36:'NUMBER_7',37:'NUMBER_8',38:'NUMBER_9',39:'NUMBER_0',
+  40:'ENTER',41:'ESC',42:'BACKSPACE',43:'TAB',44:'SPACE',
+  45:'MINUS',46:'EQUAL',47:'LEFT_BRACKET',48:'RIGHT_BRACKET',
+  49:'BACKSLASH',51:'SEMICOLON',52:'SINGLE_QUOTE',53:'GRAVE',
+  54:'COMMA',55:'PERIOD',56:'SLASH',57:'CAPS',
+  58:'F1',59:'F2',60:'F3',61:'F4',62:'F5',63:'F6',
+  64:'F7',65:'F8',66:'F9',67:'F10',68:'F11',69:'F12',
+  70:'PRINTSCREEN',73:'INSERT',74:'HOME',75:'PAGE_UP',
+  76:'DELETE',77:'END',78:'PAGE_DOWN',
+  79:'RIGHT_ARROW',80:'LEFT_ARROW',81:'DOWN_ARROW',82:'UP_ARROW',
+  104:'F13',105:'F14',106:'F15',107:'F16',108:'F17',109:'F18',
+  110:'F19',111:'F20',112:'F21',113:'F22',114:'F23',115:'F24',
+  224:'LEFT_CONTROL',225:'LEFT_SHIFT',226:'LEFT_ALT',227:'LEFT_GUI',
+  228:'RIGHT_CONTROL',229:'RIGHT_SHIFT',230:'RIGHT_ALT',231:'RIGHT_GUI',
+};
+const CONSUMER_MAP = {
+  0xCD:'C_PLAY_PAUSE',0xE2:'C_MUTE',0xE9:'C_VOLUME_UP',
+  0xEA:'C_VOLUME_DOWN',0xB5:'C_NEXT',0xB6:'C_PREVIOUS',
+};
+const MOD_NAMES = {
+  0x01:'LCTRL',0x02:'LSHFT',0x04:'LALT',0x08:'LGUI',
+  0x10:'RCTRL',0x20:'RSHFT',0x40:'RALT',0x80:'RGUI',
+};
+const MOUSE_MAP = {1:'MB1',2:'MB2',4:'MB3',8:'MB4',16:'MB5'};
+
+// ZMK modifier ビット → ZMK modifier 関数名
+const MOD_FN = {
+  0x01:'LC', 0x02:'LS', 0x04:'LA', 0x08:'LG',
+  0x10:'RC', 0x20:'RS', 0x40:'RA', 0x80:'RG',
+};
+
+// HID implicit modifier + keycode → &kp LS(LC(...(KEY)))
+function _hidToKc(usage) {
+  const implicit = (usage >>> 24) & 0xFF;
+  const page     = (usage >>> 16) & 0xFF;
+  const keyId    = usage & 0xFFFF;
+  let kc;
+  if (page === 7)       kc = KBD_MAP[keyId]      ?? `0x${keyId.toString(16).padStart(4,'0')}`;
+  else if (page === 12) kc = CONSUMER_MAP[keyId]  ?? `0x${keyId.toString(16).padStart(4,'0')}`;
+  else return `/* unknown usage 0x${usage.toString(16).padStart(8,'0')} */`;
+  if (implicit) {
+    // ZMK 正規形式: LS(LC(RA(RG(KEY)))) — 各 modifier を関数でネスト
+    const fns = Object.entries(MOD_FN).filter(([m]) => implicit & Number(m)).map(([,f]) => f);
+    kc = fns.reduce((inner, fn) => `${fn}(${inner})`, kc);
+    return `&kp ${kc}`;
+  }
+  return kc;
+}
+
+// modifier ビットマスク → ZMK mt 第1引数
+// ZMK の &mt 第1引数は modifier keycode: LEFT_SHIFT / LEFT_GUI 等
+// 複数 modifier は LS(LC(...)) のネスト形式（実際の dtsi では単一のみが多い）
+const MOD_MASK_TO_KC = {
+  0x01:'LEFT_CONTROL', 0x02:'LEFT_SHIFT',  0x04:'LEFT_ALT',  0x08:'LEFT_GUI',
+  0x10:'RIGHT_CONTROL',0x20:'RIGHT_SHIFT', 0x40:'RIGHT_ALT', 0x80:'RIGHT_GUI',
+};
+function _modMaskToZmk(mask) {
+  if (mask === 0) return '0x00';
+  // 単一 modifier ビット → そのまま keycode 名
+  if (MOD_MASK_TO_KC[mask]) return MOD_MASK_TO_KC[mask];
+  // 複数 modifier ビット → 最低位を base に残りを MOD_FN でネスト
+  const bits = Object.keys(MOD_MASK_TO_KC).map(Number).filter(m => mask & m);
+  const [first, ...rest] = bits;
+  const base = MOD_MASK_TO_KC[first];
+  return rest.reduce((inner, m) => `${MOD_FN[m]}(${inner})`, base);
+}
+
+// ZMK Studio の displayName → node 名への変換テーブル
+// label が定義されている behavior は大文字 label で来るので node 名に変換する
+const LABEL_TO_NODE = {
+  'GESTURE_MO_KP':   'gesture_mo_kp',
+  'ROTATE':          'rotate',
+  'LT_MKP':         'lt_mkp',
+  'MOD_MKP':        'mod_mkp',
+  'DRAGKEY':        'dragkey',
+  'SWAPPER':        'swapper',
+  'SWAPPER_REV':    'swapper_rev',
+  'LAYER_TAP_TO_0': 'lt_to_layer_0',
+  'SAFARI_RELOAD_ONCE': 'safari_reload_once',
+  'TO_LAYER_0':     'to_layer_0',
+  'DRAG_ON':        'drag_on',
+  'DRAG_OFF':       'drag_off',
+  'BT_SOLO_0':      'bt_solo_0',
+  'BT_SOLO_1':      'bt_solo_1',
+  'BT_SOLO_2':      'bt_solo_2',
+  'BT_SOLO_3':      'bt_solo_3',
+  'BT_SOLO_4':      'bt_solo_4',
+  'BT_PAIR_0':      'bt_pair_0',
+  'BT_PAIR_1':      'bt_pair_1',
+  'BT_PAIR_2':      'bt_pair_2',
+  'BT_PAIR_3':      'bt_pair_3',
+  'BT_PAIR_4':      'bt_pair_4',
+};
+
+// 独自 behavior（hold-tap 系）のパラメーター数
+// 2 = &node p1 p2、1 = &node p1、0 = &node（パラメーターなし）
+const CUSTOM_BEHAVIOR_PARAMS = {
+  'gesture_mo_kp': 2,  // &gesture_mo_kp <layer> <kp_usage>
+  'ht_snipe':      2,  // &ht_snipe <layer> <kp_usage>
+  'smart_num':     1,  // &smart_num <layer>
+  'smart_snipe':   1,  // &smart_snipe <layer>
+  'lt_mkp':        2,  // &lt_mkp <layer> <btn>
+  'mod_mkp':       2,
+  'lt_to_layer_0': 2,
+  'ht_arrows_alt': 2,
+  'tap_dance_enter': 0, // &td_enter (node name in keymap = td_enter)
+  'td_enter':      0,
+  'rotate':        0,
+  'dragkey':       2,
+  'swapper':       0,
+  'swapper_rev':   0,
+};
+
+// p1 が HID key usage の場合はキーコードに変換、レイヤー番号の場合はそのまま返す
+function _p1ToKc(p1) {
+  // HID usage page が 0 以外ならキーコード変換
+  const page = (p1 >>> 16) & 0xFF;
+  if (page === 7 || page === 12) return _hidToKc(p1);
+  // implicit mod のみの場合（page=0, keyId=0 かつ implicit>0）
+  const implicit = (p1 >>> 24) & 0xFF;
+  const keyId = p1 & 0xFFFF;
+  if (implicit && keyId) return _hidToKc(p1);
+  // ページなし小数値 → レイヤー番号またはそのまま
+  return String(p1);
+}
+
+function _p2ToKc(p2) {
+  const page = (p2 >>> 16) & 0xFF;
+  const keyId = p2 & 0xFFFF;
+  if (page === 7) return KBD_MAP[keyId] ?? `0x${keyId.toString(16).padStart(4,'0')}`;
+  if (page === 12) return CONSUMER_MAP[keyId] ?? `0x${keyId.toString(16).padStart(4,'0')}`;
+  return KBD_MAP[keyId] ?? `0x${keyId.toString(16).padStart(4,'0')}`;
+}
+
+function _bindingToZmk(b, behaviors) {
+  const bid   = b.behaviorId ?? 0;
+  const p1    = b.param1 ?? 0;
+  const p2    = b.param2 ?? 0;
+  const bname = behaviors[bid]?.displayName ?? `behavior#${bid}`;
+
+  switch (bname) {
+    case 'Transparent':    return '&trans';
+    case 'None':           return '&none';
+    case 'Bootloader':     return '&bootloader';
+    case 'Reset':          return '&sys_reset';
+    case 'Studio Unlock':  return '&studio_unlock';
+    case 'Key Press': {
+      const kc = _hidToKc(p1);
+      return kc.startsWith('&kp ') ? kc : `&kp ${kc}`;
+    }
+    case 'Mod-Tap': {
+      const modZmk = _modMaskToZmk(p1);
+      const kc     = _p2ToKc(p2);
+      return `&mt ${modZmk} ${kc}`;
+    }
+    case 'Layer-Tap': {
+      const kc = _p2ToKc(p2);
+      return `&lt ${p1} ${kc}`;
+    }
+    case 'Momentary Layer': return `&mo ${p1}`;
+    case 'Toggle Layer':    return `&tog ${p1}`;
+    case 'To Layer':        return `&to ${p1}`;
+    case 'Sticky Key': {
+      const page  = (p1 >>> 16) & 0xFF;
+      const keyId = p1 & 0xFFFF;
+      const kc    = page === 7 ? (KBD_MAP[keyId] ?? `0x${keyId.toString(16).padStart(4,'0')}`) : `0x${keyId.toString(16).padStart(4,'0')}`;
+      return `&sk ${kc}`;
+    }
+    case 'Sticky Layer':      return `&sl ${p1}`;
+    case 'Mouse Key Press':   return `&mkp ${MOUSE_MAP[p1] ?? `MB${p1}`}`;
+    case 'Key Repeat':        return `&key_repeat ${KBD_MAP[p1 & 0xFFFF] ?? `0x${(p1 & 0xFFFF).toString(16).padStart(4,'0')}`}`;
+    case 'Key Toggle':        return `&kt ${KBD_MAP[p1 & 0xFFFF] ?? `0x${(p1 & 0xFFFF).toString(16).padStart(4,'0')}`}`;
+    case 'Grave/Escape':      return `&gresc`;
+    case 'Output Selection':  return `&out ${{0:'OUT_AUTO',1:'OUT_USB',2:'OUT_BLE'}[p1] ?? String(p1)}`;
+    case 'External Power':    return `&ext_power ${{0:'EP_OFF',1:'EP_ON',2:'EP_TOG'}[p1] ?? String(p1)}`;
+    default: {
+      // 独自 behavior — label → node 名に変換、パラメーター数に応じて出力
+      const nodeName = LABEL_TO_NODE[bname] ?? bname.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+      const paramCount = CUSTOM_BEHAVIOR_PARAMS[nodeName] ?? CUSTOM_BEHAVIOR_PARAMS[bname.toLowerCase()] ?? -1;
+      if (paramCount === 0) return `&${nodeName}`;
+      if (paramCount === 1) return `&${nodeName} ${p1}`;
+      if (paramCount === 2) {
+        const k2 = _p2ToKc(p2);
+        return `&${nodeName} ${p1} ${k2}`;
+      }
+      // 不明な場合: p2 が 0 なら 1パラメーター、そうでなければ 2パラメーター
+      if (p2 === 0) return `&${nodeName} ${p1}`;
+      return `&${nodeName} ${p1} ${_p2ToKc(p2)}`;
+    }
+  }
+}
+
+/**
+ * ZMK Studio keymap JSON → { "config/keymap/layers/XX.dtsi": "<content>", ... }
+ * 既存ファイルの内容（ヘッダコメント・sensor-bindings）は GitHub から取得して保持する。
+ */
+async function keymapToDtsiFiles(pat, branch) {
+  const layers    = state.keymap.layers ?? [];
+  const behaviors = state.behaviors;   // { id(number) -> { displayName } }
+  const result    = {};
+
+  for (let i = 0; i < Math.min(layers.length, LAYER_FILES.length); i++) {
+    const [fname, varName] = LAYER_FILES[i];
+    const layer = layers[i];
+    const fpath = `config/keymap/layers/${fname}`;
+
+    // 既存ファイルのヘッダコメントと sensor-bindings を GitHub から取得
+    let header = null;
+    let sensorLine = null;
+    try {
+      const ghResp = await ghGetFile(pat, fpath, branch);
+      if (ghResp.ok) {
+        const existing = atob(ghResp.data.content.replace(/\n/g, ''));
+        const hm = existing.match(/^(\/\*[\s\S]*?\*\/\n)/);
+        if (hm) header = hm[1];
+        const sm = existing.match(/(sensor-bindings\s*=\s*<[^>]+>;)/);
+        if (sm) sensorLine = sm[1];
+      }
+    } catch (_) { /* 取得失敗は無視して生成 */ }
+
+    const bindStrs = (layer.bindings ?? []).map((b) => _bindingToZmk(b, behaviors));
+    const bindLine = '    ' + bindStrs.join('  ');
+
+    const lines = [];
+    if (header) {
+      lines.push(header.trimEnd());
+    } else {
+      lines.push(
+        `/* ============================================================\n` +
+        ` * layers/${fname} — [ Synthesis ${String(i).padStart(2,'0')} ] ${varName}\n` +
+        ` * ============================================================ */`
+      );
+    }
+    lines.push('');
+    lines.push(`${varName} {`);
+    lines.push('    bindings = <');
+    lines.push(bindLine);
+    lines.push('    >;');
+    if (sensorLine) {
+      lines.push('');
+      lines.push(`    ${sensorLine}`);
+    }
+    lines.push('};');
+    lines.push('');
+
+    result[fpath] = lines.join('\n');
+  }
+  return result;
+}
+
+/* ── GitHub REST helpers ── */
+async function _ghFetch(pat, endpoint, options = {}) {
+  const url = `${GITHUB_API}${endpoint}`;
+  const resp = await fetch(url, {
+    ...options,
+    headers: {
+      'Authorization': `token ${pat}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(options.headers ?? {}),
+    },
+  });
+  const data = await resp.json();
+  if (!resp.ok) {
+    throw Object.assign(new Error(data.message ?? `HTTP ${resp.status}`), { status: resp.status, data });
+  }
+  return data;
+}
+
+// ファイル内容取得（ヘッダ・sensor-bindings 保持用）
+async function ghGetFile(pat, path, branch = 'main') {
+  try {
+    const data = await _ghFetch(pat, `/repos/${GITHUB_REPO}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`);
+    return { ok: true, data };
+  } catch (e) {
+    return { ok: false, data: null };
+  }
+}
+
+/**
+ * 〈Single Inscription〉— Git Tree API で全ファイルを 1 コミットにまとめる。
+ * Cardinal Editor の commitAll() と同じアプローチ。
+ *
+ * 手順:
+ *   1. branch の HEAD SHA を取得
+ *   2. HEAD commit の tree SHA を取得
+ *   3. 各ファイルの blob を並列作成
+ *   4. 新しい tree を作成（base_tree = HEAD tree）
+ *   5. commit オブジェクトを作成
+ *   6. branch の ref を新 commit へ更新
+ */
+async function ghCommitAll(pat, branch, files, message) {
+  // files: [ { path: string, content: string }, ... ]
+
+  // 1. branch HEAD SHA を取得
+  const ref = await _ghFetch(pat,
+    `/repos/${GITHUB_REPO}/git/refs/heads/${encodeURIComponent(branch)}`);
+  const headSha = ref.object.sha;
+
+  // 2. HEAD commit の base tree SHA を取得
+  const baseCommit = await _ghFetch(pat,
+    `/repos/${GITHUB_REPO}/git/commits/${headSha}`);
+  const baseTreeSha = baseCommit.tree.sha;
+
+  // 3. 各ファイルの blob を並列作成
+  const blobs = await Promise.all(files.map(async ({ path, content }) => {
+    const blob = await _ghFetch(pat, `/repos/${GITHUB_REPO}/git/blobs`, {
+      method: 'POST',
+      body: JSON.stringify({
+        content: btoa(unescape(encodeURIComponent(content))),
+        encoding: 'base64',
+      }),
+    });
+    return { path, sha: blob.sha };
+  }));
+
+  // 4. 新しい tree を作成（base_tree = HEAD tree）
+  const tree = await _ghFetch(pat, `/repos/${GITHUB_REPO}/git/trees`, {
+    method: 'POST',
+    body: JSON.stringify({
+      base_tree: baseTreeSha,
+      tree: blobs.map(({ path, sha }) => ({
+        path, sha, mode: '100644', type: 'blob',
+      })),
+    }),
+  });
+
+  // 5. commit オブジェクトを作成して ref を更新
+  const commit = await _ghFetch(pat, `/repos/${GITHUB_REPO}/git/commits`, {
+    method: 'POST',
+    body: JSON.stringify({ message, tree: tree.sha, parents: [headSha] }),
+  });
+
+  await _ghFetch(pat, `/repos/${GITHUB_REPO}/git/refs/heads/${encodeURIComponent(branch)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ sha: commit.sha }),
+  });
+
+  return commit.sha;
+}
+
+/* ── メイン同期関数 ── */
+async function handleGithubSync() {
+  const pat = (
+    document.getElementById('github-pat-input')?.value ||
+    localStorage.getItem('cardinal_github_pat') || ''
+  ).trim();
+
+  if (!pat) {
+    log('〈GitHub Sync〉GitHub PAT が未入力です。パネルに入力してください。', 'error');
+    return;
+  }
+  if (!state.keymap) {
+    log('〈GitHub Sync〉keymap データがありません。先に〈 Memory Recall 〉を実行してください。', 'error');
+    return;
+  }
+
+  const branch    = document.getElementById('github-branch-input')?.value?.trim() || 'main';
+  const customMsg = document.getElementById('github-commit-msg')?.value?.trim();
+  const commitMsg = customMsg ||
+    `feat(live-sync): 〈Memory Inscription〉— Live Sync Conduit からキーマップを同期 (${new Date().toISOString().slice(0,19).replace('T',' ')})`;
+
+  setSyncStatus('syncing', '変換中…');
+  log('〈GitHub Sync〉keymap → DTSi 変換開始', 'info');
+
+  let dtsiFiles;
+  try {
+    dtsiFiles = await keymapToDtsiFiles(pat, branch);
+  } catch (e) {
+    const detail = e.status ? `HTTP ${e.status}: ${e.message}` : String(e);
+    log(`〈GitHub Sync〉変換エラー: ${detail}`, 'error');
+    setSyncStatus('error', `❌ 変換エラー: ${detail}`);
+    return;
+  }
+
+  const files = Object.entries(dtsiFiles).map(([path, content]) => ({ path, content }));
+  log(`〈GitHub Sync〉${files.length} ファイルを 1 コミットで刻印中… (branch: ${branch})`, 'info');
+  setSyncStatus('syncing', `${files.length} ファイルを 1 コミットで同期中…`);
+
+  try {
+    const commitSha = await ghCommitAll(pat, branch, files, commitMsg);
+    const short = commitSha.slice(0, 7);
+    log(`〈GitHub Sync〉✅ 完了 — ${files.length} ファイル → ${branch} [${short}]`, 'success');
+    setSyncStatus('ok', `✅ ${files.length} files → ${branch} [${short}]`);
+  } catch (e) {
+    const detail = e.status ? `HTTP ${e.status}: ${e.message}` : String(e);
+    log(`〈GitHub Sync〉❌ エラー: ${detail}`, 'error');
+    setSyncStatus('error', `❌ ${detail}`);
+  }
+}
+
+function setSyncStatus(kind, text) {
+  const el = document.getElementById('github-sync-status');
+  if (!el) return;
+  el.textContent = text;
+  el.className = `github-sync-status sync-${kind}`;
+  el.classList.remove('hidden');
 }
 
 init();
