@@ -1378,7 +1378,7 @@ function init() {
     state, renderKeymapView, behaviorName, handleProbe,
     openBindingEditor, applyBindingEdit, closeBindingEditor,
     renderDynamicSlots, updateResolvedHints,
-    handleGithubSync,
+    handleGithubSync, _bindingToZmk,
   };
 }
 
@@ -1483,6 +1483,24 @@ function _modMaskToZmk(mask) {
   return rest.reduce((inner, m) => `${MOD_FN[m]}(${inner})`, base);
 }
 
+// ZMK &bt コマンド enum（app/include/dt-bindings/zmk/bt.h）
+// binding: param1 = command, param2 = arg（BT_SEL/BT_DISC のみ profile 引数を取る）
+const BT_CMD = { 0: 'BT_CLR', 1: 'BT_NXT', 2: 'BT_PRV', 3: 'BT_SEL', 4: 'BT_CLR_ALL', 5: 'BT_DISC' };
+function _btToZmk(p1, p2) {
+  const cmd = BT_CMD[p1] ?? String(p1);
+  return (p1 === 3 || p1 === 5) ? `&bt ${cmd} ${p2}` : `&bt ${cmd}`;
+}
+
+// 正規化ノード名 → ZMK 標準 behavior の正しいラベル alias + エンコード。
+// ZMK Studio は built-in behavior の displayName を friendly 名（'Mouse Move' 等）で返すが、
+// node 名（mouse_move）とラベル（mmv）が異なるため、ノード名そのままでは keymap が解決できない。
+// switch で取りこぼした built-in をここで確実に正しいラベルへ変換する。
+const BUILTIN_NODE_TO_ZMK = {
+  'mouse_move':   (p1) => `&mmv ${p1}`,
+  'mouse_scroll': (p1) => `&msc ${p1}`,
+  'bluetooth':    (p1, p2) => _btToZmk(p1, p2),
+};
+
 // ZMK Studio の displayName → node 名への変換テーブル
 // label が定義されている behavior は大文字 label で来るので node 名に変換する
 const LABEL_TO_NODE = {
@@ -1529,6 +1547,21 @@ const CUSTOM_BEHAVIOR_PARAMS = {
   'dragkey':       2,
   'swapper':       0,
   'swapper_rev':   0,
+  'arrows_alt':    1,  // &arrows_alt <layer>
+  // 引数ゼロのマクロ — paramCount=0 を明示しないと default 経路で余分な `0` が付与される
+  'safari_reload_once': 0,
+  'drag_on':       0,
+  'drag_off':      0,
+  'bt_solo_0':     0,
+  'bt_solo_1':     0,
+  'bt_solo_2':     0,
+  'bt_solo_3':     0,
+  'bt_solo_4':     0,
+  'bt_pair_0':     0,
+  'bt_pair_1':     0,
+  'bt_pair_2':     0,
+  'bt_pair_3':     0,
+  'bt_pair_4':     0,
 };
 
 // p1 が HID key usage の場合はキーコードに変換、レイヤー番号の場合はそのまま返す
@@ -1596,6 +1629,8 @@ function _bindingToZmk(b, behaviors) {
     default: {
       // 独自 behavior — label → node 名に変換、パラメーター数に応じて出力
       const nodeName = LABEL_TO_NODE[bname] ?? bname.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+      // ZMK 標準 behavior（Mouse Move/Scroll/Bluetooth）はラベルが node 名と異なるため専用変換
+      if (BUILTIN_NODE_TO_ZMK[nodeName]) return BUILTIN_NODE_TO_ZMK[nodeName](p1, p2);
       const paramCount = CUSTOM_BEHAVIOR_PARAMS[nodeName] ?? CUSTOM_BEHAVIOR_PARAMS[bname.toLowerCase()] ?? -1;
       if (paramCount === 0) return `&${nodeName}`;
       if (paramCount === 1) return `&${nodeName} ${p1}`;
