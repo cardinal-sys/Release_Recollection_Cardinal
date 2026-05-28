@@ -58,83 +58,63 @@ lm: lm {
 };
 
 /* ============================================================
- * 〈Phantom Connection Banishment〉— BT Solo Sigils
+ * 〈BT Solo Sigils · Pure Switch〉— BT プロファイル切替
  *
- * BT_SEL でアクティブ profile を選択した直後に、他 4 profile への
- * 接続を BT_DISC で能動的に切断する。ZMK 既定では非アクティブ profile
- * とも BLE 接続が維持されるため、複数ホスト同時接続時に BLE 帯域が
- * 奪い合いとなりカーソル遅延（特にトラックボール）が発生する。
- * 各ホスト側は paired 状態が残っているため、後で BT_SEL すれば自動
- * 再接続される。
- * BT_MAX_CONN=6 (プロファイル数 5 + スプリット相方 1) を前提。
+ * 各 bt_solo_N は純粋な &bt BT_SEL N（プロファイル切替のみ）。
+ * 旧版〈Phantom Connection Banishment〉では BT_SEL 直後に他 4 profile への
+ * BT_DISC を連射し非アクティブ profile を強制切断していたが、
+ *   (1) 切替のたびに他の接続中ホストまで切断する副作用、
+ *   (2) ペアリング進行中に押すと新規 bond 確立を破壊し「2台目以降ペア不可」
+ *       を招く副作用、
+ * が大きいため BT_DISC 連射を撤去し純切替へ収束させた。
+ * これにより bt_solo_N と bt_pair_N は等価（共に純 BT_SEL）。
+ * 複数ホスト同時接続の BLE 帯域奪い合い（トラックボール遅延）が再発する場合は
+ * 不要 profile を &bt BT_DISC で個別に切断する運用で対処する。
  * ============================================================ */
 
 bt_solo_0: bt_solo_0 {
     compatible = "zmk,behavior-macro";
     label = "BT_SOLO_0";
     #binding-cells = <0>;
-    bindings = <&bt BT_SEL 0>,
-               <&bt BT_DISC 1>,
-               <&bt BT_DISC 2>,
-               <&bt BT_DISC 3>,
-               <&bt BT_DISC 4>;
+    bindings = <&bt BT_SEL 0>;
 };
 
 bt_solo_1: bt_solo_1 {
     compatible = "zmk,behavior-macro";
     label = "BT_SOLO_1";
     #binding-cells = <0>;
-    bindings = <&bt BT_SEL 1>,
-               <&bt BT_DISC 0>,
-               <&bt BT_DISC 2>,
-               <&bt BT_DISC 3>,
-               <&bt BT_DISC 4>;
+    bindings = <&bt BT_SEL 1>;
 };
 
 bt_solo_2: bt_solo_2 {
     compatible = "zmk,behavior-macro";
     label = "BT_SOLO_2";
     #binding-cells = <0>;
-    bindings = <&bt BT_SEL 2>,
-               <&bt BT_DISC 0>,
-               <&bt BT_DISC 1>,
-               <&bt BT_DISC 3>,
-               <&bt BT_DISC 4>;
+    bindings = <&bt BT_SEL 2>;
 };
 
 bt_solo_3: bt_solo_3 {
     compatible = "zmk,behavior-macro";
     label = "BT_SOLO_3";
     #binding-cells = <0>;
-    bindings = <&bt BT_SEL 3>,
-               <&bt BT_DISC 0>,
-               <&bt BT_DISC 1>,
-               <&bt BT_DISC 2>,
-               <&bt BT_DISC 4>;
+    bindings = <&bt BT_SEL 3>;
 };
 
 bt_solo_4: bt_solo_4 {
     compatible = "zmk,behavior-macro";
     label = "BT_SOLO_4";
     #binding-cells = <0>;
-    bindings = <&bt BT_SEL 4>,
-               <&bt BT_DISC 0>,
-               <&bt BT_DISC 1>,
-               <&bt BT_DISC 2>,
-               <&bt BT_DISC 3>;
+    bindings = <&bt BT_SEL 4>;
 };
 
 /* ============================================================
  * 〈Pure Pairing Sigils〉— BT Pair Sigils
  *
- * 純粋な `&bt BT_SEL N` のみを発火するペアリング専用 sigil。
- * `bt_solo_N` (〈Phantom Connection Banishment〉) は BT_SEL 直後に
- * 他 4 profile への BT_DISC を連射するため、未paired profile への
- * 新規ペアリング進行中に Pairing/Bonding シーケンスを破壊し
- * 「1台目は pair できるが 2台目以降不可」の症状を引き起こす。
- *
- * 本マクロ群は新規 host との bond 確立を最優先する局面で使用し、
- * pair 完了後は通常の `bt_solo_N` で日常切替を行う運用とする。
+ * 純粋な `&bt BT_SEL N` のみを発火するペアリング sigil。
+ * 〈BT Solo Sigils · Pure Switch〉化により bt_solo_N も今は純 BT_SEL となり、
+ * bt_pair_N と等価。新規ペアリング・日常切替のどちらにも使用可。
+ * （履歴: 旧 bt_solo は BT_DISC 連射で新規 bond を破壊していたため、
+ *  当時は純 BT_SEL の bt_pair を別建てして回避していた。現在は両者統一。）
  * ============================================================ */
 
 bt_pair_0: bt_pair_0 {
