@@ -867,10 +867,10 @@ function closeBindingEditor() {
 
 /* ◆ BEHAVIOR PARAM SPEC ───────────────── */
 // 各 behavior の param1 / param2 の役割を定義
-// type: 'hid' (HID Usage) | 'layer' | 'modmask' | 'mouse' | 'none' | 'number'
+// type: 'hid' (HID Usage) | 'hid-modifier' (HID page-7 keyboard modifier 単体 / KBD(224..231)) | 'layer' | 'mouse' | 'none' | 'number'
 const BEHAVIOR_PARAM_SPEC = {
   'Key Press':       { p1: { type: 'hid',     label: 'キー' },         p2: { type: 'none' } },
-  'Mod-Tap':         { p1: { type: 'modmask', label: '修飾キー (ホールド時)' }, p2: { type: 'hid', label: 'キー (タップ時)' } },
+  'Mod-Tap':         { p1: { type: 'hid-modifier', label: '修飾キー (ホールド時)' }, p2: { type: 'hid', label: 'キー (タップ時)' } },
   'Layer-Tap':       { p1: { type: 'layer',   label: 'レイヤー (ホールド時)' }, p2: { type: 'hid', label: 'キー (タップ時)' } },
   'Momentary Layer': { p1: { type: 'layer',   label: 'レイヤー' },     p2: { type: 'none' } },
   'Toggle Layer':    { p1: { type: 'layer',   label: 'レイヤー' },     p2: { type: 'none' } },
@@ -904,11 +904,17 @@ const HID_USAGE = (page, id) => (page << 16) + id;
 const KBD = (id) => HID_USAGE(7, id);   // Keyboard / Keypad
 const CON = (id) => HID_USAGE(12, id);  // Consumer
 
-// 修飾キー (Mod Mask) for Mod-Tap などの param1
-// ZMK の MOD_LCTL=0x01, LSFT=0x02, LALT=0x04, LGUI=0x08, RCTL=0x10, RSFT=0x20, RALT=0x40, RGUI=0x80
-const MOD_MASKS = [
-  ['LCTL', 0x01], ['LSFT', 0x02], ['LALT', 0x04], ['LGUI', 0x08],
-  ['RCTL', 0x10], ['RSFT', 0x20], ['RALT', 0x40], ['RGUI', 0x80],
+// 修飾キー (HID page-7 keyboard modifier usage) for Mod-Tap などの param1
+// ZMK Studio は単一 modifier の HID usage (KBD(224..231)) で送受する。modmask bitmask ではない。
+const HID_MODIFIER_OPTIONS = [
+  ['LCtl (Left Control)',  KBD(224)],
+  ['LSft (Left Shift)',    KBD(225)],
+  ['LAlt (Left Alt)',      KBD(226)],
+  ['LGui (Left GUI)',      KBD(227)],
+  ['RCtl (Right Control)', KBD(228)],
+  ['RSft (Right Shift)',   KBD(229)],
+  ['RAlt (Right Alt)',     KBD(230)],
+  ['RGui (Right GUI)',     KBD(231)],
 ];
 
 function buildHidLetters() {
@@ -995,7 +1001,6 @@ function getQuickPickOptions(category) {
     case 'hid-modifiers': return HID_MODIFIERS;
     case 'hid-media':     return HID_MEDIA;
     case 'hid-mouse':     return HID_MOUSE;
-    case 'modmask':       return MOD_MASKS;
     case 'layers':
       return (state.keymap?.layers || []).map((l) =>
         [`${l.id}: ${l.name || '(unnamed)'}`, l.id]);
@@ -1034,7 +1039,8 @@ function renderDynamicSlots(behaviorName, currentBinding) {
 }
 
 // 〈Param Reincarnation〉— 旧 behavior の param を「型」で照合し、新 behavior の対応 slot に再配置する。
-// 例: Mod-Tap (modmask, hid) → Key Press (hid) では旧 p2(=タップキー) が新 p1 として転生する。
+// 例: Mod-Tap (hid-modifier, hid) → Key Press (hid) では旧 p2(=タップキー) が新 p1 として転生する。
+// 'hid-modifier' は意図的に 'hid' と非互換にしてある（修飾キーは別概念のためタップキー候補に混入させない）。
 function adaptParamsForNewBehavior(oldName, newName, oldP1, oldP2) {
   const oldSpec = specForBehavior(oldName);
   const newSpec = specForBehavior(newName);
@@ -1077,11 +1083,11 @@ function renderSlot(slotNum, slotSpec, currentValue) {
   labelEl.textContent = `◆ ${slotSpec.label || `Slot ${slotNum}`}`;
 
   switch (slotSpec.type) {
-    case 'hid':       buildHidSelector(body, paramId, currentValue); break;
-    case 'layer':     buildLayerSelector(body, paramId, currentValue); break;
-    case 'modmask':   buildModMaskSelector(body, paramId, currentValue); break;
-    case 'mouse':     buildMouseSelector(body, paramId, currentValue); break;
-    case 'number':    buildNumberInput(body, paramId, currentValue); break;
+    case 'hid':          buildHidSelector(body, paramId, currentValue); break;
+    case 'hid-modifier': buildHidModifierSelector(body, paramId, currentValue); break;
+    case 'layer':        buildLayerSelector(body, paramId, currentValue); break;
+    case 'mouse':        buildMouseSelector(body, paramId, currentValue); break;
+    case 'number':       buildNumberInput(body, paramId, currentValue); break;
   }
 }
 
@@ -1201,34 +1207,38 @@ function buildLayerSelector(parent, paramId, current) {
   });
 }
 
-function buildModMaskSelector(parent, paramId, current) {
-  const block = document.createElement('div');
-  block.innerHTML = `
-    <p class="hint" style="font-size: 0.65rem; margin-bottom: 6px;">複数選択可（OR 結合）</p>
-    <div class="mod-chip-row" data-row="L"></div>
-    <div class="mod-chip-row" data-row="R"></div>
-  `;
-  const left = block.querySelector('[data-row="L"]');
-  const right = block.querySelector('[data-row="R"]');
-  const items = [
-    ['LCtl', 0x01, left], ['LSft', 0x02, left], ['LAlt', 0x04, left], ['LGui', 0x08, left],
-    ['RCtl', 0x10, right], ['RSft', 0x20, right], ['RAlt', 0x40, right], ['RGui', 0x80, right],
-  ];
-  for (const [label, mask, container] of items) {
-    const chip = document.createElement('label');
-    chip.className = 'live-mod-chip';
-    chip.innerHTML = `<input type="checkbox" data-mask="${mask}"${current & mask ? ' checked' : ''}><span>${label}</span>`;
-    chip.querySelector('input').addEventListener('change', () => {
-      let total = 0;
-      for (const cb of block.querySelectorAll('input[type=checkbox]')) {
-        if (cb.checked) total |= Number(cb.dataset.mask);
-      }
-      document.getElementById(paramId).value = total;
-      updateResolvedHints();
-    });
-    container.appendChild(chip);
+// 〈Single-Modifier Sigil〉— Mod-Tap の hold 修飾キーは ZMK Studio 側で HID page-7 modifier usage
+// (KBD(224..231)) として encode される。modmask bitmask ではないため単体選択 UI が正しい。
+function buildHidModifierSelector(parent, paramId, current) {
+  const row = document.createElement('div');
+  row.className = 'dyn-row';
+  row.innerHTML = `<label>修飾キー</label><select class="bind-input dyn-val"></select>`;
+  parent.appendChild(row);
+  const sel = row.querySelector('.dyn-val');
+
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = '— 選択 —';
+  sel.appendChild(placeholder);
+
+  let matched = false;
+  for (const [label, value] of HID_MODIFIER_OPTIONS) {
+    const opt = document.createElement('option');
+    opt.value = String(value);
+    opt.textContent = label;
+    if (Number(value) === Number(current)) {
+      opt.selected = true;
+      matched = true;
+    }
+    sel.appendChild(opt);
   }
-  parent.appendChild(block);
+  if (!matched) placeholder.selected = true;
+
+  sel.addEventListener('change', () => {
+    if (sel.value === '') return;
+    document.getElementById(paramId).value = sel.value;
+    updateResolvedHints();
+  });
 }
 
 function buildMouseSelector(parent, paramId, current) {
