@@ -1508,6 +1508,9 @@ const LABEL_TO_NODE = {
   'BT_PAIR_2':      'bt_pair_2',
   'BT_PAIR_3':      'bt_pair_3',
   'BT_PAIR_4':      'bt_pair_4',
+  // node name → キーマップ内ラベル alias（ZMK Studio がノード名で返す場合の alias 変換）
+  // 例: `td_enter: tap_dance_enter { ... }` → displayName='tap_dance_enter', 使用名='td_enter'
+  'tap_dance_enter': 'td_enter',
 };
 
 // 独自 behavior（hold-tap 系）のパラメーター数
@@ -1521,8 +1524,7 @@ const CUSTOM_BEHAVIOR_PARAMS = {
   'mod_mkp':       2,
   'lt_to_layer_0': 2,
   'ht_arrows_alt': 2,
-  'tap_dance_enter': 0, // &td_enter (node name in keymap = td_enter)
-  'td_enter':      0,
+  'td_enter':      0,  // &td_enter（tap_dance_enter のラベル alias）
   'rotate':        0,
   'dragkey':       2,
   'swapper':       0,
