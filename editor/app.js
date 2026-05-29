@@ -2766,6 +2766,19 @@ function leBindingToLabel(b) {
   if (name === 'ht_snipe')      return args[1] || '·';
   if (name === 'mkp')           return args[0] || '·';
   if (name === 'td_enter')      return 'TD';
+  if (name === 'sk')            return args[0] || '·';
+  if (name === 'kt')            return args[0] || '·';
+  if (name === 'key_repeat')    return args[0] || '·';
+  if (name === 'tog')           return `TG[${args[0]}]`;
+  if (name === 'to')            return `→${args[0]}`;
+  if (name === 'sl')            return `SL`;
+  if (name === 'gresc')         return 'GE';
+  if (name === 'bt')            return 'BT';
+  if (name === 'out')           return 'OUT';
+  if (name === 'ext_power')     return 'EP';
+  if (name === 'bootloader')    return 'BOOT';
+  if (name === 'sys_reset')     return 'RST';
+  if (name === 'studio_unlock') return 'UNL';
   if (name === 'trans')         return '▽';
   if (name === 'none')          return '✕';
   if (name === '__raw__')       return args[0] || '?';
@@ -2780,6 +2793,9 @@ function leBindingToHold(b) {
   if (name === 'mo')            return LE_LAYER_NAMES[Number(args[0])] || `L${args[0]}`;
   if (name === 'gesture_mo_kp') return LE_LAYER_NAMES[Number(args[0])] || `L${args[0]}`;
   if (name === 'ht_snipe')      return LE_LAYER_NAMES[Number(args[0])] || `L${args[0]}`;
+  if (name === 'tog')           return LE_LAYER_NAMES[Number(args[0])] || `L${args[0]}`;
+  if (name === 'to')            return LE_LAYER_NAMES[Number(args[0])] || `L${args[0]}`;
+  if (name === 'sl')            return LE_LAYER_NAMES[Number(args[0])] || `L${args[0]}`;
   return '';
 }
 
@@ -2791,6 +2807,19 @@ function leBindingToString(b) {
   if (b.behavior === 'td_enter') return '&td_enter';
   if (b.behavior === 'smart_num')   return `&smart_num ${b.args[0] || '16'}`;
   if (b.behavior === 'smart_snipe') return `&smart_snipe ${b.args[0] || '15'}`;
+  if (b.behavior === 'sk')          return `&sk ${b.args[0] || 'A'}`;
+  if (b.behavior === 'kt')          return `&kt ${b.args[0] || 'A'}`;
+  if (b.behavior === 'key_repeat')  return `&key_repeat ${b.args[0] || 'A'}`;
+  if (b.behavior === 'tog')         return `&tog ${b.args[0] || '0'}`;
+  if (b.behavior === 'to')          return `&to ${b.args[0] || '0'}`;
+  if (b.behavior === 'sl')          return `&sl ${b.args[0] || '0'}`;
+  if (b.behavior === 'gresc')       return '&gresc';
+  if (b.behavior === 'bt')          return `&bt ${b.args.join(' ')}`;
+  if (b.behavior === 'out')         return `&out ${['OUT_AUTO','OUT_USB','OUT_BLE'][Number(b.args[0])] ?? b.args[0] ?? 'OUT_AUTO'}`;
+  if (b.behavior === 'ext_power')   return `&ext_power ${['EP_OFF','EP_ON','EP_TOG'][Number(b.args[0])] ?? b.args[0] ?? 'EP_TOG'}`;
+  if (b.behavior === 'bootloader')  return '&bootloader';
+  if (b.behavior === 'sys_reset')   return '&sys_reset';
+  if (b.behavior === 'studio_unlock') return '&studio_unlock';
   return `&${b.behavior}${b.args.length ? ' ' + b.args.join(' ') : ''}`;
 }
 
@@ -2991,7 +3020,12 @@ function leBuildParamsUI(behavior, binding) {
     case 'smart_snipe': { const inp=document.createElement('input'); inp.type='number'; inp.className='ve-input'; inp.min='0'; inp.max='31'; inp.value=args[0]||'15'; inp.id='le-ss-layer'; inp.addEventListener('input',leUpdatePreview); makeRow('Layer',inp); break; }
     case 'ht_snipe': makeRow('Layer (hold)', makeLayerSel(args[0]||'0','le-hs-layer')); makeKeySel(args[1]||'TAB','le-hs-key'); break;
     case 'mkp': { const sel=document.createElement('select'); sel.className='ve-select'; sel.id='le-mkp-btn'; for(const v of LE_MKP_OPTIONS){const o=document.createElement('option'); o.value=v; o.textContent=v; if(v===(args[0]||'MB1'))o.selected=true; sel.appendChild(o);} sel.addEventListener('change',leUpdatePreview); makeRow('ボタン',sel); break; }
-    case 'td_enter': case 'trans': case 'none': break;
+    case 'sk': case 'kt': case 'key_repeat': makeKeySel(args[0]||'A', `le-${behavior}-key`); break;
+    case 'tog': case 'to': case 'sl': makeRow('Layer', makeLayerSel(args[0]||'0', `le-${behavior}-layer`)); break;
+    case 'bt': { const BT_CMDS=['BT_CLR','BT_NXT','BT_PRV','BT_SEL 0','BT_SEL 1','BT_SEL 2','BT_SEL 3','BT_SEL 4','BT_DISC 0','BT_DISC 1','BT_DISC 2','BT_CLR_ALL']; const cur=args.join(' ')||'BT_CLR'; const sel=document.createElement('select'); sel.className='ve-select'; sel.id='le-bt-cmd'; for(const v of BT_CMDS){const o=document.createElement('option');o.value=v;o.textContent=v;if(v===cur)o.selected=true;sel.appendChild(o);} sel.addEventListener('change',leUpdatePreview); makeRow('コマンド',sel); break; }
+    case 'out': { const sel=document.createElement('select'); sel.className='ve-select'; sel.id='le-out-sel'; for(const[i,v]of['OUT_AUTO','OUT_USB','OUT_BLE'].entries()){const o=document.createElement('option');o.value=String(i);o.textContent=v;if(String(i)===String(args[0]??'0'))o.selected=true;sel.appendChild(o);} sel.addEventListener('change',leUpdatePreview); makeRow('出力先',sel); break; }
+    case 'ext_power': { const sel=document.createElement('select'); sel.className='ve-select'; sel.id='le-ep-sel'; for(const[i,v]of['EP_OFF','EP_ON','EP_TOG'].entries()){const o=document.createElement('option');o.value=String(i);o.textContent=v;if(String(i)===String(args[0]??'2'))o.selected=true;sel.appendChild(o);} sel.addEventListener('change',leUpdatePreview); makeRow('電源',sel); break; }
+    case 'gresc': case 'td_enter': case 'bootloader': case 'sys_reset': case 'studio_unlock': case 'trans': case 'none': break;
     case 'custom': { const raw=binding?.behavior==='__raw__'?binding.args[0]:leBindingToString(binding); const inp=document.createElement('input'); inp.type='text'; inp.className='ve-input'; inp.id='le-custom-val'; inp.value=raw||''; inp.placeholder='例: &kp A'; inp.addEventListener('input',leUpdatePreview); makeRow('値',inp); break; }
   }
 }
@@ -3009,7 +3043,20 @@ function leCollectBinding() {
     case 'smart_snipe':   return {behavior:'smart_snipe', args:[g('le-ss-layer')]};
     case 'ht_snipe': return {behavior:'ht_snipe', args:[g('le-hs-layer'), g('le-hs-key-key')]};
     case 'mkp':      return {behavior:'mkp', args:[g('le-mkp-btn')]};
-    case 'td_enter': return {behavior:'td_enter', args:[]};
+    case 'sk':   return {behavior:'sk',   args:[g('le-sk-key-key')]};
+    case 'kt':   return {behavior:'kt',   args:[g('le-kt-key-key')]};
+    case 'key_repeat': return {behavior:'key_repeat', args:[g('le-key_repeat-key-key')]};
+    case 'tog':  return {behavior:'tog',  args:[g('le-tog-layer')]};
+    case 'to':   return {behavior:'to',   args:[g('le-to-layer')]};
+    case 'sl':   return {behavior:'sl',   args:[g('le-sl-layer')]};
+    case 'bt':   { const cmd=g('le-bt-cmd'); return {behavior:'bt', args:cmd.split(' ')}; }
+    case 'out':       return {behavior:'out',       args:[g('le-out-sel')]};
+    case 'ext_power': return {behavior:'ext_power', args:[g('le-ep-sel')]};
+    case 'gresc':         return {behavior:'gresc',         args:[]};
+    case 'td_enter':      return {behavior:'td_enter',      args:[]};
+    case 'bootloader':    return {behavior:'bootloader',    args:[]};
+    case 'sys_reset':     return {behavior:'sys_reset',     args:[]};
+    case 'studio_unlock': return {behavior:'studio_unlock', args:[]};
     case 'trans':    return {behavior:'trans', args:[]};
     case 'none':     return {behavior:'none',  args:[]};
     default: { const raw=g('le-custom-val').trim(); return {behavior:'__raw__', args:[raw]}; }
