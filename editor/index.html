@@ -45,6 +45,7 @@
     </div>
     <div class="header-right">
       <a href="live.html" class="nav-link" title="ライブ接続 (Web Bluetooth)">⚡ Live Sync</a>
+      <button id="change-pat-btn" class="nav-link btn-ghost hidden" title="PAT を再入力">🔑 Change PAT</button>
       <span id="status-indicator" class="status-idle">[ IDLE ]</span>
       <span id="status-text">Awaiting authentication...</span>
     </div>
@@ -102,6 +103,7 @@
         <button id="view-gestures" class="view-btn">[ Gestures Editor ]</button>
         <button id="view-macros" class="view-btn">[ Macros Editor ]</button>
         <button id="view-behaviors" class="view-btn">[ Behaviors Editor ]</button>
+        <button id="view-layer" class="view-btn">[ Layer Editor ]</button>
       </div>
 
       <!-- Code Editor -->
@@ -175,6 +177,49 @@
           <input type="text" id="conf-filter" placeholder="🔍 Filter (例: BLE)" style="margin-left: 12px;">
         </div>
         <div id="conf-entries" class="conf-entries"></div>
+      </div>
+
+      <!-- Layer Editor (layers/*.dtsi) -->
+      <div id="layer-editor" class="visual-editor hidden">
+        <div id="le-keymap-grid" class="keymap-grid"></div>
+        <div id="le-key-form" class="key-edit-form hidden">
+          <h3>◆ BINDING REWRITE ── バインド書換</h3>
+          <div class="form-row">
+            <label>Position</label>
+            <input type="text" id="le-edit-index" readonly>
+          </div>
+          <div class="ve-slot">
+            <div class="ve-slot-header">
+              <span class="ve-slot-label">◆ BINDING</span>
+              <code class="ve-slot-preview" id="le-preview"></code>
+            </div>
+            <div class="ve-slot-body">
+              <div class="ve-row">
+                <label>Behavior</label>
+                <select id="le-behavior-sel" class="ve-select">
+                  <option value="kp">Key Press (&amp;kp)</option>
+                  <option value="mt">Mod-Tap (&amp;mt)</option>
+                  <option value="lt">Layer-Tap (&amp;lt)</option>
+                  <option value="mo">Layer Momentary (&amp;mo)</option>
+                  <option value="gesture_mo_kp">Gesture Mo Kp (&amp;gesture_mo_kp)</option>
+                  <option value="smart_num">Smart Num (&amp;smart_num)</option>
+                  <option value="smart_snipe">Smart Snipe (&amp;smart_snipe)</option>
+                  <option value="ht_snipe">HT Snipe (&amp;ht_snipe)</option>
+                  <option value="mkp">Mouse Button (&amp;mkp)</option>
+                  <option value="td_enter">Tap Dance Enter (&amp;td_enter)</option>
+                  <option value="trans">&amp;trans</option>
+                  <option value="none">&amp;none</option>
+                  <option value="custom">カスタム入力</option>
+                </select>
+              </div>
+              <div id="le-params-body"></div>
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:12px;">
+            <button id="le-apply-btn" class="btn-primary">〈 Apply 〉</button>
+            <button id="le-cancel-btn" class="btn-ghost">[ Cancel ]</button>
+          </div>
+        </div>
       </div>
 
       <!-- Visual Editor (keymap.yaml only) -->

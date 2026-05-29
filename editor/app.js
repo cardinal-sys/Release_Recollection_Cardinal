@@ -657,6 +657,10 @@ function isBehaviorFile(path) {
   return /\/(30|31|35)_enhance_armament[a-z_]*\.dtsi$/.test(path);
 }
 
+function isLayerFile(path) {
+  return /\/keymap\/layers\/\d+_[a-z_]+\.dtsi$/.test(path);
+}
+
 function activateTab(path) {
   state.activePath = path;
   const file = state.files.get(path);
@@ -691,6 +695,10 @@ function activateTab(path) {
     els.viewSwitch.classList.remove('hidden');
     if (state.viewMode === 'behaviors') showBehaviorsEditor(path, file);
     else showCodeEditor(path, file);
+  } else if (isLayerFile(path)) {
+    els.viewSwitch.classList.remove('hidden');
+    if (state.viewMode === 'layer') showLayerEditor(path, file);
+    else showCodeEditor(path, file);
   } else {
     els.viewSwitch.classList.add('hidden');
     state.viewMode = 'code';
@@ -708,6 +716,8 @@ function activateTab(path) {
   if (viewMacrosBtn) viewMacrosBtn.style.display = isMacrosFile(path) ? '' : 'none';
   const viewBehaviorsBtn = document.getElementById('view-behaviors');
   if (viewBehaviorsBtn) viewBehaviorsBtn.style.display = isBehaviorFile(path) ? '' : 'none';
+  const viewLayerBtn = document.getElementById('view-layer');
+  if (viewLayerBtn) viewLayerBtn.style.display = isLayerFile(path) ? '' : 'none';
 
   renderTabBar();
   renderFileTree();
@@ -722,6 +732,7 @@ function hideAllEditors() {
   document.getElementById('gestures-editor').classList.add('hidden');
   document.getElementById('macros-editor').classList.add('hidden');
   document.getElementById('behaviors-editor').classList.add('hidden');
+  document.getElementById('layer-editor').classList.add('hidden');
 }
 
 function updateViewBtns(mode) {
@@ -732,6 +743,7 @@ function updateViewBtns(mode) {
   document.getElementById('view-gestures').classList.toggle('active', mode === 'gestures');
   document.getElementById('view-macros').classList.toggle('active', mode === 'macros');
   document.getElementById('view-behaviors').classList.toggle('active', mode === 'behaviors');
+  document.getElementById('view-layer').classList.toggle('active', mode === 'layer');
 }
 
 function showCodeEditor(path, file) {
@@ -2720,6 +2732,314 @@ function cancelVisualEdit() {
   renderVisual();
 }
 
+/* ◆ LAYER EDITOR ── layers/*.dtsi 選択式編集 ──────────────────────────────── */
+
+const LE_ZMK_CATS = {
+  letters:   'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+  digits:    ['N0','N1','N2','N3','N4','N5','N6','N7','N8','N9'],
+  arrows:    ['UP_ARROW','DOWN_ARROW','LEFT_ARROW','RIGHT_ARROW'],
+  special:   ['ESC','TAB','SPACE','ENTER','BACKSPACE','DELETE','CAPS','HOME','END','PAGE_UP','PAGE_DOWN','INSERT','PRINT_SCREEN'],
+  functions: Array.from({length:24}, (_,i) => `F${i+1}`),
+  modifiers: ['LEFT_SHIFT','RIGHT_SHIFT','LEFT_CONTROL','RIGHT_CONTROL','LEFT_ALT','RIGHT_ALT','LEFT_GUI','RIGHT_GUI','LSHFT','RSHFT','LCTRL','RCTRL'],
+  symbols:   ['MINUS','EQUAL','PLUS','LBKT','RBKT','BSLH','SEMI','SQT','COMMA','DOT','FSLH','COLON','AT_SIGN','EXCL','HASH','DLLR','PRCNT','CARET','AMPS','STAR','LPAR','RPAR','LBRC','RBRC','UNDER','PIPE','LT','GT','QMARK','TILDE','GRAVE'],
+};
+
+const LE_MKP_OPTIONS = ['MB1','MB2','MB3','MB4','MB5'];
+const LE_LAYER_NAMES = ['default','FUNCTION','SIGN','NUM','MOUSE','SCROLL','Bluetooth','GESTURE_E','GESTURE_R','GESTURE_S','GESTURE_B','GESTURE_T','GESTURE_A','GESTURE_D','GESTURE_W','SNIPE','NUM_SMART'];
+
+const leState = {
+  bindings: [],
+  selectedIdx: null,
+  currentPath: null,
+};
+
+function leBindingToLabel(b) {
+  if (!b) return '·';
+  const name = b.behavior, args = b.args || [];
+  if (name === 'kp')            return args[0] || '·';
+  if (name === 'mt')            return args[1] || '·';
+  if (name === 'lt')            return args[1] || '·';
+  if (name === 'mo')            return `[${args[0]}]`;
+  if (name === 'gesture_mo_kp') return args[1] || '·';
+  if (name === 'smart_num')     return 'SN';
+  if (name === 'smart_snipe')   return 'SS';
+  if (name === 'ht_snipe')      return args[1] || '·';
+  if (name === 'mkp')           return args[0] || '·';
+  if (name === 'td_enter')      return 'TD';
+  if (name === 'trans')         return '▽';
+  if (name === 'none')          return '✕';
+  if (name === '__raw__')       return args[0] || '?';
+  return `&${name}`;
+}
+
+function leBindingToHold(b) {
+  if (!b) return '';
+  const name = b.behavior, args = b.args || [];
+  if (name === 'mt')            return args[0] || '';
+  if (name === 'lt')            return LE_LAYER_NAMES[Number(args[0])] || `L${args[0]}`;
+  if (name === 'mo')            return LE_LAYER_NAMES[Number(args[0])] || `L${args[0]}`;
+  if (name === 'gesture_mo_kp') return LE_LAYER_NAMES[Number(args[0])] || `L${args[0]}`;
+  if (name === 'ht_snipe')      return LE_LAYER_NAMES[Number(args[0])] || `L${args[0]}`;
+  return '';
+}
+
+function leBindingToString(b) {
+  if (!b) return '';
+  if (b.behavior === '__raw__') return b.args[0] || '';
+  if (b.behavior === 'trans')   return '&trans';
+  if (b.behavior === 'none')    return '&none';
+  if (b.behavior === 'td_enter') return '&td_enter';
+  if (b.behavior === 'smart_num')   return `&smart_num ${b.args[0] || '16'}`;
+  if (b.behavior === 'smart_snipe') return `&smart_snipe ${b.args[0] || '15'}`;
+  return `&${b.behavior}${b.args.length ? ' ' + b.args.join(' ') : ''}`;
+}
+
+function parseDtsiLayerBindings(text) {
+  const m = text.match(/bindings\s*=\s*<([\s\S]*?)>\s*;/);
+  if (!m) return [];
+  const raw = m[1].replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+  const tokens = raw.trim().split(/\s+/).filter(Boolean);
+  const bindings = [];
+  let i = 0;
+  while (i < tokens.length) {
+    if (!tokens[i].startsWith('&')) { i++; continue; }
+    const behavior = tokens[i].slice(1);
+    i++;
+    const args = [];
+    while (i < tokens.length && !tokens[i].startsWith('&')) args.push(tokens[i++]);
+    bindings.push({ behavior, args });
+  }
+  return bindings;
+}
+
+function serializeDtsiLayerBindings(bindings, originalText) {
+  const origM = originalText.match(/bindings\s*=\s*<([\s\S]*?)>\s*;/);
+  if (!origM) return originalText;
+  const origRows = origM[1].split('\n').filter(l => l.trim());
+  const rowSizes = origRows.map(row => {
+    const toks = row.trim().split(/\s+/).filter(Boolean);
+    let count = 0;
+    for (let i = 0; i < toks.length; ) {
+      if (toks[i].startsWith('&')) { count++; i++; while (i < toks.length && !toks[i].startsWith('&')) i++; }
+      else i++;
+    }
+    return count;
+  }).filter(n => n > 0);
+  let rows = [], idx = 0;
+  for (const size of rowSizes) {
+    rows.push('    ' + bindings.slice(idx, idx + size).map(b => leBindingToString(b)).join('  '));
+    idx += size;
+  }
+  if (idx < bindings.length)
+    rows.push('    ' + bindings.slice(idx).map(b => leBindingToString(b)).join('  '));
+  const before = originalText.slice(0, origM.index);
+  const after  = originalText.slice(origM.index + origM[0].length);
+  return before + `bindings = <\n${rows.join('\n')}\n    >;` + after;
+}
+
+function showLayerEditor(path, file) {
+  hideAllEditors();
+  document.getElementById('layer-editor').classList.remove('hidden');
+  updateViewBtns('layer');
+  renderLayerEditor(path, file);
+  if (!state.layoutData) {
+    ensureLayoutLoaded().then(() => {
+      if (state.activePath === path && state.viewMode === 'layer')
+        renderLayerEditor(path, state.files.get(path));
+    });
+  }
+}
+
+function renderLayerEditor(path, file) {
+  leState.currentPath = path;
+  leState.bindings = parseDtsiLayerBindings(file.content);
+  leState.selectedIdx = null;
+  const grid = document.getElementById('le-keymap-grid');
+  grid.innerHTML = '';
+  document.getElementById('le-key-form').classList.add('hidden');
+  const layout = state.layoutData?.layouts?.default_layout?.layout || null;
+  if (!layout || layout.length !== leState.bindings.length) {
+    grid.classList.remove('physical-layout');
+    grid.style.cssText = '';
+    leState.bindings.forEach((b, idx) => grid.appendChild(leCreateCell(b, idx)));
+    return;
+  }
+  grid.classList.add('physical-layout');
+  const unitPx = 56, gap = 4, padding = 12;
+  const bounds = computeLayoutBounds(layout, 'w', 'h');
+  grid.style.cssText =
+    `position:relative;width:${bounds.maxX*unitPx+padding*2}px;` +
+    `min-height:${bounds.maxY*unitPx+padding*2}px;height:${bounds.maxY*unitPx+padding*2}px;` +
+    `flex-shrink:0;padding:${padding}px;margin:0 auto;`;
+  layout.forEach((pos, idx) => {
+    const cell = leCreateCell(leState.bindings[idx], idx);
+    cell.classList.add('key-physical');
+    const w = (pos.w??1)*unitPx-gap, h = (pos.h??1)*unitPx-gap;
+    cell.style.cssText =
+      `position:absolute;left:${(pos.x??0)*unitPx+padding+gap/2}px;` +
+      `top:${(pos.y??0)*unitPx+padding+gap/2}px;width:${w}px;height:${h}px;`;
+    if (pos.r) {
+      const rx=pos.rx??pos.x??0, ry=pos.ry??pos.y??0;
+      cell.style.transformOrigin=`${(rx-(pos.x??0))*unitPx}px ${(ry-(pos.y??0))*unitPx}px`;
+      cell.style.transform=`rotate(${pos.r}deg)`;
+    }
+    grid.appendChild(cell);
+  });
+}
+
+function leCreateCell(binding, idx) {
+  const cell = document.createElement('div');
+  cell.className = 'key-cell' + (leState.selectedIdx === idx ? ' selected' : '');
+  const tap = document.createElement('div');
+  tap.className = 'key-tap';
+  tap.textContent = leBindingToLabel(binding);
+  cell.appendChild(tap);
+  const hold = leBindingToHold(binding);
+  if (hold) {
+    const hEl = document.createElement('div');
+    hEl.className = 'key-hold';
+    hEl.textContent = hold;
+    cell.appendChild(hEl);
+  }
+  cell.onclick = () => leSelectKey(idx);
+  return cell;
+}
+
+function leSelectKey(idx) {
+  leState.selectedIdx = idx;
+  const path = leState.currentPath;
+  if (!path) return;
+  renderLayerEditor(path, state.files.get(path));
+  leState.selectedIdx = idx;
+  leRenderKeyForm(leState.bindings[idx]);
+}
+
+function leRenderKeyForm(binding) {
+  const form = document.getElementById('le-key-form');
+  form.classList.remove('hidden');
+  document.getElementById('le-edit-index').value = `[${leState.selectedIdx}]`;
+  const behSel = document.getElementById('le-behavior-sel');
+  const knownBeh = ['kp','mt','lt','mo','gesture_mo_kp','smart_num','smart_snipe','ht_snipe','mkp','td_enter','trans','none','custom'];
+  const beh = binding?.behavior || 'kp';
+  behSel.value = knownBeh.includes(beh) ? beh : 'custom';
+  leBuildParamsUI(behSel.value, binding);
+  leUpdatePreview();
+}
+
+function leBuildParamsUI(behavior, binding) {
+  const body = document.getElementById('le-params-body');
+  body.innerHTML = '';
+  const args = binding?.args || [];
+
+  function makeRow(label, el) {
+    const row = document.createElement('div');
+    row.className = 've-row';
+    const lbl = document.createElement('label');
+    lbl.textContent = label;
+    row.appendChild(lbl); row.appendChild(el);
+    body.appendChild(row);
+    return el;
+  }
+
+  function makeKeySel(currentVal, id) {
+    const catSel = document.createElement('select');
+    catSel.className = 've-select'; catSel.id = id+'-cat';
+    for (const [k,lbl] of [['letters','文字 A-Z'],['digits','数字 0-9'],['arrows','矢印'],['special','特殊キー'],['functions','F1-F24'],['modifiers','修飾キー'],['symbols','記号']]) {
+      const o=document.createElement('option'); o.value=k; o.textContent=lbl; catSel.appendChild(o);
+    }
+    const keySel = document.createElement('select');
+    keySel.className = 've-select'; keySel.id = id+'-key';
+    function fillKeys(cat) {
+      keySel.innerHTML = '';
+      for (const v of (LE_ZMK_CATS[cat]||[])) {
+        const o=document.createElement('option'); o.value=v; o.textContent=v;
+        if (v===currentVal) o.selected=true;
+        keySel.appendChild(o);
+      }
+    }
+    let initCat = 'letters';
+    for (const [k,vals] of Object.entries(LE_ZMK_CATS)) { if (vals.includes(currentVal)){initCat=k;break;} }
+    catSel.value = initCat; fillKeys(initCat);
+    catSel.addEventListener('change', ()=>{ fillKeys(catSel.value); leUpdatePreview(); });
+    keySel.addEventListener('change', leUpdatePreview);
+    makeRow('カテゴリ', catSel);
+    makeRow('キー', keySel);
+    return {catSel, keySel};
+  }
+
+  function makeLayerSel(currentVal, id) {
+    const sel=document.createElement('select'); sel.className='ve-select'; sel.id=id;
+    LE_LAYER_NAMES.forEach((name,i)=>{ const o=document.createElement('option'); o.value=String(i); o.textContent=`${i}: ${name}`; if(String(i)===String(currentVal))o.selected=true; sel.appendChild(o); });
+    sel.addEventListener('change', leUpdatePreview);
+    return sel;
+  }
+
+  function makeModSel(currentVal, id) {
+    const sel=document.createElement('select'); sel.className='ve-select'; sel.id=id;
+    for (const v of LE_ZMK_CATS.modifiers) { const o=document.createElement('option'); o.value=v; o.textContent=v; if(v===currentVal)o.selected=true; sel.appendChild(o); }
+    sel.addEventListener('change', leUpdatePreview);
+    return sel;
+  }
+
+  switch (behavior) {
+    case 'kp':  makeKeySel(args[0]||'A','le-kp'); break;
+    case 'mt':  makeRow('Modifier (hold)', makeModSel(args[0]||'LEFT_SHIFT','le-mt-mod')); makeKeySel(args[1]||'A','le-mt-key'); break;
+    case 'lt':  makeRow('Layer (hold)', makeLayerSel(args[0]||'0','le-lt-layer')); makeKeySel(args[1]||'A','le-lt-key'); break;
+    case 'mo':  makeRow('Layer', makeLayerSel(args[0]||'0','le-mo-layer')); break;
+    case 'gesture_mo_kp': makeRow('Layer (gesture)', makeLayerSel(args[0]||'0','le-gmo-layer')); makeKeySel(args[1]||'A','le-gmo-key'); break;
+    case 'smart_num': { const inp=document.createElement('input'); inp.type='number'; inp.className='ve-input'; inp.min='0'; inp.max='31'; inp.value=args[0]||'16'; inp.id='le-sn-layer'; inp.addEventListener('input',leUpdatePreview); makeRow('Layer',inp); break; }
+    case 'smart_snipe': { const inp=document.createElement('input'); inp.type='number'; inp.className='ve-input'; inp.min='0'; inp.max='31'; inp.value=args[0]||'15'; inp.id='le-ss-layer'; inp.addEventListener('input',leUpdatePreview); makeRow('Layer',inp); break; }
+    case 'ht_snipe': makeRow('Layer (hold)', makeLayerSel(args[0]||'0','le-hs-layer')); makeKeySel(args[1]||'TAB','le-hs-key'); break;
+    case 'mkp': { const sel=document.createElement('select'); sel.className='ve-select'; sel.id='le-mkp-btn'; for(const v of LE_MKP_OPTIONS){const o=document.createElement('option'); o.value=v; o.textContent=v; if(v===(args[0]||'MB1'))o.selected=true; sel.appendChild(o);} sel.addEventListener('change',leUpdatePreview); makeRow('ボタン',sel); break; }
+    case 'td_enter': case 'trans': case 'none': break;
+    case 'custom': { const raw=binding?.behavior==='__raw__'?binding.args[0]:leBindingToString(binding); const inp=document.createElement('input'); inp.type='text'; inp.className='ve-input'; inp.id='le-custom-val'; inp.value=raw||''; inp.placeholder='例: &kp A'; inp.addEventListener('input',leUpdatePreview); makeRow('値',inp); break; }
+  }
+}
+
+function leCollectBinding() {
+  const beh = document.getElementById('le-behavior-sel').value;
+  const g = (id) => { const el=document.getElementById(id); return el?el.value:''; };
+  switch (beh) {
+    case 'kp':   return {behavior:'kp',   args:[g('le-kp-key')]};
+    case 'mt':   return {behavior:'mt',   args:[g('le-mt-mod'), g('le-mt-key-key')]};
+    case 'lt':   return {behavior:'lt',   args:[g('le-lt-layer'), g('le-lt-key-key')]};
+    case 'mo':   return {behavior:'mo',   args:[g('le-mo-layer')]};
+    case 'gesture_mo_kp': return {behavior:'gesture_mo_kp', args:[g('le-gmo-layer'), g('le-gmo-key-key')]};
+    case 'smart_num':     return {behavior:'smart_num',   args:[g('le-sn-layer')]};
+    case 'smart_snipe':   return {behavior:'smart_snipe', args:[g('le-ss-layer')]};
+    case 'ht_snipe': return {behavior:'ht_snipe', args:[g('le-hs-layer'), g('le-hs-key-key')]};
+    case 'mkp':      return {behavior:'mkp', args:[g('le-mkp-btn')]};
+    case 'td_enter': return {behavior:'td_enter', args:[]};
+    case 'trans':    return {behavior:'trans', args:[]};
+    case 'none':     return {behavior:'none',  args:[]};
+    default: { const raw=g('le-custom-val').trim(); return {behavior:'__raw__', args:[raw]}; }
+  }
+}
+
+function leUpdatePreview() {
+  const el = document.getElementById('le-preview');
+  if (el) el.textContent = leBindingToString(leCollectBinding()) || '—';
+}
+
+function leApply() {
+  if (leState.selectedIdx === null || !leState.currentPath) return;
+  const binding = leCollectBinding();
+  leState.bindings[leState.selectedIdx] = binding;
+  const file = state.files.get(leState.currentPath);
+  file.content = serializeDtsiLayerBindings(leState.bindings, file.content);
+  file.modified = file.content !== file.original;
+  log(`Binding[${leState.selectedIdx}] → ${leBindingToString(binding)}`, 'warning');
+  renderLayerEditor(leState.currentPath, file);
+  renderTabBar(); renderFileTree(); renderModifiedList();
+  autoSyncOnChange();
+}
+
+function leCancel() {
+  leState.selectedIdx = null;
+  document.getElementById('le-key-form').classList.add('hidden');
+  if (leState.currentPath) renderLayerEditor(leState.currentPath, state.files.get(leState.currentPath));
+}
+
 /* ◆ ACTIONS ────────────────────────────── */
 async function handleAuth() {
   state.pat = els.patInput.value.trim();
@@ -2742,6 +3062,8 @@ async function handleAuth() {
     setStatus('Loading file list...', 'active');
     els.editorShell.classList.remove('hidden');
     els.authSection.classList.add('hidden');
+    const changePat = document.getElementById('change-pat-btn');
+    if (changePat) changePat.classList.remove('hidden');
     renderFileTree();
     renderModifiedList();
     setStatus('Ready', 'success');
@@ -3038,6 +3360,30 @@ function init() {
       const f = state.files.get(state.activePath);
       showBehaviorsEditor(state.activePath, f);
     }
+  });
+  document.getElementById('view-layer').addEventListener('click', () => {
+    state.viewMode = 'layer';
+    if (state.activePath && isLayerFile(state.activePath)) {
+      const f = state.files.get(state.activePath);
+      showLayerEditor(state.activePath, f);
+    }
+  });
+  document.getElementById('le-apply-btn').addEventListener('click', leApply);
+  document.getElementById('le-cancel-btn').addEventListener('click', leCancel);
+  document.getElementById('le-behavior-sel').addEventListener('change', () => {
+    leBuildParamsUI(document.getElementById('le-behavior-sel').value, null);
+    leUpdatePreview();
+  });
+  const changePat = document.getElementById('change-pat-btn');
+  if (changePat) changePat.addEventListener('click', () => {
+    els.editorShell.classList.add('hidden');
+    els.authSection.classList.remove('hidden');
+    changePat.classList.add('hidden');
+    clearStoredPat();
+    state.pat = '';
+    els.patInput.value = '';
+    setStatus('PAT をクリアしました。再入力してください。', 'warning');
+    log('〈Change PAT〉— PAT を破棄しました。再入力してください。', 'warning');
   });
   document.getElementById('macros-add-btn').addEventListener('click', () => {
     if (state.activePath && isMacrosFile(state.activePath)) {
