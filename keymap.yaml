@@ -270,11 +270,11 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
-  - '&bt_solo_0'
-  - '&bt_solo_1'
-  - '&bt_solo_2'
-  - '&bt_solo_3'
-  - '&bt_solo_4'
+  - BT_SEL 0
+  - BT_SEL 1
+  - BT_SEL 2
+  - BT_SEL 3
+  - BT_SEL 4
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
@@ -282,11 +282,11 @@ layers:
   - {type: held}
   - {t: ▽, type: trans}
   - '&studio_unlock'
-  - '&bt_pair_0'
-  - '&bt_pair_1'
-  - '&bt_pair_2'
-  - '&bt_pair_3'
-  - '&bt_pair_4'
+  - '&bt_disc_0'
+  - '&bt_disc_1'
+  - '&bt_disc_2'
+  - '&bt_disc_3'
+  - '&bt_disc_4'
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}

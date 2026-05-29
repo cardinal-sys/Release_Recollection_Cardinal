@@ -58,96 +58,71 @@ lm: lm {
 };
 
 /* ============================================================
- * 〈BT Solo Sigils · Pure Switch〉— BT プロファイル切替
+ * 〈BT Disc Sigils〉— 複数接続切断 + プロファイル切替
  *
- * 各 bt_solo_N は純粋な &bt BT_SEL N（プロファイル切替のみ）。
- * 旧版〈Phantom Connection Banishment〉では BT_SEL 直後に他 4 profile への
- * BT_DISC を連射し非アクティブ profile を強制切断していたが、
- *   (1) 切替のたびに他の接続中ホストまで切断する副作用、
- *   (2) ペアリング進行中に押すと新規 bond 確立を破壊し「2台目以降ペア不可」
- *       を招く副作用、
- * が大きいため BT_DISC 連射を撤去し純切替へ収束させた。
- * これにより bt_solo_N と bt_pair_N は等価（共に純 BT_SEL）。
- * 複数ホスト同時接続の BLE 帯域奪い合い（トラックボール遅延）が再発する場合は
- * 不要 profile を &bt BT_DISC で個別に切断する運用で対処する。
+ * bt_disc_N: BT_SEL N で N へ切替後、他 4 profile に BT_DISC を連射し
+ * 不要な同時接続を強制切断する。複数ホスト同時接続によるトラックボール遅延
+ *（BLE 帯域奪い合い）が起きている時に使用する。
+ * 注意: 新規ペアリング中に押すと bond 確立が破壊されるため、
+ *       新規ペアリング時は上段の &bt BT_SEL N を使うこと。
  * ============================================================ */
 
-bt_solo_0: bt_solo_0 {
+bt_disc_0: bt_disc_0 {
     compatible = "zmk,behavior-macro";
-    label = "BT_SOLO_0";
+    label = "BT_DISC_0";
     #binding-cells = <0>;
-    bindings = <&bt BT_SEL 0>;
+    bindings = <&bt BT_SEL 0>,
+               <&bt BT_DISC 1>,
+               <&bt BT_DISC 2>,
+               <&bt BT_DISC 3>,
+               <&bt BT_DISC 4>;
 };
 
-bt_solo_1: bt_solo_1 {
+bt_disc_1: bt_disc_1 {
     compatible = "zmk,behavior-macro";
-    label = "BT_SOLO_1";
+    label = "BT_DISC_1";
     #binding-cells = <0>;
-    bindings = <&bt BT_SEL 1>;
+    bindings = <&bt BT_SEL 1>,
+               <&bt BT_DISC 0>,
+               <&bt BT_DISC 2>,
+               <&bt BT_DISC 3>,
+               <&bt BT_DISC 4>;
 };
 
-bt_solo_2: bt_solo_2 {
+bt_disc_2: bt_disc_2 {
     compatible = "zmk,behavior-macro";
-    label = "BT_SOLO_2";
+    label = "BT_DISC_2";
     #binding-cells = <0>;
-    bindings = <&bt BT_SEL 2>;
+    bindings = <&bt BT_SEL 2>,
+               <&bt BT_DISC 0>,
+               <&bt BT_DISC 1>,
+               <&bt BT_DISC 3>,
+               <&bt BT_DISC 4>;
 };
 
-bt_solo_3: bt_solo_3 {
+bt_disc_3: bt_disc_3 {
     compatible = "zmk,behavior-macro";
-    label = "BT_SOLO_3";
+    label = "BT_DISC_3";
     #binding-cells = <0>;
-    bindings = <&bt BT_SEL 3>;
+    bindings = <&bt BT_SEL 3>,
+               <&bt BT_DISC 0>,
+               <&bt BT_DISC 1>,
+               <&bt BT_DISC 2>,
+               <&bt BT_DISC 4>;
 };
 
-bt_solo_4: bt_solo_4 {
+bt_disc_4: bt_disc_4 {
     compatible = "zmk,behavior-macro";
-    label = "BT_SOLO_4";
+    label = "BT_DISC_4";
     #binding-cells = <0>;
-    bindings = <&bt BT_SEL 4>;
+    bindings = <&bt BT_SEL 4>,
+               <&bt BT_DISC 0>,
+               <&bt BT_DISC 1>,
+               <&bt BT_DISC 2>,
+               <&bt BT_DISC 3>;
 };
 
 /* ============================================================
- * 〈Pure Pairing Sigils〉— BT Pair Sigils
- *
- * 純粋な `&bt BT_SEL N` のみを発火するペアリング sigil。
- * 〈BT Solo Sigils · Pure Switch〉化により bt_solo_N も今は純 BT_SEL となり、
- * bt_pair_N と等価。新規ペアリング・日常切替のどちらにも使用可。
- * （履歴: 旧 bt_solo は BT_DISC 連射で新規 bond を破壊していたため、
- *  当時は純 BT_SEL の bt_pair を別建てして回避していた。現在は両者統一。）
+ * 〈Pure Pairing Note〉— 新規ペアリング時は上段の &bt BT_SEL N を使うこと。
+ * BT_DISC を発火しないため ペアリング進行中に押しても bond を破壊しない。
  * ============================================================ */
-
-bt_pair_0: bt_pair_0 {
-    compatible = "zmk,behavior-macro";
-    label = "BT_PAIR_0";
-    #binding-cells = <0>;
-    bindings = <&bt BT_SEL 0>;
-};
-
-bt_pair_1: bt_pair_1 {
-    compatible = "zmk,behavior-macro";
-    label = "BT_PAIR_1";
-    #binding-cells = <0>;
-    bindings = <&bt BT_SEL 1>;
-};
-
-bt_pair_2: bt_pair_2 {
-    compatible = "zmk,behavior-macro";
-    label = "BT_PAIR_2";
-    #binding-cells = <0>;
-    bindings = <&bt BT_SEL 2>;
-};
-
-bt_pair_3: bt_pair_3 {
-    compatible = "zmk,behavior-macro";
-    label = "BT_PAIR_3";
-    #binding-cells = <0>;
-    bindings = <&bt BT_SEL 3>;
-};
-
-bt_pair_4: bt_pair_4 {
-    compatible = "zmk,behavior-macro";
-    label = "BT_PAIR_4";
-    #binding-cells = <0>;
-    bindings = <&bt BT_SEL 4>;
-};

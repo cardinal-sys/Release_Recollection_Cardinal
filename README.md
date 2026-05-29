@@ -437,6 +437,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-29 | 〈BT Disc Sigils Awakening · Cardinal Echo〉— 50キー版の bt_disc 再編を 42キー版に同期。`bt_disc_0..4` 新設・`bt_solo_0..4` / `bt_pair_0..4` 廃止・上段を `&bt BT_SEL 0..4` 直書きへ昇華。 |
 | 2026-05-29 | 〈Full Behavior Arsenal · Twin Sync〉— Layer Editor の behavior ドロップダウンを ZMK Studio 全 behavior に拡張（50キー版と双子同期）。`&sk` / `&kt` / `&key_repeat` / `&tog` / `&to` / `&sl` / `&gresc` / `&bt` / `&out` / `&ext_power` / `&bootloader` / `&sys_reset` / `&studio_unlock` を追加。 |
 | 2026-05-29 | 〈Layer Binding Rewrite · Twin Sync〉— Cardinal Editor（`editor/index.html` / `app.js`）に `layers/*.dtsi` の**選択式ビジュアルエディター**を建立（50キー版〈Administrator〉と双子同期）。`[ Layer Editor ]` ビューで物理レイアウト上のキーをクリック → behavior ドロップダウン → カテゴリ別セレクターで選択 → Apply → dtsi 書き戻し → Seal & Commit でビルド反映。合わせて **🔑 Change PAT ボタン**を追設し、PAT 期限切れ時のフォーム再表示を簡略化。 |
 | 2026-05-28 | 〈BT Solo Sigils · Pure Switch · Cardinal Echo〉— Administrator 側 (`5dbc91b`) の bt_solo 簡約を 42キー Cardinal へ同期。 `bt_solo_0..4` マクロから `&bt BT_DISC` 連射を撤去し純粋な `&bt BT_SEL N`（プロファイル切替のみ）へ変更。 旧版〈Phantom Connection Banishment〉では各 `bt_solo_N` が `BT_SEL N` 直後に他 4 profile へ `BT_DISC` を連射し非アクティブ profile を強制切断していたが、**(1)** 切替のたびに他の接続中ホストまで切断する副作用、**(2)** ペアリング進行中に押すと新規 bond 確立を破壊し「2台目以降ペア不可」を招く副作用、が大きく「無線が変になった」原因となっていた。 `config/keymap/20_macros.dtsi` の `bt_solo_0..4` の `bindings` を `<&bt BT_SEL N>` 単発へ簡約（Administrator commit `5dbc91b` の差分を `git apply` でクリーン適用、BT_DISC コード全除去を確認）。 これにより `bt_solo_N` と `bt_pair_N` は等価（共に純 BT_SEL）。 双子の BT sigil が再び対称に収束。 |
