@@ -382,19 +382,22 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | 設定 | 値 | 対象 | 効果 |
 |---|---|---|---|
-| Experimental Conn | R側(Elucidator)のみ有効、L側無効 | R側（Central） | Central側でホスト向けBLE接続安定化のため有効化 |
+| Experimental Conn | R側(Elucidator)のみ有効、L側無効 | R側（Central） | Central側でホスト向けBLE接続安定化のため有効化（内部で `BT_CTLR_PHY_2M=n` を default 化） |
+| BT_CTLR_PHY_2M | **未指定（既定 n）** | R・L両側 | 〈Override Storm Sealing〉で `=y` 明示上書きを撤去。EXPERIMENTAL_CONN 既定 (n) と ZMK 公式 troubleshooting 推奨に委譲 |
+| BT_AUTO_PHY_UPDATE | **未指定（既定 n）** | R・L両側 | 〈Override Storm Sealing〉で `=y` 明示上書きを撤去。EXPERIMENTAL_CONN 既定に委譲 |
 | NFCT_PINS_AS_GPIOS | 有効 | R・L両側 | NFC無線とBLEの干渉防止（安定版2つともあり） |
 | BT_GAP_AUTO_UPDATE_CONN_PARAMS | 有効 | R・L両側 | 接続後に自動パラメータ再交渉（kabutokoma準拠） |
 | BT_CONN_PARAM_UPDATE_TIMEOUT | 1000ms | R・L両側 | 接続から1秒後にパラメータ更新要求 |
-| BT_PERIPHERAL_PREF_TIMEOUT | 1000 (10秒) | R・L両側 | ホスト向け接続タイムアウト |
+| BT_PERIPHERAL_PREF_TIMEOUT | **未指定（Zephyr 既定 ≒400 / 4s）** | R・L両側 | 〈Override Storm Sealing〉で `=1000` (10s) 上書きを撤去。Apple Accessory Design Guidelines 上限 6s を超過していたため defaults へ委譲 |
 | TX Power | +8dBm | R・L両側 | 最大送信出力 |
-| Split BLE Latency | 0 | R側（Central） | デフォルト 30 から 0 へ変更（Left 側キー入力の遅延パケット許容をゼロに） |
-| Split BLE Timeout | 1000 | R・L両側 | スプリット接続タイムアウト（両側共通） |
+| Split BLE Latency | **未指定（ZMK split 既定 30）** | R・L両側 | 〈Override Storm Sealing〉で `=0` 上書きを撤去。urob/zmk-config 等の安定 split 実装と同方針で defaults へ委譲 |
+| Split BLE Timeout | **未指定（ZMK split 既定 400）** | R・L両側 | 〈Override Storm Sealing〉で `=1000` 上書きを撤去。boot 時 split init レースの増幅源と判明、defaults へ委譲 |
 | BT Max Conn | 6 | R・L両側 | 5プロファイル + 1スプリット接続（ZMK upstream の split central 既定値） |
 | BT Max Paired | 6 | R・L両側 | `ZMK_BLE_PROFILE_COUNT = BT_MAX_PAIRED - PERIPHERALS = 6 - 1 = 5` で profile 0..4 全 5 枠を有効化 |
 | BT_PERIPHERAL_PREF_MIN_INT | 6 (7.5ms) | R・L両側 | 接続インターバル下限 (Win/Android 最速側で 7.5ms 交渉) |
 | BT_PERIPHERAL_PREF_MAX_INT | 12 (15ms) | R・L両側 | 接続インターバル上限 (Apple HID 互換上限。`MIN_INT=6` との範囲指定で macOS/iPadOS/iOS から最低 15ms を引き出す。L側もR側と同期) |
 | Insomnia pingInterval | 3秒 | R・L両側 | keepaliveを高頻度化（L側にも追加） |
+| Insomnia PING_ON_START | **無効 (n)** | R・L両側 | 〈Insomnia Boot Hush〉で起動時 ping を封印。boot 直後の脆弱な BLE securing 相と HID ping の race を回避 |
 
 ### MOTION SENSOR CONFIG ── トラックボールセンサー（Elucidator.conf）
 
@@ -437,6 +440,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-05-31 | 〈Override Storm Sealing · Insomnia Boot Hush〉— 「無線のペアリングが繋がりにくい／何回か再起動すると繋がる」症状の根本治癒を狙い、Cardinal の BLE Kconfig から過剰な override 群を撤去し ZMK / Zephyr defaults へ収束させた儀式。 真因候補の特定は他リポジトリ調査（**urob/zmk-config** `corneish_zen`/`glove80`/`planck`、**mctechnology17/zmk-config** `corne`、**ZMK 公式 troubleshooting docs**、**ZMK Issue #3244** + **PR #3140**）に基づく。 ① **〈PHY Override Purge〉**: `CONFIG_BT_CTLR_PHY_2M=y` と `CONFIG_BT_AUTO_PHY_UPDATE=y` の明示有効化を撤去。 `CONFIG_ZMK_BLE_EXPERIMENTAL_CONN=y` は自身が内部で `BT_CTLR_PHY_2M default=n` を設定する設計のため、当方の `=y` 上書きが EXPERIMENTAL_CONN の安定化意図と衝突していた。 ZMK 公式 troubleshooting も `BT_CTLR_PHY_2M=n` を明示推奨。 ② **〈Override Slimming〉**: `CONFIG_BT_PERIPHERAL_PREF_TIMEOUT=1000` (10s) は Apple Accessory Design Guidelines 上限 6s 超過のため撤去し Zephyr 既定 (≒400 / 4s) へ委譲。 `CONFIG_BT_PERIPHERAL_PREF_LATENCY=0` は既定同値のため明示記述を撤去。 `CONFIG_ZMK_SPLIT_BLE_PREF_TIMEOUT=1000` `CONFIG_ZMK_SPLIT_BLE_PREF_LATENCY=0` も ZMK split defaults (TIMEOUT=400 / LATENCY=30) と乖離していたため撤去。 urob/zmk-config 等の安定 split 実装は defaults に委譲しており、これらの override が boot 時 split init レースの増幅源と判明。 ③ **〈Insomnia Boot Hush〉**: `CONFIG_ZMK_INSOMNIA_PING_ON_START=y` を `n` へ。 起動直後の脆弱な BLE securing 相中に HID ping を撃つことで Apple 側ペアリング flow との race を起こしていた可能性。 通常 ping (3s 間隔) で寝落ち防止は十分機能するため起動時 ping のみ封印。 修正対象は `config/boards/shields/Cardinal/Elucidator.conf` と `config/boards/shields/Cardinal/Dark_Repulser.conf` の両側を完全対称同期 (〈Bilateral Sync Restoration II〉方針継続)。 README `CHARACTER PARAMETERS` テーブルも追従更新 (5 設定行を「未指定（defaults）」表記へ変更、Insomnia PING_ON_START 行を新設)。 直近 ZMK 本体側の別系統 regression (Issue **#3244** / PR **#3140**「`ZMK_TRANSPORT_NONE` 導入で `CONFIG_ZMK_USB=y` 時の preferred_transport が USB に固定され、split keyboard が boot 時に BLE endpoint を auto-select できない」) は別ブランチで対処予定。 本ブランチは override 起因のレース増幅のみを対象とし、効果不十分な場合に〈USB Transport Renunciation〉(`CONFIG_ZMK_USB=n`) → 〈Boot Endpoint Pinning〉(ZMK pin を PR #3140 前コミットへ固定) と段階的に深層治療する設計。 `feature/override-storm-sealing` ブランチで PR 化、GHA build 通過確認後に実機検証 (Apple 系での新規ペア・bt_solo 切替・再起動なし接続) を経て main マージ予定。 |
 | 2026-05-28 | 〈BT Solo Sigils · Pure Switch · Cardinal Echo〉— Administrator 側 (`5dbc91b`) の bt_solo 簡約を 42キー Cardinal へ同期。 `bt_solo_0..4` マクロから `&bt BT_DISC` 連射を撤去し純粋な `&bt BT_SEL N`（プロファイル切替のみ）へ変更。 旧版〈Phantom Connection Banishment〉では各 `bt_solo_N` が `BT_SEL N` 直後に他 4 profile へ `BT_DISC` を連射し非アクティブ profile を強制切断していたが、**(1)** 切替のたびに他の接続中ホストまで切断する副作用、**(2)** ペアリング進行中に押すと新規 bond 確立を破壊し「2台目以降ペア不可」を招く副作用、が大きく「無線が変になった」原因となっていた。 `config/keymap/20_macros.dtsi` の `bt_solo_0..4` の `bindings` を `<&bt BT_SEL N>` 単発へ簡約（Administrator commit `5dbc91b` の差分を `git apply` でクリーン適用、BT_DISC コード全除去を確認）。 これにより `bt_solo_N` と `bt_pair_N` は等価（共に純 BT_SEL）。 双子の BT sigil が再び対称に収束。 |
 | 2026-05-28 | 〈Modifier Sigil Truename Awakening · Cardinal Echo〉— Administrator 側 (`df471e2`) の Mod-Tap 修飾キー修正を 42キー Cardinal へ同期。 Cardinal Editor `live.html` の MEMORY REWRITE LIVE で「Mod-Tap binding を開くと修飾キー (ホールド時) slot の checkbox が意図と無関係な 4 modifier (例: LCtl/RSft/RAlt/RGui) に勝手にチェックが付く」症状を浄化。 原因: ZMK Studio は Mod-Tap の `param1` を **HID page-7 keyboard modifier usage** (`KBD(224..231)`) で encode するのに、`editor/live.js` の `BEHAVIOR_PARAM_SPEC['Mod-Tap'].p1.type='modmask'` + `buildModMaskSelector` が誤って modmask bitmask として解釈し `current & mask` で checkbox 状態を決めていたため、LSft (`458977=0x000700E1`) の下位バイト `0xE1` が `LCtl|RSft|RAlt|RGui` と偶発一致していた。 修正: 新型 `'hid-modifier'` を導入し Mod-Tap `p1.type` を `'modmask'`→`'hid-modifier'` へ転生、`buildHidModifierSelector` で 8 modifier を単一選択 dropdown 描画し HID usage を書き込む。 `adaptParamsForNewBehavior` は `'hid-modifier'` を `'hid'` と非互換扱いとし誤転生を封印。 dead code (`MOD_MASKS`/`buildModMaskSelector`/`case 'modmask'`) は浄化。 Administrator commit `df471e2` の live.js 差分を `git apply` でクリーン適用、`node --check` 通過。 双子の binding editor が再び対称となり、〈Memory Rewrite Live〉が Mod-Tap を真名で受理する。 |
 | 2026-05-28 | 〈Bond Overwrite Sanction Revert · Cardinal Echo〉— 〈Bond Overwrite Sanction · Cardinal Echo〉(`916ec8d`) で `Elucidator.conf` へ追加した `CONFIG_ZMK_BLE_EXPERIMENTAL_SEC=y` を **revert**。 Administrator 側で SEC 有効化が **BT Secure Connection のパスキー入力**を有効にし、ペアリング時にホストへ 6 桁のパスキー番号が表示・入力を要求される挙動に変わったため（利用者の望まない方式）撤回。 Cardinal も対称に SEC フラグを撤回し従来のパスキー不要ペアリングへ復帰。 `CONFIG_ZMK_BLE_EXPERIMENTAL_CONN=y`（接続安定性）は維持。 Admin 側 revert (`afe4c1a`) と対称。 |
