@@ -774,6 +774,6 @@ combos:
 - p: [1, 2]
   k: Sft+TAB
 - p: [19, 20]
-  k: '&mkp MB1'
+  k: ENTER
 - p: [40, 41]
   k: ESCAPE
