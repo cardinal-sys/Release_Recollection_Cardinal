@@ -1436,6 +1436,9 @@ const KBD_MAP = {
   70:'PRINTSCREEN',73:'INSERT',74:'HOME',75:'PAGE_UP',
   76:'DELETE',77:'END',78:'PAGE_DOWN',
   79:'RIGHT_ARROW',80:'LEFT_ARROW',81:'DOWN_ARROW',82:'UP_ARROW',
+  83:'KP_NUM',84:'KP_DIVIDE',85:'KP_MULTIPLY',86:'KP_MINUS',87:'KP_PLUS',88:'KP_ENTER',
+  89:'KP_NUMBER_1',90:'KP_NUMBER_2',91:'KP_NUMBER_3',92:'KP_NUMBER_4',93:'KP_NUMBER_5',
+  94:'KP_NUMBER_6',95:'KP_NUMBER_7',96:'KP_NUMBER_8',97:'KP_NUMBER_9',98:'KP_NUMBER_0',99:'KP_DOT',
   104:'F13',105:'F14',106:'F15',107:'F16',108:'F17',109:'F18',
   110:'F19',111:'F20',112:'F21',113:'F22',114:'F23',115:'F24',
   224:'LEFT_CONTROL',225:'LEFT_SHIFT',226:'LEFT_ALT',227:'LEFT_GUI',
@@ -1536,6 +1539,11 @@ const LABEL_TO_NODE = {
   'BT_PAIR_2':      'bt_pair_2',
   'BT_PAIR_3':      'bt_pair_3',
   'BT_PAIR_4':      'bt_pair_4',
+  'BT_DISC_0':      'bt_disc_0',
+  'BT_DISC_1':      'bt_disc_1',
+  'BT_DISC_2':      'bt_disc_2',
+  'BT_DISC_3':      'bt_disc_3',
+  'BT_DISC_4':      'bt_disc_4',
   // node name → キーマップ内ラベル alias（ZMK Studio がノード名で返す場合の alias 変換）
   // 例: `td_enter: tap_dance_enter { ... }` → displayName='tap_dance_enter', 使用名='td_enter'
   'tap_dance_enter': 'td_enter',
@@ -1572,6 +1580,11 @@ const CUSTOM_BEHAVIOR_PARAMS = {
   'bt_pair_2':     0,
   'bt_pair_3':     0,
   'bt_pair_4':     0,
+  'bt_disc_0':     0,
+  'bt_disc_1':     0,
+  'bt_disc_2':     0,
+  'bt_disc_3':     0,
+  'bt_disc_4':     0,
 };
 
 // p1 が HID key usage の場合はキーコードに変換、レイヤー番号の場合はそのまま返す
@@ -1588,11 +1601,18 @@ function _p1ToKc(p1) {
 }
 
 function _p2ToKc(p2) {
-  const page = (p2 >>> 16) & 0xFF;
-  const keyId = p2 & 0xFFFF;
-  if (page === 7) return KBD_MAP[keyId] ?? `0x${keyId.toString(16).padStart(4,'0')}`;
-  if (page === 12) return CONSUMER_MAP[keyId] ?? `0x${keyId.toString(16).padStart(4,'0')}`;
-  return KBD_MAP[keyId] ?? `0x${keyId.toString(16).padStart(4,'0')}`;
+  const implicit = (p2 >>> 24) & 0xFF;
+  const page     = (p2 >>> 16) & 0xFF;
+  const keyId    = p2 & 0xFFFF;
+  let kc;
+  if (page === 12) kc = CONSUMER_MAP[keyId] ?? `0x${keyId.toString(16).padStart(4,'0')}`;
+  else             kc = KBD_MAP[keyId]      ?? `0x${keyId.toString(16).padStart(4,'0')}`;
+  // implicit modifier（上位バイト）を LS()/LC()/… でラップして保持（例: LG(LEFT_BRACKET)）
+  if (implicit) {
+    const fns = Object.entries(MOD_FN).filter(([m]) => implicit & Number(m)).map(([,f]) => f);
+    kc = fns.reduce((inner, fn) => `${fn}(${inner})`, kc);
+  }
+  return kc;
 }
 
 function _bindingToZmk(b, behaviors) {
@@ -1612,7 +1632,9 @@ function _bindingToZmk(b, behaviors) {
       return kc.startsWith('&kp ') ? kc : `&kp ${kc}`;
     }
     case 'Mod-Tap': {
-      const modZmk = _modMaskToZmk(p1);
+      // p1 は HID keyboard modifier usage（0x000700E0..E7）。bitmask ではないため
+      // _p2ToKc で通常キー同様に decode する（KBD_MAP[225]=LEFT_SHIFT 等）。implicit mod も保持。
+      const modZmk = _p2ToKc(p1);
       const kc     = _p2ToKc(p2);
       return `&mt ${modZmk} ${kc}`;
     }
@@ -1675,7 +1697,9 @@ async function keymapToDtsiFiles(pat, branch) {
     try {
       const ghResp = await ghGetFile(pat, fpath, branch);
       if (ghResp.ok) {
-        const existing = atob(ghResp.data.content.replace(/\n/g, ''));
+        // UTF-8 安全デコード（書き込み側 btoa(unescape(encodeURIComponent(...))) と対称）。
+        // 単純な atob だけだと em-dash「—」や日本語コメントが多段文字化けするため。
+        const existing = decodeURIComponent(escape(atob(ghResp.data.content.replace(/\n/g, ''))));
         const hm = existing.match(/^(\/\*[\s\S]*?\*\/\n)/);
         if (hm) header = hm[1];
         const sm = existing.match(/(sensor-bindings\s*=\s*<[^>]+>;)/);
