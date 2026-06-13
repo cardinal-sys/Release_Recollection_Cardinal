@@ -412,6 +412,15 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 | arrows-alt L15 tick | 80ms | K ホールドスクロールの精密度。値が大きいほど 1 ノッチが大きい動きを要求 |
 | L5 SCROLL スケーラー | `1/1`（1x = 等速） | `zip_xy_to_scroll_mapper` 後段に `zip_snipe_scroll_scaler 1 1` を噛ませる現状は等速。`<1 2>` に変更すれば半速精密化に再昇華可能 |
 
+### ROTARY SIGIL ── EC11 ロータリーエンコーダー（Dark_Repulser / Cardinal.dtsi）
+
+*漆黒の反逆者の柄に宿る回転の印。一刻みが一拍と同調してこそ、術式は正しく廻る。*
+
+| 設定 | 値 | 効果 |
+|---|---|---|
+| EC11 steps | 48 | 1 回転あたりの quadrature パルス数（素体 Cygnus `a6429bb` 準拠。旧 12 はパルス数過小で 1 クリックが過剰トリガー化） |
+| triggers-per-rotation | 24 | 1 回転あたりのキーマップトリガー数。`48 / 24 = 2 steps/trigger` で 1 デテント = 1 トリガーに正規化 |
+
 ### THREAD STACK ── スレッドスタック（クラッシュ対策）
 
 *システムの安定を支える根幹。スタックが尽きればフラクトライトは瞬く間に崩壊する。*
@@ -437,6 +446,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-06-13 | 〈Cygnus Resonance · Rotary Sigil Recalibration · Cardinal Echo〉— 50キー版〈Administrator〉が素体 Cygnus（[Dist16384/Cygnus-M-Lkeymouse](https://github.com/Dist16384/Cygnus-M-Lkeymouse)）の `a6429bb` を取り込んだエンコーダー再調律を、42キー版〈Cardinal〉へ双子同期。`Cardinal.dtsi` の EC11 を `steps 12 → 48` / `triggers-per-rotation 10 → 24` へ再調律。旧 12/10 は素体コピー由来で 1 トリガー = 1.2 パルスという端数比のため 1 デテントで過剰・不規則トリガーが発生し得た（配線 `xiao_d 5`/`0` は Administrator と完全一致＝同一エンコーダー部品）。48/24（2 steps/trigger）で 1 クリック = 1 トリガーに正規化され、Dark_Repulser のエンコーダーが正しい拍で廻る。なお素体の他 3 件は Cardinal でも不採用/対応不要: **BLE 6/6 固定**は Apple(iPad) 系で ≈30ms 転落リスクのため `6/12` 堅持（双子同期済の `3393edf`〈EXPERIMENTAL_CONN Dissolution · Cardinal Echo〉で iPad ペアリングは既に手当て済）、**physical layout rx 修正**は独自配列で非該当、**A/S layer-tap 撤去**は独自 gesture_mo_kp 憑依済のため対象外。これにより 42キー〈Cardinal〉と 50キー〈Administrator〉双剣のエンコーダー解像度が再び対称同調する。 |
 | 2026-05-31 | 〈EXPERIMENTAL_CONN Dissolution · Cardinal Echo〉— 50キー版〈Administrator〉で iPad ペアリング不可（ボタンを押すとデバイス名ごと消える）の原因と判明した `CONFIG_ZMK_BLE_EXPERIMENTAL_CONN=y` を `Elucidator.conf` からも撤去。iPadOS の厳格な BLE スタックとの互換性問題。MacBook への影響なし（50キー版で検証済み）。 |
 | 2026-05-31 | 〈Live Sync Conduit Truename Hardening · Cardinal Echo〉— 50キー版〈Administrator〉(`7db53d1`) の Live Sync シリアライザ根治を 42キー Cardinal へ予防同期。Cardinal の `config/keymap/layers/*.dtsi` は現状クリーン（mojibake・`&bt_disc_N 0`・mod-tmask 化け・生hex 化いずれも無し）だが、`editor/live.js` の `_bindingToZmk()` は Administrator と同一の潜在バグを保持しており、**次に Live Sync すると同種破損が発生する**ため先回りで封印。`editor/live.js` を 6 点修正: **(1)** `CUSTOM_BEHAVIOR_PARAMS` / `LABEL_TO_NODE` に `bt_disc_0..4`（paramCount=0）登録（ゼロセルマクロへの余分な `0` 付与防止＝ビルドエラー予防）。 **(2)** Mod-Tap 修飾を `_modMaskToZmk(p1)`（HID modifier usage `0x000700E0..E7` を modmask ビット列と誤読し `&mt LEFT_SHIFT Q` を `&mt RG(RA(RS(LEFT_CONTROL))) Q` に化けさせる）から `_p2ToKc(p1)`（`KBD_MAP[225]=LEFT_SHIFT`）へ切替。 **(3)** `_p2ToKc` に implicit modifier 保持を追加（`LG(LBKT)`→`LEFT_BRACKET` 脱落防止）。 **(4)** `KBD_MAP` に keypad（`0x53..0x63`）追加（`&kp 0x0059` 生hex化防止）。 **(5)** 既存ファイル読込の `atob()` 単体を書込側と対称な `decodeURIComponent(escape(atob()))` へ（em-dash・日本語コメントの多段文字化け防止）。 検証: Node で `_bindingToZmk`/`_p2ToKc` を mock 駆動し Mod-Tap 修飾・implicit mod・bt_disc ゼロセル・keypad・UTF-8 ラウンドトリップ 7 ケース全合格。Cardinal の dtsi は無傷のため本コミットは `live.js` + README のみ（キーマップ不変）。 |
 | 2026-05-29 | 〈BT Disc Sigils Awakening · Cardinal Echo〉— 50キー版の bt_disc 再編を 42キー版に同期。`bt_disc_0..4` 新設・`bt_solo_0..4` / `bt_pair_0..4` 廃止・上段を `&bt BT_SEL 0..4` 直書きへ昇華。 |
