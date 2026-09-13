@@ -441,6 +441,18 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 > **[ CARDINAL ]** GitHub Actions により自動ビルド（`.github/workflows/build.yml`）。
 > Push を契機に自動実行される。Artifacts から `.uf2` ファイルをダウンロードし、デバイスへ書き込むことで起動が完了する。
 
+### ◆ 号機別識別 ── Fleet Designation
+
+*同じ〈Cardinal〉の器を三つ、同じMacに侍らせるための銘。左手（Dark Repulser・peripheral）はホストと直接ペアリングしないためMacのBluetooth一覧には単独で現れず、全号機で共通のまま据え置いている。右手（central・ホストと直接ペアリングする側）のみ号機ごとに真名を変え、ペアリング画面での識別を可能にした。*
+
+| 号機 | 右手（central・Mac表示名） | 左手（peripheral） | artifact-name |
+|---|---|---|---|
+| 1号機（原初） | Elucidator | Dark Repulser | `Elucidator`（既定） |
+| 2号機 | Night Sky Sword | Dark Repulser（1号機と共通） | `Elucidator_NightSkySword` |
+| 3号機 | Holy Sword Excalibur | Dark Repulser（1号機と共通） | `Elucidator_Excalibur` |
+
+> **[ SYSTEM ]** `build.yaml` の `cmake-args` で `CONFIG_ZMK_KEYBOARD_NAME` を号機ごとに上書きしているのみで、キーマップ・挙動は全号機共通。左手側の `.uf2` は3号機とも同一のため、1回のビルド成果物を3台の左手側すべてに書き込んでよい。右手側のみ号機に対応する artifact を選んで書き込むこと。50キー版〈Administrator〉の右手側は本表と重複しない名を別途採番している（現行 `Red Rose Sword` 想定、当該リポジトリ側で管理）。
+
 ══════════════════════════════════════════════
 
 ## ◆ SYSTEM LOG ── 更新履歴
@@ -449,6 +461,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-09-13 | 〈Fleet Designation · Triad Awakening〉— 同一42キー筐体を3台所持し、同じMacへペアリングすると`CONFIG_ZMK_KEYBOARD_NAME`が全て`Elucidator`で揃ってしまい判別不能という実運用課題への対処。原因を辿ると、Macのペアリング一覧に現れるのは`ZMK_SPLIT_ROLE_CENTRAL=y`側（右手・Elucidator）のみで、左手（Dark Repulser・peripheral）はcentral経由でしか接続されずホストの一覧には単独で現れない（`Kconfig.defconfig`で確認）。従って**右手側の表示名だけを号機ごとに変えれば十分**と判明し、左手側は3号機とも共通のDark Repulserのまま据え置くことにした（「大変だから」という運用上の割り切りとも一致）。実装は`build.yaml`の各buildエントリに追加された`cmake-args`フィールド（ZMK公式`build-user-config.yml`のワークフロー実装を直接確認して存在を検証済み）を使い、`-DCONFIG_ZMK_KEYBOARD_NAME="..."`でKconfigの`default`値を号機ごとに上書き。リポジトリを3つに複製する案（当初の相談内容）は不採用とし、単一リポジトリのまま`build.yaml`のmatrix拡張のみで対応した——README・west.yml・キーマップの管理箇所を1つに保てるため。命名は「他キャラの得物から新規ペアを」という方針で相談の上、最終的にキリトの剣で統一する方向に着地：2号機＝**Night Sky Sword**（夜空の剣、アリシゼーション編でBlue Rose Swordと共に二刀流した剣）、3号機＝**Holy Sword Excalibur**（ALO編の最強聖剣）。なお夜空の剣は50キー版〈Administrator〉の右手側で使用中だったため、そちらは`Red Rose Sword`（アドミニストレータ戦でキリトが夜空の剣と共に振るった、血で再構成されたBlue Rose Sword）へ改名を別途依頼し、名前の重複を解消した（50キー版側の変更は別リポジトリのため本コミットには含まれない）。 |
 | 2026-09-12 | 〈Idle Tax Removal · Host Latency Retrial〉— **実機検証済み。PC負荷時のキー入力・トラックボール遅延、解消を確認。** PCが他の処理（ブラウザ等）で混み合うと、キー入力とトラックボール移動が両方同時に遅延する症状の切り分け。両方同時に遅れることから、片方の処理（IIRフィルタ等）ではなく BLE 接続層／ホスト側 Bluetooth スタックという共有経路の問題と推定。ZMKソース（`app/Kconfig`）を確認したところ、`CONFIG_BT_PERIPHERAL_PREF_LATENCY`（ホストとの接続の Peripheral Latency）の既定値は **30** だが、`Elucidator.conf`/`Dark_Repulser.conf` では **0** に上書きされていた。Latency=0 は「データの有無に関わらず毎接続イベント（7.5〜15ms間隔）必ず応答」を意味し、ホストのBLEスタックをアイドル時も休ませない常時稼働状態にする。これが恒常的にホストのスケジューラへ負荷をかけ続け、他処理でホストが混み合った際にキー入力・トラックボール移動（同一BLE接続を共有）の両方が遅延する機序と推定。原型 `cardinal-sys/Cygnus-S-Lkeymouse` にはこの設定自体が存在せず既定30のまま。`CONFIG_BT_PERIPHERAL_PREF_LATENCY=0` 行を撤去（コメントアウト）し、既定30へ委ねた。**左右分割リンク側の `ZMK_SPLIT_BLE_PREF_LATENCY=0`（2026-05-XX導入、Left側キー入力の遅延パケット許容ゼロ化）はホスト接続とは別物で、今回のPC負荷症状とは無関係のため変更せず**。実機検証でPC負荷時の遅延解消を確認、アイドルからの復帰時の初動遅延等の新たな副作用も無し。`fix/ble-peripheral-latency-default` ブランチで PR化、main マージ済み。 |
 | 2026-09-11 | 〈Timeout Sigil Removal · Apple Compliance Retrial〉— **実機検証済み。iPadOSで2個目以降のプロファイルが繋がらない症状、解消を確認。** iPadOS で2個目以降のプロファイルが「一度は繋がるがすぐ切断される」症状の切り分け。`CONFIG_BT_PERIPHERAL_PREF_TIMEOUT=1000`（10秒）は Apple Accessory Design Guidelines の supervision timeout ≤ 6秒に違反しており、2026-08-02〈Supervision Timeout Resealing〉で 600（6秒）への単独差し替えを試みたが実機で切断解消を確認できず、同日〈Resealing Withdrawal〉で 1000 へ差し戻されていた。今回、原型 `cardinal-sys/Cygnus-S-Lkeymouse`（Mac・複数プロファイルペアリングとも正常に動いていたと報告あり）の `KeyballBLE_L/R.conf` を確認したところ、`BT_PERIPHERAL_PREF_TIMEOUT` を含む BLE チューニング一式（`BT_CTLR_PHY_2M`／`BT_CTLR_TX_PWR_PLUS_8`／`BT_CTLR_DATA_LENGTH_MAX`／`BT_BUF_ACL_TX_COUNT`等）が**一切存在しない**（Zephyr既定に委ねている）ことが判明。以前の実験は「600 という値」を試しただけで「設定を撤去してZephyr既定に委ねる」という原型と同じ状態は未検証だったため、`Elucidator.conf`/`Dark_Repulser.conf` の `CONFIG_BT_PERIPHERAL_PREF_TIMEOUT` 行を撤去（コメントアウト）し、原型と同じ既定挙動に戻した。`MIN_INT`/`MAX_INT`（Apple向けカクツキ対策、2026-05-26〈Apple HID Interval Compat〉導入）は変更せず timeout 単独での切り分けだったが、**実機検証で iPadOS 2個目以降のプロファイル接続が安定し、Mac 側の既存接続にも悪影響なし**と確認。`fix/ble-peripheral-timeout-default` ブランチで PR化、main マージ済み。 |
 | 2026-09-11 | 〈Rotary Sigil Ledger Correction · Records Realignment〉— CHARACTER PARAMETERS の ROTARY SIGIL 表が `848fb57` 時点の古い値（steps 48 / triggers-per-rotation 24）のまま残り、その後 `dca3d40` が意図的に 12/10 へ差し戻し、`423a992`/`3e3fd32` の SYSTEM LOG がその据え置きを明記していたにもかかわらず、表自体は追随していなかった記録違背を修正。表を実値 **12/10** へ更新し、48/24 への再調律 → `dca3d40` による意図的な差し戻し → #227 再現実験のための据え置き継続、という経緯を注記として刻んだ。コードの変更は無く、記録の巫女が己の記憶を実体と同調させたのみ。 |
