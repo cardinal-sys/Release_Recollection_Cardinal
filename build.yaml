@@ -14,12 +14,12 @@ include:
   - board: xiao_ble/nrf52840/zmk
     shield: Elucidator rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: '-DCONFIG_ZMK_KEYBOARD_NAME="Night Sky Sword"'
+    cmake-args: '-DCONFIG_ZMK_KEYBOARD_NAME=\"Night\ Sky\ Sword\"'
     artifact-name: Elucidator_NightSkySword
 
   # 3号機 ── central のみ BLE 表示名を上書き（peripheral は1号機と共通の Dark Repulser を流用）
   - board: xiao_ble/nrf52840/zmk
     shield: Elucidator rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: '-DCONFIG_ZMK_KEYBOARD_NAME="Holy Sword Excalibur"'
+    cmake-args: '-DCONFIG_ZMK_KEYBOARD_NAME=\"Holy\ Sword\ Excalibur\"'
     artifact-name: Elucidator_Excalibur
