@@ -352,6 +352,22 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 ══════════════════════════════════════════════
 
+## ◆ BATTERY SIGIL ── 残量インジケーター設定（zmk-rgbled-widget）
+
+*クリスタルは己の生命だけを語る。連れの声は代弁しない。*
+
+| 設定 | 値 | 効果 |
+|---|---|---|
+| RGBLED_WIDGET_BATTERY_SHOW | SELF（既定） | 起動時、自分（右手 Elucidator）の残量のみ1回点滅。左手（Dark Repulser）の残量は表示しない |
+| RGBLED_WIDGET_BATTERY_LEVEL_HIGH | 50% | これ以上で緑 |
+| RGBLED_WIDGET_BATTERY_LEVEL_LOW | 20% | これ未満〜HIGH未満で黄 |
+| RGBLED_WIDGET_BATTERY_LEVEL_CRITICAL | 10% | これ以下で赤（Critical） |
+| RGBLED_WIDGET_INTERVAL_MS | 250ms | 点滅間の最小待機時間 |
+
+> **[ SYSTEM ]** かつて `CONFIG_RGBLED_WIDGET_BATTERY_SHOW_PERIPHERALS=y`（自分＋左手の残量を続けて2回点滅）を有効化していたが、起動直後の split BLE 再接続が間に合わないと左手側の残量取得が `0`（未確定）扱いとなり、実残量とは無関係な「missing」色（既定マゼンタ）が混ざって点滅する不具合が判明。原型 Cygnus-S-Lkeymouse には該当設定自体が存在せず既定の SELF（自分のみ）表示のままだったため、同じ挙動へ撤去した（2026-09-13, SYSTEM LOG参照）。
+
+══════════════════════════════════════════════
+
 ## ◆ EQUIPPED MODULES ── 依存モジュール
 
 *このシステムを支える仲間たち。一つでも欠ければ、剣技は発動しない。*
@@ -463,6 +479,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-09-13 | 〈Peripheral Echo Silencing · Battery Sigil Restoration〉— ユーザー報告「バッテリー表示がおかしい、Cygnus-S-Lkeymouse を使っていた時はならなかった」を発端に調査。`Elucidator.conf` の `CONFIG_RGBLED_WIDGET_BATTERY_SHOW_PERIPHERALS=y` を発見 ―― `zmk-rgbled-widget` の `choice RGBLED_WIDGET_BATTERY_SHOW` において既定 `SELF`（自分のみ表示）から外れた非既定枝で、原型 `Dist16384/Cygnus-S-Lkeymouse`（`Cygnus_R.conf`）には存在せず既定のまま。`widget.c` の `indicate_battery()` を追跡した結果、この設定は起動時に「自分の残量→左手（Dark Repulser）の残量」と2回連続点滅させる一方、左手側の残量取得は起動直後 `CONFIG_RGBLED_WIDGET_BATTERY_BLINK_MS + CONFIG_RGBLED_WIDGET_INTERVAL_MS`（2000+250=約2.25秒）しかリトライせず、split BLE の再接続がこの時間内に間に合わないと `battery_level=0`（未確定）のまま `get_battery_color()` が「missing」色（既定マゼンタ）を返す仕様と判明。実残量とは無関係な色が起動のたびに混ざって見える体感不良の主因と推定し、`CONFIG_RGBLED_WIDGET_BATTERY_SHOW_PERIPHERALS=y` を撤去（コメントアウト）、原型と同じ SELF 表示へ戻した。**なお切り分けの過程で ZMK 本体側の可能性も検証**: 原型は `zmk` を `v0.3` タグ、当リポジトリは `ff09f2d0` コミットでピン留めしており異なるが、両バージョンの `app/src/battery.c`／電圧測定ドライバ（`battery_voltage_divider.c`）／`xiao_ble` の `vbatt` ノード定義（`io-channels`／`output-ohms`／`full-ohms`／電源GPIO）を diff し完全一致を確認 ―― バッテリー計算・電圧測定の根本ロジックに差分は無い。ユーザーからは追加で「Macに表示される%が実際の充電状態と不自然に食い違う（低すぎる／高すぎる）」という別症状も報告されており、こちらは上記コード比較だけでは原因を特定できず、実測値（充電直後の表示%等）の追加確認待ちで調査継続中。CHARACTER PARAMETERS に新設した BATTERY SIGIL 表も本変更に合わせて記載。 |
 | 2026-09-13 | 〈Fleet Designation Correction · Sixteen Sigil Limit〉— PR #32 のCI (`run #257`/`#258`) が連続して失敗した件の是正、二段階。①`cmake-args` に埋め込んだ `-DCONFIG_ZMK_KEYBOARD_NAME="..."` の二重引用符が、GitHub Actionsのbash非クォート埋め込みでシェル自身のクォート構文として消費され、cmakeへは引用符なしの値（`Night Sky Sword` 等スペース区切りの生文字列）が渡っていた。Zephyr側のKconfigフラグメント生成がこれを不正な文字列リテラルと判定し `Aborting due to Kconfig warnings` でビルド停止（`run #257`）。引用符とスペースの双方を `\"` `\ ` でエスケープし、bashのクォート解釈を経ても `CONFIG_ZMK_KEYBOARD_NAME="..."`（引用符文字を保持した単一引数）がcmakeに届くよう修正、ローカルでbashパース結果をシミュレーションして確認済み。②修正後の再ビルド（`run #258`）で3号機の `Holy Sword Excalibur`（20文字）が `zmk/app/src/ble.c` の `BUILD_ASSERT(...)`（`CONFIG_ZMK_KEYBOARD_NAME` 上限16文字）に抵触し `BLE device name is too long` でコンパイル停止（実機の問題ではなくビルド時静的アサート）。名称を `Excalibur`（9文字）に短縮して収束。2号機 `Night Sky Sword`（15文字）は上限内で無事ビルド成功。今後の号機命名では16文字上限を必ず確認すること（INITIALIZATION PROTOCOLセクションに注記追加）。 |
 | 2026-09-13 | 〈Fleet Designation · Triad Awakening〉— 同一42キー筐体を3台所持し、同じMacへペアリングすると`CONFIG_ZMK_KEYBOARD_NAME`が全て`Elucidator`で揃ってしまい判別不能という実運用課題への対処。原因を辿ると、Macのペアリング一覧に現れるのは`ZMK_SPLIT_ROLE_CENTRAL=y`側（右手・Elucidator）のみで、左手（Dark Repulser・peripheral）はcentral経由でしか接続されずホストの一覧には単独で現れない（`Kconfig.defconfig`で確認）。従って**右手側の表示名だけを号機ごとに変えれば十分**と判明し、左手側は3号機とも共通のDark Repulserのまま据え置くことにした（「大変だから」という運用上の割り切りとも一致）。実装は`build.yaml`の各buildエントリに追加された`cmake-args`フィールド（ZMK公式`build-user-config.yml`のワークフロー実装を直接確認して存在を検証済み）を使い、`-DCONFIG_ZMK_KEYBOARD_NAME="..."`でKconfigの`default`値を号機ごとに上書き。リポジトリを3つに複製する案（当初の相談内容）は不採用とし、単一リポジトリのまま`build.yaml`のmatrix拡張のみで対応した——README・west.yml・キーマップの管理箇所を1つに保てるため。命名は「他キャラの得物から新規ペアを」という方針で相談の上、最終的にキリトの剣で統一する方向に着地：2号機＝**Night Sky Sword**（夜空の剣、アリシゼーション編でBlue Rose Swordと共に二刀流した剣）、3号機＝**Holy Sword Excalibur**（ALO編の最強聖剣）。なお夜空の剣は50キー版〈Administrator〉の右手側で使用中だったため、そちらは`Red Rose Sword`（アドミニストレータ戦でキリトが夜空の剣と共に振るった、血で再構成されたBlue Rose Sword）へ改名を別途依頼し、名前の重複を解消した（50キー版側の変更は別リポジトリのため本コミットには含まれない）。 |
 | 2026-09-12 | 〈Idle Tax Removal · Host Latency Retrial〉— **実機検証済み。PC負荷時のキー入力・トラックボール遅延、解消を確認。** PCが他の処理（ブラウザ等）で混み合うと、キー入力とトラックボール移動が両方同時に遅延する症状の切り分け。両方同時に遅れることから、片方の処理（IIRフィルタ等）ではなく BLE 接続層／ホスト側 Bluetooth スタックという共有経路の問題と推定。ZMKソース（`app/Kconfig`）を確認したところ、`CONFIG_BT_PERIPHERAL_PREF_LATENCY`（ホストとの接続の Peripheral Latency）の既定値は **30** だが、`Elucidator.conf`/`Dark_Repulser.conf` では **0** に上書きされていた。Latency=0 は「データの有無に関わらず毎接続イベント（7.5〜15ms間隔）必ず応答」を意味し、ホストのBLEスタックをアイドル時も休ませない常時稼働状態にする。これが恒常的にホストのスケジューラへ負荷をかけ続け、他処理でホストが混み合った際にキー入力・トラックボール移動（同一BLE接続を共有）の両方が遅延する機序と推定。原型 `cardinal-sys/Cygnus-S-Lkeymouse` にはこの設定自体が存在せず既定30のまま。`CONFIG_BT_PERIPHERAL_PREF_LATENCY=0` 行を撤去（コメントアウト）し、既定30へ委ねた。**左右分割リンク側の `ZMK_SPLIT_BLE_PREF_LATENCY=0`（2026-05-XX導入、Left側キー入力の遅延パケット許容ゼロ化）はホスト接続とは別物で、今回のPC負荷症状とは無関係のため変更せず**。実機検証でPC負荷時の遅延解消を確認、アイドルからの復帰時の初動遅延等の新たな副作用も無し。`fix/ble-peripheral-latency-default` ブランチで PR化、main マージ済み。 |
