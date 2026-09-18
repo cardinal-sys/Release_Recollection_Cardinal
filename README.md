@@ -376,15 +376,17 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 |---|---|---|
 | zmk | zmkfirmware/zmk | ZMK 本体 |
 | zmk-pmw3610-driver | cardinal-sys/zmk-pmw3610-driver | PMW3610 トラックボールドライバー |
-| zmk-listeners | ssbb/zmk-listeners | レイヤーリスナー |
+| zmk-listeners | cardinal-sys/zmk-listeners | レイヤーリスナー |
 | zmk-mouse-gesture | cardinal-sys/zmk-mouse-gesture | マウスジェスチャー認識 |
-| zmk-scroll-snap | kot149/zmk-scroll-snap | スクロール軸スナップ（X/Y軸整列） |
-| zmk-rgbled-widget | caksoylar/zmk-rgbled-widget | RGB LED インジケーター |
-| zmk-pointing-acceleration-alpha | nuovotaka/zmk-pointing-acceleration-alpha | ポインタ加速度 |
-| zmk-behavior-insomnia | badjeff/zmk-behavior-insomnia | BLE 接続中スリープ防止 |
-| zmk-tri-state | urob/zmk-tri-state | アプリ切替スワッパー |
-| zmk-auto-layer | urob/zmk-auto-layer | Smart Num（数字入力で自動レイヤー維持） |
-| zmk-helpers | urob/zmk-helpers | キーマップ記述ヘルパーマクロ |
+| zmk-scroll-snap | cardinal-sys/zmk-scroll-snap | スクロール軸スナップ（X/Y軸整列） |
+| zmk-rgbled-widget | cardinal-sys/zmk-rgbled-widget | RGB LED インジケーター |
+| zmk-pointing-acceleration-alpha | cardinal-sys/zmk-pointing-acceleration-alpha | ポインタ加速度 |
+| zmk-behavior-insomnia | cardinal-sys/zmk-behavior-insomnia | BLE 接続中スリープ防止 |
+| zmk-tri-state | cardinal-sys/zmk-tri-state | アプリ切替スワッパー |
+| zmk-auto-layer | cardinal-sys/zmk-auto-layer | Smart Num（数字入力で自動レイヤー維持） |
+| zmk-helpers | cardinal-sys/zmk-helpers | キーマップ記述ヘルパーマクロ |
+
+> **[ CARDINAL ]** 8神器の依存モジュールは全て `cardinal-sys` 配下へ自前管理フォーク済み（〈Self-Governance Oath〉2026-09-18）。上流（ssbb / kot149 / caksoylar / nuovotaka / badjeff / urob）への参照は断ち切り、以後の更新は自らの意思で刻む。`revision` は各モジュールの動作確認済みコミットで固定のまま維持。
 
 ══════════════════════════════════════════════
 
@@ -482,6 +484,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-09-18 | 〈Self-Governance Oath〉— `origin`（`cardinal-sys/Release_Recollection_Cardinal`）は保険として一切手を加えず、`feature/self-managed-deps-migration` ブランチ上で外部依存8モジュール（`zmk-listeners` `zmk-scroll-snap` `zmk-rgbled-widget` `zmk-pointing-acceleration-alpha` `zmk-behavior-insomnia` `zmk-helpers` `zmk-tri-state` `zmk-auto-layer`）を `cardinal-sys` 配下へ全履歴付きで自前管理フォーク。`config/west.yml` の該当 `remote` を上流（ssbb/kot149/caksoylar/nuovotaka/badjeff/urob）から `cardinal-sys` へ書き換え、未使用となった上流remote定義は削除。`revision` は変更なし（各モジュールとも既存の動作確認済みコミットへ固定のまま）。新本体リポジトリ `cardinal-sys/Cardinal-v2` を作成し `new-origin` として追加、プッシュ準備段階。 |
 | 2026-09-16 | 〈Silent Vigil Recall〉— ユーザー報告「BLE再接続直後、トラックボールだけ無反応になり、ランダムなきっかけで復帰する（キー入力は正常）」を受けて調査。PMW3610ドライバ（`cardinal-sys/zmk-pmw3610-driver` 固定コミット `47db819`）の割り込み再有効化経路（`pmw3610_gpio_callback` → `pmw3610_work_callback` → 終了時に必ず `pmw3610_set_interrupt(dev, true)`）を確認したが、Zephyr本家 `subsys/input/input.c`（固定コミット `58a5874a`）側で「systemワークキュー上からの `input_report()` はタイムアウトが強制的に `K_NO_WAIT` に差し替えられブロックしない」仕様と判明し、割り込みが無限に再有効化されないまま固まる筋は否定できた。続けてZMK本体 `app/src/hog.c` のBLE HID通知経路（キーボード/コンシューマ/マウスの3系統）も確認したが、いずれも同一構造（通知失敗時もメッセージキューから必ず取り出して破棄、リトライなし）で、トラックボールだけを狙い撃ちする非対称な処理は見当たらなかった。**限界の申告**: ユーザーが実機シリアルログ採取（症状再現タイミングを掴むこと）を行える状況になく、上記の範囲では原因を確定できていない。原因不明のまま、直近の関連変更である〈Wakeful Vigil Suspension〉（2026-09-13、force-awake無効化）を試験的に差し戻す一変数の実験としてユーザーが選択、`Elucidator.overlay` の `force-awake;` を再有効化した。再接続直後のREST状態からの復帰待ちが要因である場合はこれで解消する可能性があるが、確証はない。効果がなければ本設定を再度コメントアウトして戻すこと。実機検証待ち。 |
 | 2026-09-16 | 〈Idle Tax Removal · Bilateral Sync〉— ユーザー報告「トラックボール操作時、PC負荷が高いとMacとの接続が一旦止まって再接続する」を受けて調査。まず`DATA_LENGTH_MAX`（前日撤去済み）を疑ったが、原型`Cygnus-S-Lkeymouse`もこの設定自体を持たず既定27バイトのまま運用実績があるため、この仮説は撤回。改めて`Elucidator.conf`/`Dark_Repulser.conf`を突き合わせたところ、`CONFIG_BT_PERIPHERAL_PREF_LATENCY=0`が**Dark_Repulser側にだけ残置**されていると判明。2026-09-12〈Idle Tax Removal〉のSYSTEM LOGは「両側で撤去済み」と記録していたが、実際のコードはL側のみ取りこぼされていた（記録と実態の乖離）。**限界の申告**: この設定はホスト（Mac）接続ではなくL-R間のsplit linkに対するものであり、症状（Mac接続時のトラックボール停止）を直接説明できる確証はない。ただし「右側と完全一致させる」という本ファイル自身の方針に反する非対称であり、Elucidator側は既に同じ変更を実機検証済み・副作用なしで運用しているため、症状との因果は不確定なまま是正を実施。撤去してもBLEペアリング関連（`BT_MAX_CONN`/`PAIRED`・`CONN_PARAM_UPDATE_TIMEOUT`等）とは独立した設定のため、ペアリング機能への影響はない。実機検証待ち。 |
 | 2026-09-14 | 〈Third Profile Interference · Operational Ward〉— 実機検証で判明した新事象。BLEペアリング関連の一連の修正（本SYSTEM LOG同日の他エントリ参照）後、1・2台目（Mac・iPad mini）のペアリングは解消したが、**3台目（別のiPad）のペアリングが失敗**（一覧に表示され押下できるが「ペアリングできません」ダイアログ）。使用したBT_SEL 2は空きスロットと確認済みで、ZMK公式Issue #837のような「使用中プロファイルへの誤ペアリング」ではないことを確定。ZMK公式ドキュメント「複数ホスト同時接続はbackgroundで維持される仕様通りの挙動」（1・2台目分の接続がsplit linkと合わせ同時に生きている）を踏まえ、Zephyr本家に複数報告のある「BLEマルチロール（central+peripheral同時稼働）下での新規接続処理の既知の問題群」（Issue #29223/#34837/#43647等）と類似の資源競合が疑われるが、本症状にピンポイントで一致する外部の確定事例は発見できず、仮説の域を出ない。**実機での回避策を確認**: 新規デバイスのペアリング前にキーボードの電源を再投入すると成功する（再現性あり）。根本原因の特定にはペアリング失敗の瞬間の実機シリアルログ採取（`CONFIG_ZMK_USB_LOGGING=y`）が必要だが、運用回避で実害は解消しているためユーザー判断により**今回は運用回避（新規ペアリング前に電源再投入）でクローズ**。コード変更なし。将来3台以上を頻繁に使う場面で再発したら本項を参照し、ログ採取から再開すること。 |

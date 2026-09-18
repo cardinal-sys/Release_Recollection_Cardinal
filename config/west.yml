@@ -1,21 +1,11 @@
 manifest:
+  # 〈Self-Governance Oath〉— 外部依存8モジュールは cardinal-sys 配下へ自前管理フォーク済み。
+  # 上流リポジトリへの参照は完全に断ち、以後の更新はこちらの意思でのみ行う。
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
     - name: cardinal-sys
       url-base: https://github.com/cardinal-sys
-    - name: ssbb
-      url-base: https://github.com/ssbb
-    - name: kot149
-      url-base: https://github.com/kot149
-    - name: caksoylar
-      url-base: https://github.com/caksoylar
-    - name: nuovotaka
-      url-base: https://github.com/nuovotaka
-    - name: badjeff
-      url-base: https://github.com/badjeff
-    - name: urob                              # ⑦⑧ zmk-helpers / zmk-tri-state
-      url-base: https://github.com/urob
 
   projects:
     - name: zmk
@@ -66,7 +56,7 @@ manifest:
       path: modules/zmk-pmw3610-driver
 
     - name: zmk-listeners
-      remote: ssbb
+      remote: cardinal-sys
       # `v1` はタグではなくブランチ。#227 時点の実コミットへ固定。
       revision: c240cea
       path: modules/zmk-listeners
@@ -77,37 +67,37 @@ manifest:
       path: modules/zmk-mouse-gesture
 
     - name: zmk-scroll-snap
-      remote: kot149
+      remote: cardinal-sys
       # `v1` はブランチのため #227(1f8fc86) → #228(dd21a0f) で黙って動いていた。
       # 差分は docs のみだが再現性のため #227 時点へ固定。
       revision: 1f8fc86
       path: modules/zmk-scroll-snap
 
     - name: zmk-rgbled-widget
-      remote: caksoylar
+      remote: cardinal-sys
       revision: b0b8cc2
       path: modules/zmk-rgbled-widget
     - name: zmk-pointing-acceleration-alpha
-      remote: nuovotaka
+      remote: cardinal-sys
       revision: 780dfcd
       path: modules/zmk-pointing-acceleration-alpha
     - name: zmk-behavior-insomnia
-      remote: badjeff
+      remote: cardinal-sys
       revision: 0ce76ae
       path: modules/zmk-behavior-insomnia
 
     - name: zmk-helpers                       # ⑦ keymap 記述ヘルパーマクロ
-      remote: urob
+      remote: cardinal-sys
       revision: "7e0219e"
       path: modules/zmk-helpers
 
     - name: zmk-tri-state                     # ⑧ Swapper（スマート Cmd+Tab）
-      remote: urob
+      remote: cardinal-sys
       revision: "2007896"
       path: modules/zmk-tri-state
 
     - name: zmk-auto-layer                    # ⑨ Smart Num（数字入力で自動レイヤー）
-      remote: urob
+      remote: cardinal-sys
       revision: dfa7c69
       path: modules/zmk-auto-layer
 
