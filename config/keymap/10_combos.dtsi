@@ -44,24 +44,14 @@ window_min {
     key-positions = <33 42>;
 };
 
-left_shift {
-    bindings = <&kp LEFT_SHIFT>;
-    key-positions = <0 1>;
-};
-
-right_shift {
-    bindings = <&kp RIGHT_SHIFT>;
-    key-positions = <8 9>;
-};
-
 tab {
     bindings = <&kp TAB>;
-    key-positions = <11 12>;
+    key-positions = <10 11>;
 };
 
 lctab {
     bindings = <&kp LS(TAB)>;
-    key-positions = <1 2>;
+    key-positions = <0 1>;
 };
 
 click {
