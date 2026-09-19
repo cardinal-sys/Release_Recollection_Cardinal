@@ -94,6 +94,13 @@ Claude Code の `git commit` はセッション署名サーバー（`/tmp/code-s
 - `git push` もプロキシ経由で動作する（`http://local_proxy@127.0.0.1:44719/git/cardinal-sys/Release_Recollection_Cardinal`）
 - ローカルプロキシが使えない場合は MCP ツール `mcp__github__push_files` で GitHub に直接プッシュする
 
+## CI ワークフロー参照ポリシー
+
+- `.github/workflows/build.yml` の `uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main` は**意図的に `@main` のまま運用する**（ユーザー判断・2026-09-19確認済み）。
+- 理由：ZMK本家のワークフロー改善・バグ修正を自動追従したいため。`config/west.yml` のfirmwareソース固定（SHA pin）とは別軸の判断であり、矛盾ではない。
+- トレードオフとして、ZMK本家CI側の破壊的変更（例：GitHub Actionsランナーの `ubuntu-latest` が指すOSバージョンの変更等）の影響を無条件に受ける。実際にビルドが赤くなった場合はその時点で原因切り分け・対応する。
+- **このポリシーについて、確認なしに `@main` を特定コミット/リリースタグへ固定する提案・変更をしないこと。** ユーザーから明示的に依頼があった場合のみ対応する。
+
 ## よくある作業フロー
 
 ### キーマップ変更（小さな調整）
@@ -120,3 +127,4 @@ gh run view <run_id> --repo cardinal-sys/Release_Recollection_Cardinal
 
 ## [ SYSTEM LOG ]
 - 記憶解放術式の編纂が Google Colab 経由で実行されました。
+- 2026-09-19: build.yml の ZMK共通ワークフロー参照（`@main`）について、Ubuntu 26移行リスクを認識した上で「最新追従を維持する」方針をユーザーが確定。SHA固定はしない。
