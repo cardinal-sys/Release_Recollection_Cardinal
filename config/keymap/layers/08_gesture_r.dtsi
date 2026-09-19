@@ -4,10 +4,7 @@
 
 GESTURE_R {
     bindings = <
-&trans  &trans  &trans  &trans          &trans                                      &trans  &trans  &kp LEFT_SHIFT  &trans          &trans
-&trans  &trans  &trans  &trans          &trans          &trans              &trans  &trans  &trans  &kp LEFT_SHIFT  &kp LEFT_SHIFT  &trans
-&trans  &trans  &trans  &trans          &trans          &trans              &trans  &trans  &trans  &trans          &trans          &trans
-&trans  &trans  &trans  &kp LEFT_SHIFT  &kp LEFT_SHIFT  &kp LEFT_SHIFT      &trans  &trans                                          &trans
+    &trans  &trans  &trans  &trans  &trans  &trans  &trans  &kp LEFT_SHIFT  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &kp LEFT_SHIFT  &kp LEFT_SHIFT  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &kp LEFT_SHIFT  &kp LEFT_SHIFT  &kp LEFT_SHIFT  &trans  &trans  &trans
     >;
 
     sensor-bindings = <&inc_dec_kp LG(MINUS) LG(PLUS)>;
