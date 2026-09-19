@@ -769,9 +769,9 @@ combos:
   k: LEFT SHIFT
 - p: [8, 9]
   k: RIGHT SHIFT
-- p: [11, 12]
+- p: [10, 11]
   k: TAB
-- p: [1, 2]
+- p: [10, 11]
   k: Sft+TAB
 - p: [19, 20]
   k: ENTER
