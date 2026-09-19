@@ -765,13 +765,9 @@ combos:
   k: Gui+W
 - p: [33, 42]
   k: Gui+M
-- p: [0, 1]
-  k: LEFT SHIFT
-- p: [8, 9]
-  k: RIGHT SHIFT
 - p: [10, 11]
   k: TAB
-- p: [10, 11]
+- p: [0, 1]
   k: Sft+TAB
 - p: [19, 20]
   k: ENTER
