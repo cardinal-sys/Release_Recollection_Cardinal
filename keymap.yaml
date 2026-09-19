@@ -17,7 +17,7 @@ layers:
   - F
   - {t: G, h: Bluetooth}
   - '&smart_num 16'
-  - '@'
+  - Sft+2
   - H
   - J
   - {t: K, h: SCROLL}
@@ -29,13 +29,13 @@ layers:
   - V
   - {t: B, h: GESTURE_B}
   - {t: TAB, h: '&smart_snipe 15'}
-  - ':'
+  - Sft+;
   - N
   - M
   - ','
   - .
-  - {t: +, h: LEFT CONTROL}
-  - LCTRL
+  - {t: Sft+=, h: LEFT CONTROL}
+  - LEFT CONTROL
   - LEFT GUI
   - LEFT ALT
   - {t: ESC, h: SIGN}
@@ -78,7 +78,7 @@ layers:
   - Gui+Q
   - Gui+W
   - Gui+P
-  - Sft+Gui+5
+  - Gui+Sft+5
   - {t: F12, h: LEFT CONTROL}
   - {t: F19, h: LEFT GUI}
   - {t: F18, h: LEFT ALT}
@@ -87,42 +87,42 @@ layers:
   - Gui+BACKSPACE
   - BACKSPACE
   - {t: ▽, type: trans}
-  - Sft+Gui+4
+  - Gui+Sft+4
   SIGN:
-  - '%'
-  - '!'
-  - '#'
-  - $
-  - '&'
+  - Sft+5
+  - Sft+1
+  - Sft+3
+  - Sft+4
+  - Sft+7
   - '['
   - ']'
-  - '{'
-  - '}'
-  - '~'
-  - {t: TAB, h: LSHIFT}
-  - '"'
+  - Sft+[
+  - Sft+]
+  - Sft+`
+  - {t: TAB, h: LEFT SHIFT}
+  - Sft+'
   - ''''
   - '`'
-  - '?'
+  - Sft+/
   - /
   - '='
-  - (
-  - )
+  - Sft+9
+  - Sft+0
   - '-'
-  - '@'
+  - Sft+2
   - ;
-  - LSHIFT
+  - LEFT SHIFT
   - Alt+Y
-  - '|'
+  - Sft+\
   - .
   - ','
-  - +
-  - '*'
-  - <
-  - '>'
-  - _
+  - Sft+=
+  - Sft+8
+  - Sft+,
+  - Sft+.
+  - Sft+-
   - \
-  - ':'
+  - Sft+;
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
@@ -134,7 +134,7 @@ layers:
   - {t: ▽, type: trans}
   NUM:
   - {t: ▽, type: trans}
-  - Ctl+Alt+V
+  - Alt+Ctl+V
   - Gui+Sft+3
   - Gui+Sft+4
   - {t: ▽, type: trans}
@@ -161,9 +161,9 @@ layers:
   - Gui+Y
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
-  - +
+  - Sft+=
   - '-'
-  - '*'
+  - Sft+8
   - /
   - .
   - ','
@@ -177,20 +177,20 @@ layers:
   - ENTER
   - Gui+Z
   MOUSE:
-  - '&mmv MOVE_LEFT'
-  - '&mmv MOVE_DOWN'
-  - '&mmv MOVE_UP'
-  - '&mmv MOVE_RIGHT'
+  - '&mmv 4255645696'
+  - '&mmv 600'
+  - '&mmv 64936'
+  - '&mmv 39321600'
   - Gui+T
   - Gui+Z
   - Gui+]
   - {t: 'Gui+[', h: SCROLL}
   - Gui+A
   - Ctl+H
-  - '&msc MOVE_RIGHT'
-  - '&msc MOVE_DOWN'
-  - '&msc MOVE_UP'
-  - '&msc MOVE_LEFT'
+  - '&msc 39321600'
+  - '&msc 600'
+  - '&msc 64936'
+  - '&msc 4255645696'
   - '&arrows_alt 6'
   - '&mkp MB1'
   - '&safari_reload_once'
@@ -221,20 +221,20 @@ layers:
   - DOWN ARROW
   - {t: ▽, type: trans}
   SCROLL:
-  - '&mmv MOVE_LEFT'
-  - '&mmv MOVE_DOWN'
-  - '&mmv MOVE_UP'
-  - '&mmv MOVE_RIGHT'
+  - '&mmv 4255645696'
+  - '&mmv 600'
+  - '&mmv 64936'
+  - '&mmv 39321600'
   - {t: ▽, type: trans}
   - LEFT SHIFT
   - RIGHT ALT
   - {type: held}
   - RIGHT CONTROL
   - {t: ▽, type: trans}
-  - '&msc MOVE_RIGHT'
-  - '&msc MOVE_DOWN'
-  - '&msc MOVE_UP'
-  - '&msc MOVE_LEFT'
+  - '&msc 39321600'
+  - '&msc 600'
+  - '&msc 64936'
+  - '&msc 4255645696'
   - GESTURE_R
   - {t: default, h: toggle}
   - {t: ▽, type: trans}
@@ -292,7 +292,7 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - Gui+Alt+ESC
-  - Ctl+Gui+Q
+  - Gui+Ctl+Q
   - '&bootloader'
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
@@ -677,7 +677,7 @@ layers:
   - F
   - {t: G, h: Bluetooth}
   - '&smart_num 16'
-  - '@'
+  - Sft+2
   - H
   - J
   - {t: K, h: '&arrows_alt 15'}
@@ -689,13 +689,13 @@ layers:
   - V
   - {t: B, h: GESTURE_B}
   - TAB
-  - ':'
+  - Sft+;
   - N
   - M
   - ','
   - .
-  - {t: +, h: LEFT CONTROL}
-  - LCTRL
+  - {t: Sft+=, h: LEFT CONTROL}
+  - LEFT CONTROL
   - LEFT GUI
   - LEFT ALT
   - {t: ESC, h: SIGN, type: held}
@@ -730,12 +730,12 @@ layers:
   - {t: ',', h: LEFT SHIFT}
   - .
   - /
-  - '*'
+  - Sft+8
   - '-'
-  - +
-  - +
+  - Sft+=
+  - Sft+=
   - '-'
-  - '*'
+  - Sft+8
   - /
   - .
   - ','
