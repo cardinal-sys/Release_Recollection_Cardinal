@@ -123,7 +123,7 @@
         reg = <0>;
         spi-max-frequency = <2000000>;
         irq-gpios    = <&gpio0 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-        cpi = <1000>;
+        cpi = <1400>;
         /* 〈Filter Bypass〉— α=1024 (=1.0) で IIR を恒等写像に落とし濾波器を無効化。
          * 既定 614 (α=0.6) は整数切り捨てのため低速域でカウントを取りこぼし、
          * さらに filtered_x/y が init 以外でリセットされないため停止後の再始動に
