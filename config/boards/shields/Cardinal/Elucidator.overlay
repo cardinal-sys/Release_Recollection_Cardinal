@@ -55,7 +55,7 @@
             scroll-inertia-fast-spd     = <15>;
             scroll-inertia-tick-ms      = <4>;
             scroll-flick-threshold      = <5>;
-            scroll-flick-boost          = <12000>;
+            scroll-flick-boost          = <8000>;
         };
 
         /* ジェスチャー定義（変更なし） */
@@ -78,7 +78,7 @@
             layers = <5>;
             input-processors = <
                 &zip_xy_to_scroll_mapper
-                &zip_snipe_scroll_scaler 1 1
+                &zip_snipe_scroll_scaler 1 2
                 &zip_scroll_snap
             >;
         };
@@ -123,7 +123,7 @@
         reg = <0>;
         spi-max-frequency = <2000000>;
         irq-gpios    = <&gpio0 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-        cpi = <2200>;
+        cpi = <1100>;
         /* 〈Filter Bypass〉— α=1024 (=1.0) で IIR を恒等写像に落とし濾波器を無効化。
          * 既定 614 (α=0.6) は整数切り捨てのため低速域でカウントを取りこぼし、
          * さらに filtered_x/y が init 以外でリセットされないため停止後の再始動に
@@ -149,7 +149,7 @@
         force-awake;
         snipe-layers  = <15>;
         scroll-layers = <5>;
-        cpi-layers    = <4 3200>;
+        cpi-layers    = <4 1600>;
         arrows-profiles = < 2 1020 1021 1023 1022 40 0 1 0 3 103 108 105 106 40 0 1 0 6 1068 1069 58 90 200 1 1 1 >;
         arrows-alt-profiles = < 15 2000 2001 2002 2003 80 0 1 0 3 1000 1004 14 111 120 0 1 1 2 1005 1003 1001 1002 120 0 1 1 6 164 166 165 163 200 0 1 0 >;
         arrows-no-repeat-layers = <2 3 4 6>;
@@ -169,13 +169,12 @@
 &qspi { status = "disabled"; };
 
 &pointer_accel {
+    /* 〈Native Feel Tuning〉— 加速は macOS 側に任せ、ファーム側は等倍・線形に固定。
+     * sensor-dpi=800 は DPI 補正の基準値（補正なし）。速さは cpi で決める */
     input-type = <INPUT_EV_REL>;
     codes = <INPUT_REL_X INPUT_REL_Y>;
     sensitivity = <1000>;
-    max-factor = <16000>;
-    acceleration-exponent = <3>;
-    speed-threshold = <0>;
-    speed-max = <1500>;
-    min-factor = <1000>;
-    sensor-dpi = <2200>;
+    max-factor = <1000>;
+    curve-type = <0>;
+    sensor-dpi = <800>;
 };
