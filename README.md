@@ -431,10 +431,10 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 | PMW3610 force-awake | **再有効化**（2026-09-13〜09-16は無効化） | 〈Wakeful Vigil Suspension〉（2026-09-13）でバッテリー%変動切り分けのため無効化していたが、〈Silent Vigil Recall〉（2026-09-16）でBLE再接続直後にトラックボールのみ無反応になる症状の切り分け実験として再有効化。センサーを常時RUNモード（高消費電流）に固定し、REST復帰待ちが要因である可能性を一変数で検証中。実機シリアルログが採取できないため原因の確定はできておらず、効果がなければ再度無効化に戻す想定 |
 | PMW3610 4ms モード | **無効**（削除済み） | BLE 7.5ms インターバルとのミスマッチによるポインタジャンプを防止 |
 | PMW3610 IIR フィルタ | `iir-filter-alpha = <1024>`（α=1.0 = 無効） | 〈Filter Bypass〉。既定 614 (α≈0.6) は整数切り捨てで低速域のカウントを落とし、`filtered_x/y` が init 以外でリセットされないため停止後の再始動に残響が混じる。カクツキ切り分けの単一変数実験として恒等写像化 |
-| PMW3610 CPI | 1000 | 通常カーソル CPI（2200 から約半減。センサーは 200 刻みなので 1000）。〈Native Feel Tuning〉）。`pointer_accel` は CUSTOM・等倍・線形（sensitivity 1000 / max-factor 1000 / curve-type 0 / sensor-dpi 800）で、加速は macOS 側に任せる。SNIPE 中はドライバが自動低減 |
+| PMW3610 CPI | 1400 | 通常カーソル CPI（2200 → 1000 → 1400。センサーは 200 刻み。〈Cursor Pace〉）。〈Native Feel Tuning〉）。`pointer_accel` は CUSTOM・等倍・線形（sensitivity 1000 / max-factor 1000 / curve-type 0 / sensor-dpi 800）で、加速は macOS 側に任せる。SNIPE 中はドライバが自動低減 |
 | PMW3610 cpi-layers | `<4 1600>` | L4 MOUSE アクティブ時はセンサー CPI を 1600 に動的切替（〈Resolution Shift〉) |
 | arrows-alt L15 tick | 80ms | K ホールドスクロールの精密度。値が大きいほど 1 ノッチが大きい動きを要求 |
-| L5 SCROLL スケーラー | `3/2`（1.5x） | `zip_xy_to_scroll_mapper` 後段の `zip_snipe_scroll_scaler 3 2`。〈Scroll Tempo〉で CPI 1000 に合わせ等速から 1.5 倍へ（カーソルは良好だがスクロールだけもたつくため。整数で拡大するので小さな動きは切り捨てられない）。〈Native Feel Tuning〉で半速（`1 2`）を試したが、スケーラーは余りを持ち越さず整数除算のため小さな動きが 0 に切り捨てられ反応が悪化、等速へ戻した（速さは CPI 側で下げる）。慣性 `zip_scroll_inertia` は定義のみで L5 の処理列に入っておらず現状は未使用（値は据え置き） |
+| L5 SCROLL スケーラー | `1/1`（1x = 等速） | `zip_xy_to_scroll_mapper` 後段の `zip_snipe_scroll_scaler 1 1`。〈Cursor Pace〉で CPI を 1400 へ上げたため、スクロールの実効速度を維持する目的で 1.5 倍（`3 2`）から等速へ戻した（1000×1.5 ≒ 1400×1）。〈Scroll Tempo〉で CPI 1000 に合わせ等速から 1.5 倍へ（カーソルは良好だがスクロールだけもたつくため。整数で拡大するので小さな動きは切り捨てられない）。〈Native Feel Tuning〉で半速（`1 2`）を試したが、スケーラーは余りを持ち越さず整数除算のため小さな動きが 0 に切り捨てられ反応が悪化、等速へ戻した（速さは CPI 側で下げる）。慣性 `zip_scroll_inertia` は定義のみで L5 の処理列に入っておらず現状は未使用（値は据え置き） |
 
 ### ROTARY SIGIL ── EC11 ロータリーエンコーダー（Dark_Repulser / Cardinal.dtsi）
 
@@ -484,6 +484,7 @@ GitHub Personal Access Token（`repo` スコープ必須）をブラウザに入
 
 | DATE | ENTRY |
 |---|---|
+| 2026-10-28 | 〈Cursor Pace〉— 〈Native Feel Tuning〉(PR #4) で 1000 に下げた通常カーソルの `cpi` を、もう少し速くしたいとの要望で 1000 → 1400 へ（200 刻み）。スクロールは〈Scroll Tempo〉〈Scroll Instant Response〉(PR #5) で実機 OK のため据え置き。L4 の `cpi-layers`(1600) も据え置き。スクロールはカーソルと同じ CPI を使うため、実効速度を保つよう L5 のスケーラーを `3 2` → `1 1` へ（1000×1.5 ≒ 1400×1）。数値は推定の初期値で実機で再調整する前提（戻すときは 1000）。 |
 | 2026-10-28 | 〈Scroll Instant Response〉— ボールを回してもスクロールがすぐ反応しないとの報告。`zip_scroll_snap` の既定 `require-n-samples=10` が、動き出し（無操作 200ms 後ごと）から 10 イベント溜まるまでスクロールを全て破棄して軸判定を待つ実装（`input_processor_scroll_snap.c` で確認）で、CPI を下げたことで 10 イベントに達するまでの時間が伸び、初動の遅れとして表面化したと推定。`&zip_scroll_snap` を overlay で上書きし `require-n-samples` を 10 → 3 に短縮。副作用として回し始めの軸判定が粗くなり水平混入が増える可能性がある（出たら 5〜6 へ）。実機未確認。 |
 | 2026-10-28 | 〈Scroll Tempo〉— 〈Native Feel Tuning〉(PR #4) 適用後、カーソルは良好だがスクロールだけもたつくとの報告。スクロールはカーソルより CPI 低下の影響を受けやすいと推定し、L5 のスケーラーを `1 1` → `3 2`（1.5 倍）へ。`1 2` は小さな動きが 0 に切り捨てられ反応が悪化済みのため、拡大側（整数倍）で調整。数値は推定の初期値で実機で再調整する前提（戻すときは `1 1`）。 |
 | 2026-10-28 | 〈Native Feel Tuning · Mac Native Tempo〉— 移動もスクロールも速すぎるとの報告を受け、Mac 純正（トラックパッド）の使い心地へ寄せる調整。①`PRESET_HIGH_SENS_TRACKBALL` は DT 値を上書きし、`&pointer_accel` の記述が一切効いていなかった（実効 sensitivity 1400・緩い二次カーブ）ため `PRESET_CUSTOM` へ変更し、sensitivity 1000 / max-factor 1000 / curve-type 0 / sensor-dpi 800 の等倍・線形に固定（加速は macOS 側に任せ二重加速を避ける）。②`cpi` 2200 → 1000（センサーは 200 刻み）、L4 の `cpi-layers` 3200 → 1600。③L5 スクロールのスケーラーは `1 2` を試したが反応悪化のため `1 1` のまま（余り非保持の整数除算で小さな動きが 0 になる）、慣性 `zip_scroll_inertia` は処理列に入っておらず未使用のため変更なし。数値は推定の初期値で、実機の感覚で再調整する前提（戻すときは各行を元の値へ）。 |
