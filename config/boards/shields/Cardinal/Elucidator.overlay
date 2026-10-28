@@ -169,13 +169,15 @@
 &qspi { status = "disabled"; };
 
 &pointer_accel {
-    /* 〈Native Feel Tuning〉— 加速は macOS 側に任せ、ファーム側は等倍・線形に固定。
-     * sensor-dpi=800 は DPI 補正の基準値（補正なし）。速さは cpi で決める */
+    /* 〈Firmware Accel〉— macOS の「ポインタの加速」は低速で動きがぎこちなくなるため
+     * オフにして、加速はファーム側の弱い加速に一本化する（どのホストでも同じ挙動）。
+     * 低速は等倍、素早い動きだけ最大 1.8 倍。効きすぎる場合は max-factor を下げる。
+     * sensor-dpi=800 は DPI 補正の基準値（補正なし）。基本の速さは cpi で決める */
     input-type = <INPUT_EV_REL>;
     codes = <INPUT_REL_X INPUT_REL_Y>;
     sensitivity = <1000>;
-    max-factor = <1000>;
-    curve-type = <0>;
+    max-factor = <1800>;
+    curve-type = <1>;
     sensor-dpi = <800>;
 };
 
