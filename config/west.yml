@@ -6,6 +6,8 @@ manifest:
       url-base: https://github.com/zmkfirmware
     - name: cardinal-sys
       url-base: https://github.com/cardinal-sys
+    - name: cormoran
+      url-base: https://github.com/cormoran
 
   projects:
     - name: zmk
@@ -100,6 +102,14 @@ manifest:
       remote: cardinal-sys
       revision: dfa7c69
       path: modules/zmk-auto-layer
+
+    # 〈Freeze Sentinel〉— 固まり・ハードフォルトを検知して記録し、自動で再起動する。
+    # 右手が固まりリセットボタンまで戻らない症状の切り分けと自動復帰が目的。
+    # Studio RPC（記録の閲覧）は改造ZMKが必要なため使わない。検知と再起動のみ。
+    - name: zmk-feature-watchdog
+      remote: cormoran
+      revision: 84ad14c6c3645dc40b23f45d08ab45418655f912
+      path: modules/zmk-feature-watchdog
 
   self:
     path: config
