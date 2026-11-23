@@ -11,6 +11,10 @@ draw_config:
     rect.key { fill: #070e20; stroke: #0e1e3c; }
     rect.side { fill: #0b1830; filter: none; }
     rect.held, rect.combo.held { fill: #030b24; stroke: #1d4ed8; stroke-width: 2; filter: drop-shadow(0 0 6px rgba(29,78,216,1.0)) drop-shadow(0 0 16px rgba(29,78,216,0.45)); }
+    /* FUNCTION は td_enter（タップダンス）で入るため keymap-drawer が held を自動判定できない。
+       右親指の ENTER（位置41）に対応する FUNCTION 側のキーへ、held と同じ装飾を当てる。
+       キー配置を変えたらこの番号も見直す。 */
+    .layer-FUNCTION .keypos-41 rect.key { fill: #030b24; stroke: #1d4ed8; stroke-width: 2; filter: drop-shadow(0 0 6px rgba(29,78,216,1.0)) drop-shadow(0 0 16px rgba(29,78,216,0.45)); }
     rect.combo, rect.combo-separate { fill: #080e24; stroke: #6366f1; stroke-width: 2; filter: drop-shadow(0 0 6px rgba(99,102,241,1.0)) drop-shadow(0 0 16px rgba(99,102,241,0.45)); }
     rect.ghost { stroke: #67e8f9; }
     text.trans { fill: #090f1e; }
@@ -62,6 +66,8 @@ parse_config:
     "&kp LS(PERIOD)": ">"
     "&kp LS(SLASH)": "?"
     # カスタムbehavior（& プレフィックス必須。無いと raw_binding_map は一切マッチしない）
+    # FUNCTION への入口（長押し=レイヤー1）。ENTER の長押しが FUNCTION と分かる表記にする
+    "&td_enter": {t: ENTER, h: FUNCTION}
     "&smart_num 16": "Sm\nNum"
     "&smart_snipe 15": "Sm\nSnipe"
     "&mkp MB1": "MB1"
